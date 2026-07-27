@@ -1,0 +1,40 @@
+:root{
+  --bg:#f7f7f7;
+  --surface:#fff;
+  --primary:#1cb0f6;
+  --primary-dark:#0f8ac9;
+  --primary-light:#ddf4ff;
+  --green:#58cc02;
+  --green-light:#e5f5d0;
+  --orange:#ff9600;
+  --orange-light:#fff1d6;
+  --rose:#ff4b4b;
+  --rose-light:#ffdede;
+  --text:#2b2b2b;
+  --text-secondary:#777;
+  --text-tertiary:#afafaf;
+  --border:#e5e5e5;
+  --border-light:#f0f0f0;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.06);
+  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --radius:14px;
+  --radius-sm:10px;
+  --font:'Inter','Noto Sans SC',system-ui,-apple-system,sans-serif;
+  --mono:'SF Mono','JetBrains Mono','Menlo',monospace;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{
+  height:100%;font-family:var(--font);background:#ddd;
+  color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+
+@media(max-width:480px){
+  body{background:var(--bg);overflow:auto}
+  #app-root{width:100%!important;height:100vh!important;border-radius:0!important;margin:0!important;box-shadow:none!important}
+  .phone-notch{display:none!important}
+  .status-bar{padding:10px 20px 4px!important;font-size:11px!important}
+}
+@media(min-width:481px){
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh}
+}

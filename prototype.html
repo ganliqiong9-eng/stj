@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>学习伴侣</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,500;14..32,600;14..32,700;14..32,800&family=Noto+Sans+SC:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f7f7f7;
+  --surface:#fff;
+  --primary:#1cb0f6;
+  --primary-dark:#0f8ac9;
+  --primary-light:#ddf4ff;
+  --green:#58cc02;
+  --green-light:#e5f5d0;
+  --orange:#ff9600;
+  --orange-light:#fff1d6;
+  --rose:#ff4b4b;
+  --rose-light:#ffdede;
+  --text:#2b2b2b;
+  --text-secondary:#777;
+  --text-tertiary:#afafaf;
+  --border:#e5e5e5;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.06);
+  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --radius:14px;
+  --radius-sm:10px;
+  --font:'Inter','Noto Sans SC',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','SF Mono','Menlo',monospace;
+}
+html,body{height:100%;font-family:var(--font);background:#ddd;color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased}
+.phone-frame{width:390px;height:844px;background:var(--bg);border-radius:48px;box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 24px 80px rgba(0,0,0,.2);overflow:hidden;position:relative;margin:40px auto;display:flex;flex-direction:column}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:160px;height:30px;background:#2b2b2b;border-radius:0 0 20px 20px;z-index:100}
+.phone-notch::after{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:10px;height:10px;border-radius:50%;background:#555}
+.status-bar{display:flex;justify-content:space-between;padding:14px 28px 4px;font-size:12px;font-weight:600;color:var(--text);z-index:99;position:relative}
+.page{display:none;flex-direction:column;flex:1;overflow:hidden;animation:slideUp .35s cubic-bezier(.22,1,.36,1)}
+.page.active{display:flex}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.scroll{flex:1;overflow-y:auto;padding:0 16px 76px;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
+.content-scroll{padding:0 16px 20px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.content-scroll::-webkit-scrollbar{display:none}
+
+/* ===== 首页 Duolingo 风格 ===== */
+.top-strip{display:flex;align-items:center;gap:8px;padding:6px 16px 2px}
+.top-strip .logo{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text)}
+.top-strip .streak-badge{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;background:var(--orange-light);color:#b36b00;font-size:12px;font-weight:700;margin-left:auto}
+.top-strip .xp-badge{display:flex;align-items:center;gap:3px;padding:4px 10px;border-radius:20px;background:var(--primary-light);color:var(--primary-dark);font-size:12px;font-weight:700}
+.top-greeting{padding:2px 16px 0;font-size:14px;color:var(--text-secondary);margin-bottom:10px}
+.top-greeting strong{color:var(--text)}
+
+/* 继续学习卡片 */
+.resume-card{background:var(--surface);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow-sm);cursor:pointer;position:relative;overflow:hidden;border:2px solid transparent;transition:border .2s}
+.resume-card:active{border-color:var(--primary);transform:scale(.99)}
+.resume-card .rc-tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin-bottom:4px}
+.resume-card h3{font-size:17px;font-weight:700;margin-bottom:2px}
+.resume-card .rc-sub{font-size:13px;color:var(--text-secondary);margin-bottom:8px}
+.resume-card .rc-progress{display:flex;align-items:center;gap:10px}
+.resume-card .rc-bar{flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden}
+.resume-card .rc-bar .fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--primary),var(--green));transition:width .5s ease}
+.resume-card .rc-pct{font-size:14px;font-weight:700;color:var(--primary)}
+.resume-card .rc-play{width:44px;height:44px;border-radius:50%;border:none;background:var(--primary);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;position:absolute;right:14px;top:50%;transform:translateY(-50%);box-shadow:0 4px 12px rgba(28,176,246,.3);cursor:pointer}
+.resume-card .rc-play:active{transform:translateY(-50%) scale(.9)}
+
+/* 科目圆形进度 */
+.subj-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.subj-circle{background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .15s}
+.subj-circle:active{transform:scale(.96)}
+.subj-circle .circle-wrap{display:flex;align-items:center;gap:10px}
+.subj-circle .ring{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;position:relative}
+.subj-circle .ring.sql{background:conic-gradient(#1cb0f6 0deg 280deg,#e5e5e5 280deg 360deg)}
+.subj-circle .ring.py{background:conic-gradient(#ff9600 0deg 162deg,#e5e5e5 162deg 360deg)}
+.subj-circle .ring.da{background:conic-gradient(#ce82ff 0deg 115deg,#e5e5e5 115deg 360deg)}
+.subj-circle .ring.dma{background:conic-gradient(#58cc02 0deg 54deg,#e5e5e5 54deg 360deg)}
+.subj-circle .ring .inner{width:36px;height:36px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.subj-circle .cinfo h4{font-size:13px;font-weight:700}
+.subj-circle .cinfo .meta{font-size:11px;color:var(--text-secondary);margin-top:1px}
+
+/* 大白话卡片 - Duolingo 风格 */
+.tip-card{background:linear-gradient(135deg,#ddf4ff,#e5f5d0);border-radius:var(--radius);padding:16px;margin-bottom:12px;cursor:pointer;position:relative;border:none}
+.tip-card:active{transform:scale(.99)}
+.tip-card .tip-icon{font-size:32px;margin-bottom:4px}
+.tip-card .tip-title{font-size:14px;font-weight:700;margin-bottom:3px}
+.tip-card .tip-saying{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.tip-card .tip-tech{font-size:12px;line-height:1.6;color:var(--text-secondary)}
+.tip-card .tip-tech code{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.6);padding:1px 5px;border-radius:4px;color:var(--primary-dark)}
+.tip-card .tip-footer{display:flex;align-items:center;gap:8px;margin-top:6px}
+.tip-card .tip-tag{font-size:10px;font-weight:700;color:#fff;background:var(--primary);padding:2px 10px;border-radius:4px}
+.tip-card .tip-hint{font-size:11px;color:var(--text-secondary)}
+.tip-card .tip-shuffle{position:absolute;top:12px;right:12px;border:none;background:rgba(255,255,255,.5);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px}
+
+/* 底部成就条 */
+.achieve-strip{background:var(--surface);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:4px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-sm)}
+.achieve-strip .ach-item{flex:1;text-align:center}
+.achieve-strip .ach-item .num{font-size:16px;font-weight:700}
+.achieve-strip .ach-item .num.green{color:var(--green)}
+.achieve-strip .ach-item .num.blue{color:var(--primary)}
+.achieve-strip .ach-item .num.orange{color:var(--orange)}
+.achieve-strip .ach-item .label{font-size:10px;color:var(--text-tertiary);margin-top:1px}
+
+/* 科目详情 */
+.back-bar{display:flex;align-items:center;gap:8px;padding:6px 12px 2px}
+.back-bar .back-btn{width:32px;height:32px;border-radius:8px;border:none;background:var(--surface);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-sm);font-size:18px;flex-shrink:0}
+.back-bar .back-btn:active{background:#f0f0f0;transform:scale(.88)}
+.back-bar h2{font-size:17px;font-weight:700}
+.back-bar .right-meta{margin-left:auto;font-size:12px;font-weight:600;flex-shrink:0}
+
+/* 课程列表 - Duolingo step style */
+.step-list{padding:4px 0}
+.step-item{display:flex;align-items:center;gap:14px;padding:12px 14px;background:var(--surface);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .15s}
+.step-item:active{transform:scale(.98)}
+.step-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.step-num.done{background:var(--green);color:#fff}
+.step-num.active{background:var(--primary);color:#fff}
+.step-num.pending{background:var(--border);color:var(--text-tertiary)}
+.step-info{flex:1}
+.step-info h4{font-size:13px;font-weight:600}
+.step-info .sub{font-size:11px;color:var(--text-secondary);margin-top:1px}
+.step-status{font-size:11px;font-weight:600;flex-shrink:0}
+.step-status.done{color:var(--green)}
+.step-status.active{color:var(--primary)}
+.step-status.pending{color:var(--text-tertiary)}
+
+/* Tab row */
+.tab-row{display:flex;gap:4px;margin:4px 0 12px;background:var(--border);padding:3px;border-radius:10px}
+.tab-row .tab{flex:1;padding:8px 0;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-secondary);font-family:var(--font)}
+.tab-row .tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm)}
+
+/* Content block */
+.content-block{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
+.content-block h4{font-size:14px;font-weight:700;margin-bottom:6px}
+.content-block p{font-size:13px;line-height:1.7;color:var(--text-secondary)}
+.content-block pre{background:#f4f4f4;border-radius:8px;padding:12px;margin:10px 0;font-size:12px;font-family:var(--mono);overflow-x:auto;line-height:1.6;color:var(--text);border:1px solid var(--border)}
+.nav-row{display:flex;gap:8px;padding:2px 0 10px}
+.nav-row .btn{flex:1;padding:12px 8px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:transform .15s}
+.nav-row .btn:active{transform:scale(.97)}
+.nav-row .btn-outline{background:var(--surface);color:var(--text);border:2px solid var(--border)}
+.nav-row .btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(28,176,246,.3)}
+
+/* 练习 - Duolingo style */
+.filter-row{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding:2px 0}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-chip{padding:6px 16px;border-radius:20px;border:2px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;white-space:nowrap;font-family:var(--font)}
+.filter-chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.filter-chip:active{transform:scale(.95)}
+.filter-chip.star{border-color:var(--orange);color:var(--orange)}
+.filter-chip.star.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.q-card{background:var(--surface);border-radius:var(--radius);padding:20px;margin-bottom:10px;box-shadow:var(--shadow-sm);position:relative}
+.q-star{position:absolute;top:12px;right:14px;font-size:22px;cursor:pointer;border:none;background:none;padding:4px;transition:transform .15s}
+.q-star:active{transform:scale(1.3)}
+.q-meta{font-size:11px;color:var(--text-tertiary);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.q-text{font-size:15px;font-weight:700;line-height:1.6;margin-bottom:16px;color:var(--text);padding-right:28px}
+.q-opt{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);transition:all .12s}
+.q-opt:active{transform:scale(.985)}
+.q-opt.selected{border-color:var(--primary);background:var(--primary-light)}
+.q-opt.correct{border-color:var(--green);background:var(--green-light)}
+.q-opt.wrong{border-color:var(--rose);background:var(--rose-light)}
+.q-opt .dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;transition:all .12s}
+.q-opt.selected .dot{border-color:var(--primary);background:var(--primary);color:#fff}
+.q-opt.correct .dot{border-color:var(--green);background:var(--green);color:#fff}
+.q-opt.wrong .dot{border-color:var(--rose);background:var(--rose);color:#fff}
+.q-result{display:none;text-align:center;padding:20px;background:var(--surface);border-radius:var(--radius);margin-bottom:10px;box-shadow:var(--shadow-sm)}
+.q-result .emoji{font-size:40px;margin-bottom:6px}
+.q-result h4{font-size:16px;font-weight:700}
+.q-result p{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.btn-block{width:100%;padding:14px 0;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:6px;transition:transform .15s}
+.btn-block:active{transform:scale(.98)}
+.btn-block.primary{background:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(28,176,246,.3)}
+.btn-block.outline{background:var(--surface);color:var(--text);border:2px solid var(--border)}
+
+/* 题库 - Duolingo */
+.bank-card{background:var(--surface);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px;position:relative;border:2px solid var(--border);transition:border .2s}
+.bank-card:active{border-color:var(--primary)}
+.bank-card .q-star{position:absolute;top:10px;right:10px;font-size:18px;cursor:pointer;border:none;background:none;padding:4px}
+.bank-card .q-star:active{transform:scale(1.3)}
+.bank-card .q-text{font-size:13px;font-weight:600;padding-right:28px;margin-bottom:4px}
+.bank-card .q-answer{font-size:12px;color:var(--text-secondary);padding:10px 12px;background:#f7f7f7;border-radius:8px;margin-top:8px;display:none;line-height:1.6}
+.bank-card .q-answer.show{display:block}
+.bank-card .q-answer .correct-label{color:var(--green);font-weight:700}
+.bank-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.bank-footer{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.bank-footer .view-answer{font-size:11px;color:var(--primary);cursor:pointer;border:none;background:none;font-family:var(--font);font-weight:700;padding:4px 0}
+.bank-footer .view-answer:active{opacity:.7}
+
+/* 编译器 */
+.code-box{flex:1;border-radius:var(--radius);overflow:hidden;border:2px solid var(--border);display:flex;flex-direction:column;margin-bottom:8px}
+.code-tabs{display:flex;gap:2px;padding:4px 8px;background:#2b2b2b}
+.code-tab{padding:5px 16px;border-radius:6px;font-size:11px;font-weight:600;border:none;background:transparent;color:#999;cursor:pointer;font-family:var(--font)}
+.code-tab.active{background:#555;color:#fff}
+.code-input{flex:1;resize:none;border:none;outline:none;padding:14px 16px;font-family:var(--mono);font-size:13px;line-height:1.6;background:#2b2b2b;color:#f0f0f0;tab-size:2}
+.code-input::placeholder{color:#666}
+.code-output{background:#2b2b2b;border-top:1px solid #444;padding:10px 14px;min-height:54px;font-family:var(--mono);font-size:12px;line-height:1.5;color:#999;overflow-y:auto}
+.code-output .ok{color:var(--green)}
+.code-output .err{color:var(--rose)}
+.compiler-actions{display:flex;gap:8px}
+.compiler-actions .btn{flex:1;padding:12px 0;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:transform .15s}
+.compiler-actions .btn:active{transform:scale(.97)}
+.compiler-actions .primary{background:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(28,176,246,.3)}
+.compiler-actions .outline{background:var(--surface);color:var(--text);border:2px solid var(--border);flex:0 0 auto;padding:12px 16px;width:auto}
+.shortcut-hint{font-size:10px;color:var(--text-tertiary);padding:4px 16px 2px}
+
+/* 笔记 */
+.note-item{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px}
+.note-item h4{font-size:13px;font-weight:700;margin-bottom:3px}
+.note-item p{font-size:12px;line-height:1.6;color:var(--text-secondary)}
+.note-item .ts{font-size:10px;color:var(--text-tertiary);margin-top:4px}
+
+/* Bottom Nav - Duolingo style */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;padding:2px 0 env(safe-area-inset-bottom,6px);border-top:2px solid var(--border);z-index:50}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 4px;border:none;background:none;cursor:pointer;color:var(--text-tertiary);font-size:10px;font-weight:600;font-family:var(--font);position:relative;transition:color .15s}
+.nav-item.active{color:var(--primary)}
+.nav-item .nav-icon{font-size:20px;line-height:1;margin-bottom:1px}
+.nav-item.active .nav-icon{animation:bounce .3s ease}
+@keyframes bounce{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+
+/* 响应式 */
+@media(max-width:480px){body{background:var(--bg);overflow:auto}.phone-frame{width:100%;height:100vh;border-radius:0;margin:0;box-shadow:none}.phone-notch{display:none}.status-bar{padding:10px 20px 4px;font-size:11px}.subj-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:481px){body{display:flex;align-items:center;justify-content:center;min-height:100vh}}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="phone-notch"></div>
+
+  <!-- ===== 首页 ===== -->
+  <div class="page active" id="page-home">
+    <div class="status-bar"><span>9:41</span><span>📶 ████ 🔋</span></div>
+    <div class="top-strip">
+      <span class="logo">学习伴侣</span>
+      <span class="xp-badge">⚡ 240 XP</span>
+      <span class="streak-badge">🔥 7</span>
+    </div>
+    <div class="top-greeting"><strong>下午好 👋</strong> 继续你的学习之旅</div>
+    <div class="scroll">
+      <!-- 继续学习卡片 -->
+      <div class="resume-card" onclick="openSubject('sql')">
+        <div class="rc-tag">继续学习</div>
+        <h3>JOIN 多表连接</h3>
+        <div class="rc-sub">SQL · 5 小节 · 第 2 节</div>
+        <div class="rc-progress">
+          <div class="rc-bar"><div class="fill" style="width:40%"></div></div>
+          <span class="rc-pct">40%</span>
+        </div>
+        <button class="rc-play">▶</button>
+      </div>
+
+      <!-- 科目网格 -->
+      <div class="subj-grid">
+        <div class="subj-circle" onclick="openSubject('sql')">
+          <div class="circle-wrap">
+            <div class="ring sql"><div class="inner">S</div></div>
+            <div class="cinfo"><h4>SQL</h4><div class="meta">78%</div></div>
+          </div>
+        </div>
+        <div class="subj-circle" onclick="openSubject('py')">
+          <div class="circle-wrap">
+            <div class="ring py"><div class="inner">Py</div></div>
+            <div class="cinfo"><h4>Python</h4><div class="meta">45%</div></div>
+          </div>
+        </div>
+        <div class="subj-circle" onclick="openSubject('da')">
+          <div class="circle-wrap">
+            <div class="ring da"><div class="inner">DA</div></div>
+            <div class="cinfo"><h4>数据分析</h4><div class="meta">32%</div></div>
+          </div>
+        </div>
+        <div class="subj-circle" onclick="openSubject('dma')">
+          <div class="circle-wrap">
+            <div class="ring dma"><div class="inner">DM</div></div>
+            <div class="cinfo"><h4>DAMA</h4><div class="meta">15%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 大白话 -->
+      <div class="tip-card" id="tip-card" onclick="nextTip()">
+        <button class="tip-shuffle" onclick="event.stopPropagation();nextTip()">🔄</button>
+        <div class="tip-icon" id="tip-emoji">💖</div>
+        <div class="tip-title" id="tip-title">今日知识点</div>
+        <div class="tip-saying" id="tip-saying">SELECT 就像你在相亲软件上筛选对象</div>
+        <div class="tip-tech" id="tip-explain">你写上 <code>SELECT * FROM users WHERE age > 25</code>，就从数据库的「候选人池」里精确捞人。</div>
+        <div class="tip-footer">
+          <span class="tip-tag" id="tip-tag">SQL</span>
+          <span class="tip-hint" id="tip-hint">点一下换一条</span>
+        </div>
+      </div>
+
+      <!-- 成就条 -->
+      <div class="achieve-strip">
+        <div class="ach-item"><div class="num green">12</div><div class="label">已掌握</div></div>
+        <div class="ach-item"><div class="num orange">8</div><div class="label">待复习</div></div>
+        <div class="ach-item"><div class="num blue">5</div><div class="label">收藏题目</div></div>
+        <div class="ach-item"><div class="num green">45</div><div class="label">今日学习</div></div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item active" onclick="goPage('page-home')"><span class="nav-icon">🏠</span><span>首页</span></button>
+      <button class="nav-item" onclick="goPage('page-quiz')"><span class="nav-icon">✍️</span><span>练习</span></button>
+      <button class="nav-item" onclick="goPage('page-bank')"><span class="nav-icon">📚</span><span>题库</span></button>
+      <button class="nav-item" onclick="goPage('page-compiler')"><span class="nav-icon">💻</span><span>编译器</span></button>
+    </div>
+  </div>
+
+  <!-- ===== 科目详情 ===== -->
+  <div class="page" id="page-subject">
+    <div class="status-bar"><span>9:41</span><span>📶 ████ 🔋</span></div>
+    <div class="back-bar">
+      <button class="back-btn" onclick="goPage('page-home')">‹</button>
+      <h2 id="detail-title">SQL 数据库</h2>
+      <span class="right-meta" id="detail-pct" style="color:var(--primary)">78%</span>
+    </div>
+    <div class="scroll">
+      <div class="step-list">
+        <div class="step-item" onclick="goPage('page-learn')">
+          <div class="step-num done">✓</div>
+          <div class="step-info"><h4>SELECT 基础查询</h4><div class="sub">4 小节 · 15 分钟</div></div>
+          <span class="step-status done">已学</span>
+        </div>
+        <div class="step-item" onclick="goPage('page-learn')">
+          <div class="step-num done">✓</div>
+          <div class="step-info"><h4>WHERE 条件过滤</h4><div class="sub">3 小节 · 12 分钟</div></div>
+          <span class="step-status done">已学</span>
+        </div>
+        <div class="step-item" onclick="goPage('page-learn')">
+          <div class="step-num active">3</div>
+          <div class="step-info"><h4>JOIN 多表连接</h4><div class="sub">5 小节 · 25 分钟</div></div>
+          <span class="step-status active">学习中</span>
+        </div>
+        <div class="step-item">
+          <div class="step-num pending">4</div>
+          <div class="step-info"><h4>窗口函数</h4><div class="sub">6 小节 · 30 分钟</div></div>
+          <span class="step-status pending">未开始</span>
+        </div>
+        <div class="step-item">
+          <div class="step-num pending">5</div>
+          <div class="step-info"><h4>子查询与 CTE</h4><div class="sub">4 小节 · 20 分钟</div></div>
+          <span class="step-status pending">未开始</span>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="goPage('page-home')"><span class="nav-icon">🏠</span><span>首页</span></button>
+      <button class="nav-item" onclick="goPage('page-quiz')"><span class="nav-icon">✍️</span><span>练习</span></button>
+      <button class="nav-item" onclick="goPage('page-bank')"><span class="nav-icon">📚</span><span>题库</span></button>
+      <button class="nav-item" onclick="goPage('page-compiler')"><span class="nav-icon">💻</span><span>编译器</span></button>
+    </div>
+  </div>
+
+  <!-- ===== 学习内容 ===== -->
+  <div class="page" id="page-learn">
+    <div class="status-bar"><span>9:42</span><span>📶 ████ 🔋</span></div>
+    <div class="back-bar">
+      <button class="back-btn" onclick="goPage('page-subject')">‹</button>
+      <h2>JOIN 多表连接</h2>
+      <span class="right-meta" style="font-size:12px;font-weight:400;color:var(--text-tertiary)">2/5</span>
+    </div>
+    <div class="content-scroll">
+      <div class="tab-row">
+        <button class="tab active">📖 学习</button>
+        <button class="tab" onclick="goPage('page-notes')">📝 笔记</button>
+        <button class="tab" onclick="goPage('page-quiz')">✍️ 练习</button>
+      </div>
+      <div class="content-block">
+        <h4>INNER JOIN 内部连接</h4>
+        <p>返回两个表中满足连接条件的匹配行。</p>
+        <pre>SELECT o.order_id, c.customer_name
+FROM orders o
+INNER JOIN customers c
+  ON o.customer_id = c.customer_id;</pre>
+        <p style="color:var(--text-tertiary);font-size:12px">💡 只返回有关联的数据行</p>
+      </div>
+      <div class="content-block">
+        <h4>LEFT JOIN 左连接</h4>
+        <p>返回左表所有行，右表无匹配时填充 NULL。</p>
+        <pre>SELECT c.customer_id, o.order_id
+FROM customers c
+LEFT JOIN orders o
+  ON c.customer_id = o.customer_id;</pre>
+        <p style="color:var(--text-tertiary);font-size:12px">💡 适合查「哪些客户从未下单」</p>
+      </div>
+      <div class="nav-row">
+        <button class="btn btn-outline">← 上一节</button>
+        <button class="btn btn-primary">✓ 标记完成</button>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="goPage('page-home')"><span class="nav-icon">🏠</span><span>首页</span></button>
+      <button class="nav-item" onclick="goPage('page-quiz')"><span class="nav-icon">✍️</span><span>练习</span></button>
+      <button class="nav-item" onclick="goPage('page-bank')"><span class="nav-icon">📚</span><span>题库</span></button>
+      <button class="nav-item" onclick="goPage('page-compiler')"><span class="nav-icon">💻</span><span>编译器</span></button>
+    </div>
+  </div>
+
+  <!-- ===== 练习 ===== -->
+  <div class="page" id="page-quiz">
+    <div class="status-bar"><span>9:43</span><span>📶 ████ 🔋</span></div>
+    <div class="back-bar">
+      <button class="back-btn" onclick="goPage('page-home')">‹</button>
+      <h2>✍️ 练习</h2>
+      <button class="back-btn" onclick="goPage('page-bank')" style="margin-left:auto;font-size:12px;font-weight:400">📚</button>
+    </div>
+    <div class="scroll">
+      <div class="filter-row">
+        <span class="filter-chip active">全部</span>
+        <span class="filter-chip">SQL</span>
+        <span class="filter-chip">Python</span>
+        <span class="filter-chip">数据分析</span>
+        <span class="filter-chip">DAMA</span>
+        <span class="filter-chip star" id="quiz-star-filter" onclick="toggleQuizStarFilter()">⭐ 收藏</span>
+      </div>
+      <div class="q-card">
+        <button class="q-star" id="quiz-star-btn" onclick="toggleQStar('q1')">☆</button>
+        <div class="q-meta">第 1 题 · SQL</div>
+        <div class="q-text">以下哪个 JOIN 会返回左表中的所有行？</div>
+        <div class="q-opt" onclick="selectOption(this,false)"><span class="dot">A</span>INNER JOIN</div>
+        <div class="q-opt" onclick="selectOption(this,true)"><span class="dot">B</span>LEFT JOIN</div>
+        <div class="q-opt" onclick="selectOption(this,false)"><span class="dot">C</span>RIGHT JOIN</div>
+        <div class="q-opt" onclick="selectOption(this,false)"><span class="dot">D</span>CROSS JOIN</div>
+      </div>
+      <div class="q-result" id="quiz-result">
+        <div class="emoji">🎉</div>
+        <h4>回答正确！</h4>
+        <p>LEFT JOIN 保留左表所有行，右表无匹配时填充 NULL。</p>
+      </div>
+      <button class="btn-block primary" onclick="checkAnswer()">提交答案</button>
+      <button class="btn-block outline" onclick="nextQuestion()">下一题 →</button>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="goPage('page-home')"><span class="nav-icon">🏠</span><span>首页</span></button>
+      <button class="nav-item active"><span class="nav-icon">✍️</span><span>练习</span></button>
+      <button class="nav-item" onclick="goPage('page-bank')"><span class="nav-icon">📚</span><span>题库</span></button>
+      <button class="nav-item" onclick="goPage('page-compiler')"><span class="nav-icon">💻</span><span>编译器</span></button>
+    </div>
+  </div>
+
+  <!-- ===== 题库 ===== -->
+  <div class="page" id="page-bank">
+    <div class="status-bar"><span>9:43</span><span>📶 ████ 🔋</span></div>
+    <div class="back-bar">
+      <h2>📚 题库</h2>
+      <span class="right-meta" id="bank-count" style="font-weight:400;color:var(--text-tertiary)">共 12 题</span>
+    </div>
+    <div class="scroll">
+      <div class="filter-row">
+        <span class="filter-chip active" id="bf-all" onclick="filterBank('all')">全部</span>
+        <span class="filter-chip" id="bf-sql" onclick="filterBank('sql')">SQL</span>
+        <span class="filter-chip" id="bf-py" onclick="filterBank('py')">Python</span>
+        <span class="filter-chip" id="bf-da" onclick="filterBank('da')">数据分析</span>
+        <span class="filter-chip" id="bf-dma" onclick="filterBank('dma')">DAMA</span>
+        <span class="filter-chip star" id="bf-star" onclick="filterBank('star')">⭐ 收藏</span>
+      </div>
+      <div id="bank-list"></div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="goPage('page-home')"><span class="nav-icon">🏠</span><span>首页</span></button>
+      <button class="nav-item" onclick="goPage('page-quiz')"><span class="nav-icon">✍️</span><span>练习</span></button>
+      <button class="nav-item active"><span class="nav-icon">📚</span><span>题库</span></button>
+      <button class="nav-item" onclick="goPage('page-compiler')"><span class="nav-icon">💻</span><span>编译器</span></button>
+    </div>
+  </div>
+
+  <!-- ===== 编译器 ===== -->
+  <div class="page" id="page-compiler">
+    <div class="status-bar"><span>9:45</span><span>📶 ████ 🔋</span></div>
+    <div class="back-bar">
+      <button class="back-btn" onclick="goPage('page-home')">‹</button>
+      <h2>代码编译器</h2>
+      <select id="lang-select" style="margin-left:auto;padding:4px 10px;border-radius:8px;border:2px solid var(--border);background:var(--surface);font-size:12px;font-family:var(--font);font-weight:600;color:var(--text)">
+        <option value="sql">SQL</option>
+        <option value="python">Python</option>
+      </select>
+    </div>
+    <div class="code-box" style="margin:4px 12px 6px">
+      <div class="code-tabs">
+        <button class="code-tab active" data-lang="sql" onclick="switchLang('sql')">SQL</button>
+        <button class="code-tab" data-lang="python" onclick="switchLang('python')">Python</button>
+      </div>
+      <textarea class="code-input" id="code-input" placeholder="-- 输入 SQL 代码&#10;SELECT * FROM users;"></textarea>
+      <div class="code-output" id="output-area"><span class="ok">✓ 等待校验...</span></div>
+    </div>
+    <div class="compiler-actions" style="padding:0 12px">
+      <button class="btn primary" onclick="runCheck()">▶ 校验语法</button>
+      <button class="btn outline" onclick="insertExample()">📋 示例</button>
+    </div>
+    <div class="shortcut-hint">快捷键: Shift+Enter</div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="goPage('page-home')"><span class="nav-icon">🏠</span><span>首页</span></button>
+      <button class="nav-item" onclick="goPage('page-quiz')"><span class="nav-icon">✍️</span><span>练习</span></button>
+      <button class="nav-item" onclick="goPage('page-bank')"><span class="nav-icon">📚</span><span>题库</span></button>
+      <button class="nav-item active"><span class="nav-icon">💻</span><span>编译器</span></button>
+    </div>
+  </div>
+
+  <!-- ===== 笔记 ===== -->
+  <div class="page" id="page-notes">
+    <div class="status-bar"><span>9:42</span><span>📶 ████ 🔋</span></div>
+    <div class="back-bar">
+      <button class="back-btn" onclick="goPage('page-learn')">‹</button>
+      <h2>JOIN 笔记</h2>
+      <button class="back-btn" onclick="addNote()" style="margin-left:auto;font-size:16px;font-weight:700">+</button>
+    </div>
+    <div class="content-scroll">
+      <div class="note-item"><h4>INNER JOIN 要点</h4><p>两个表中都有匹配行时才返回，等于交集。</p><div class="ts">2026-07-27</div></div>
+      <div class="note-item"><h4>LEFT JOIN 常见坑</h4><p>WHERE 中过滤右表可能导致退化为 INNER JOIN。</p><div class="ts">2026-07-26</div></div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="goPage('page-home')"><span class="nav-icon">🏠</span><span>首页</span></button>
+      <button class="nav-item" onclick="goPage('page-quiz')"><span class="nav-icon">✍️</span><span>练习</span></button>
+      <button class="nav-item" onclick="goPage('page-bank')"><span class="nav-icon">📚</span><span>题库</span></button>
+      <button class="nav-item" onclick="goPage('page-compiler')"><span class="nav-icon">💻</span><span>编译器</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 题库数据 =====
+const bankData = [
+  {id:'q1', subj:'sql', q:'以下哪个 JOIN 会返回左表中的所有行？', answer:'B. LEFT JOIN — 保留左表所有行，右表无匹配时填充 NULL。', star:false},
+  {id:'q2', subj:'sql', q:'INNER JOIN 和 LEFT JOIN 的核心区别是什么？', answer:'INNER JOIN 只返回匹配行（交集），LEFT JOIN 返回左表所有行（左表全集）。', star:true},
+  {id:'q3', subj:'sql', q:'以下哪个函数用于统计行数？', answer:'COUNT() — 如 SELECT COUNT(*) FROM users。', star:false},
+  {id:'q4', subj:'sql', q:'HAVING 和 WHERE 的区别？', answer:'WHERE 在 GROUP BY 之前过滤，HAVING 在之后过滤分组。', star:true},
+  {id:'q5', subj:'sql', q:'NULL 值如何判断？', answer:'用 IS NULL 或 IS NOT NULL，不能使用 = NULL。', star:false},
+  {id:'q6', subj:'py', q:'Python 中获取列表长度的函数是？', answer:'len() — 如 len([1,2,3]) 返回 3。', star:false},
+  {id:'q7', subj:'py', q:'列表和元组的核心区别？', answer:'列表可变，元组不可变。', star:true},
+  {id:'q8', subj:'py', q:'字典的键有什么要求？', answer:'键必须是不可变类型（字符串、数字、元组），不能是列表。', star:false},
+  {id:'q9', subj:'py', q:'break 和 continue 的区别？', answer:'break 跳出整个循环，continue 跳过当前次继续下一次。', star:false},
+  {id:'q10', subj:'da', q:'维度建模的核心表类型？', answer:'事实表 (Fact) 和 维度表 (Dimension)。', star:false},
+  {id:'q11', subj:'da', q:'数据清洗中处理缺失值的方法？', answer:'删除含缺失值的行、用均值/中位数填充、前向/后向填充。', star:true},
+  {id:'q12', subj:'dma', q:'数据治理的核心目标？', answer:'确保数据的可用性、完整性、安全性、一致性和合规性。', star:true},
+];
+
+let curBankFilter = 'all';
+let quizStarFilterOn = false;
+let quizQIdx = 0;
+
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='page-bank') renderBank();
+  // 更新首页收藏数
+  if(id==='page-home') document.querySelector('.ach-item:nth-child(3) .num').textContent=bankData.filter(d=>d.star).length;
+}
+
+const subjData={sql:{name:'SQL 数据库',color:'var(--primary)',pct:'78%'},py:{name:'Python',color:'var(--orange)',pct:'45%'},da:{name:'数据分析',color:'#ce82ff',pct:'32%'},dma:{name:'DAMA 认证',color:'var(--green)',pct:'15%'}}
+function openSubject(s){
+  const d=subjData[s];
+  document.getElementById('detail-title').textContent=d.name;
+  document.getElementById('detail-pct').textContent=d.pct;
+  document.getElementById('detail-pct').style.color=d.color;
+  goPage('page-subject');
+}
+
+const tips=[
+  {emoji:'💖',tag:'SQL',title:'今日知识点',saying:'SELECT 就像在相亲软件上筛选对象',explain:'你写上 <code>SELECT * FROM users WHERE age > 25</code>，就从数据库的「候选人池」里精确捞人。'},
+  {emoji:'💔',tag:'SQL',title:'这个比喻绝了',saying:'LEFT JOIN 就像单方面喜欢一个人',explain:'左表所有行都保留，右表有回应才有数据。像极了<strong>一厢情愿</strong>——不回应就是 NULL。'},
+  {emoji:'💑',tag:'SQL',title:'新知识点',saying:'INNER JOIN 是双向奔赴',explain:'两边都匹配才出现。就像<strong>你表白 TA 也同意</strong>，两个人都 say yes 才算一对。'},
+  {emoji:'🤔',tag:'SQL',title:'别搞混了',saying:'NULL 不是 0，是「不知道」',explain:'0 分是打了分但得了 0，NULL 是根本没打分。就像问你对象多高，0cm 是有一个 0cm 高的对象，NULL 是你<strong>根本没对象</strong>。'},
+  {emoji:'🗂️',tag:'SQL',title:'今天学了吗',saying:'GROUP BY 就像朋友圈分组',explain:'把所有人按城市分组。就像整理微信通讯录，按北京看多少人、上海看多少人，<strong>每个城市一摞</strong>。'},
+  {emoji:'🥟',tag:'Python',title:'新知识点',saying:'变量就像在冰箱上贴标签',explain:'<code>bag = ["包子","饺子"]</code> 就是拿便签写上 bag，贴在盒子上。想用的时候<strong>喊 bag 就行</strong>。'},
+  {emoji:'🔁',tag:'Python',title:'今日知识点',saying:'for 循环就像餐厅叫号机',explain:'<code>for 客人 in 排队列表:</code> 叫号机一个个叫，叫完为止。<strong>不用手动喊每个人</strong>。'},
+  {emoji:'🎯',tag:'Python',title:'这个比喻绝了',saying:'函数就像菜谱',explain:'写一次函数随时调用，就像学会番茄炒蛋菜谱，每次想吃就照做，<strong>不用重新发明做法</strong>。'},
+  {emoji:'🏛️',tag:'DAMA',title:'今日知识点',saying:'数据治理就像城市管理',explain:'数据是市民，标准是交通规则，数据质量是市容检查，数据安全是警察局。<strong>没治理的城市乱成一锅粥</strong>。'},
+  {emoji:'📋',tag:'DAMA',title:'新知识点',saying:'数据字典就像户口本',explain:'每个数据项的名字、类型、含义都登记在册。就像公安局的<strong>户口档案</strong>。'},
+  {emoji:'🧹',tag:'DAMA',title:'别搞混了',saying:'数据质量检查就像打扫房间',explain:'重复数据=垃圾扔掉，缺失数据=缺腿家具要补，错误数据=涂鸦要擦。<strong>定期打扫才住得舒服</strong>。'},
+];
+function nextTip(){
+  if(!tips.length)return;
+  const t=tips[Math.floor(Math.random()*tips.length)];
+  document.getElementById('tip-emoji').textContent=t.emoji;
+  document.getElementById('tip-title').textContent=t.title;
+  document.getElementById('tip-saying').textContent=t.saying;
+  document.getElementById('tip-explain').innerHTML=t.explain;
+  document.getElementById('tip-tag').textContent=t.tag;
+}
+setTimeout(nextTip,100);
+
+let selectedOpt=null;
+function selectOption(el,c){
+  document.querySelectorAll('.q-opt').forEach(o=>o.classList.remove('selected','correct','wrong'));
+  el.classList.add('selected');selectedOpt=el;el._c=c;
+}
+function checkAnswer(){
+  if(!selectedOpt)return;
+  document.querySelectorAll('.q-opt').forEach(o=>o.style.pointerEvents='none');
+  const r=document.getElementById('quiz-result');r.style.display='block';
+  if(selectedOpt._c){selectedOpt.classList.remove('selected');selectedOpt.classList.add('correct');r.querySelector('.emoji').textContent='🎉';r.querySelector('h4').textContent='回答正确！'}
+  else{selectedOpt.classList.remove('selected');selectedOpt.classList.add('wrong');r.querySelector('.emoji').textContent='😅';r.querySelector('h4').textContent='答错了';document.querySelector('.q-opt[onclick*="true"]')?.classList.add('correct')}
+}
+function nextQuestion(){
+  document.querySelectorAll('.q-opt').forEach(o=>{o.classList.remove('selected','correct','wrong');o.style.pointerEvents='auto'});
+  document.getElementById('quiz-result').style.display='none';selectedOpt=null;
+  const qs=[{q:'Python 中获取列表长度的函数是？',a:0,opts:['len()','length()','size()','count()']},{q:'维度建模的核心表类型是？',a:0,opts:['事实表 & 维度表','主表 & 子表','宽表 & 窄表','分区表 & 桶表']}];
+  const q=qs[Math.floor(Math.random()*qs.length)];
+  document.querySelector('.q-text').textContent=q.q;
+  document.querySelectorAll('.q-opt').forEach((o,i)=>{o.innerHTML='<span class="dot">'+String.fromCharCode(65+i)+'</span>'+q.opts[i];o._c=i===q.a;o.setAttribute('onclick','selectOption(this,'+(i===q.a)+')')});
+}
+function toggleQStar(id){
+  const item=bankData.find(d=>d.id===id);
+  if(!item)return;
+  item.star=!item.star;
+  document.querySelectorAll('[data-starid="'+id+'"]').forEach(b=>b.textContent=item.star?'⭐':'☆');
+  // sync quiz star btn
+  const qbtn=document.getElementById('quiz-star-btn');
+  if(qbtn&&id==='q1')qbtn.textContent=item.star?'⭐':'☆';
+}
+function toggleQuizStarFilter(){
+  quizStarFilterOn=!quizStarFilterOn;
+  document.getElementById('quiz-star-filter').classList.toggle('active');
+}
+
+function renderBank(){
+  const list=document.getElementById('bank-list');
+  let items=bankData;
+  if(curBankFilter!=='all'){
+    if(curBankFilter==='star') items=items.filter(d=>d.star);
+    else items=items.filter(d=>d.subj===curBankFilter);
+  }
+  document.getElementById('bank-count').textContent='共 '+items.length+' 题';
+  if(!items.length){list.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--text-tertiary);font-size:14px;font-weight:500">暂无题目 ✨</div>';return}
+  let html='';
+  items.forEach(d=>{
+    const sn={sql:'SQL',py:'Python',da:'数据分析',dma:'DAMA'}[d.subj]||'';
+    html+=`<div class="bank-card">
+      <button class="q-star" data-starid="${d.id}" onclick="toggleQStar('${d.id}')">${d.star?'⭐':'☆'}</button>
+      <div class="q-text">${d.q}</div>
+      <div class="bank-tags"><span class="filter-chip" style="padding:2px 10px;font-size:10px;border-width:1px;pointer-events:none">${sn}</span></div>
+      <div class="bank-footer">
+        <button class="view-answer" onclick="this.parentElement.nextElementSibling.classList.toggle('show');this.textContent=this.parentElement.nextElementSibling.classList.contains('show')?'收起答案 ▴':'查看答案 ▾'">查看答案 ▾</button>
+      </div>
+      <div class="q-answer"><span class="correct-label">✓ </span>${d.answer}</div>
+    </div>`;
+  });
+  list.innerHTML=html;
+}
+function filterBank(f){
+  curBankFilter=f;
+  ['all','sql','py','da','dma','star'].forEach(id=>{const el=document.getElementById('bf-'+id);if(el)el.classList.toggle('active',id===f)});
+  renderBank();
+}
+
+function addNote(){
+  const t=['内连接 vs 外连接对比','ON 与 WHERE 执行顺序','CROSS JOIN 注意事项'][Math.floor(Math.random()*3)];
+  const b=document.createElement('div');b.className='note-item';
+  b.innerHTML='<h4>📝 '+t+'</h4><p>点击编辑此笔记...</p><div class="ts">'+new Date().toISOString().slice(0,10)+'</div>';
+  document.querySelector('#page-notes .content-scroll').prepend(b);
+}
+
+const sqlExamples=[`-- 查询用户订单
+SELECT u.name, o.total
+FROM users u
+INNER JOIN orders o ON u.id = o.user_id
+WHERE o.total > 100
+ORDER BY o.total DESC;`,`-- 统计各城市用户数
+SELECT city, COUNT(*) as cnt
+FROM users
+GROUP BY city
+HAVING cnt > 5;`];
+const pyExamples=[`# 列表推导式
+nums = [1, 2, 3, 4, 5]
+sq = [n**2 for n in nums]
+print(f"平方: {sq}")`,`# 数据分析
+import pandas as pd
+d = {'name': ['A','B'], 'score': [85,92]}
+df = pd.DataFrame(d)
+print(df.describe())`];
+function switchLang(l){
+  document.querySelectorAll('.code-tab').forEach(t=>t.classList.toggle('active',t.dataset.lang===l));
+  document.getElementById('lang-select').value=l;
+  const ta=document.getElementById('code-input');
+  ta.placeholder=l==='sql'?'-- 输入 SQL 代码\nSELECT * FROM users;':'# 输入 Python 代码\nprint("hello")';
+  ta.value='';document.getElementById('output-area').innerHTML='<span class="ok">✓ 等待校验...</span>';
+}
+function insertExample(){
+  const l=document.getElementById('lang-select').value;
+  document.getElementById('code-input').value=(l==='sql'?sqlExamples:pyExamples)[Math.floor(Math.random()*2)];
+  document.getElementById('output-area').innerHTML='<span class="ok">✓ 已插入示例</span>';
+}
+function runCheck(){
+  const c=document.getElementById('code-input').value.trim(),l=document.getElementById('lang-select').value,o=document.getElementById('output-area');
+  if(!c){o.innerHTML='<span class="err">✗ 请输入代码</span>';return}
+  if(l==='sql'){
+    const u=c.toUpperCase();
+    if(!/^(SELECT|WITH|INSERT|UPDATE|DELETE|CREATE)/.test(u)){o.innerHTML='<span class="err">✗ SQL 应以 SELECT/INSERT 等开头</span>';return}
+    let b=0;for(const ch of c){if(ch==='(')b++;if(ch===')')b--}
+    if(b!==0){o.innerHTML='<span class="err">✗ 括号不匹配</span>';return}
+    o.innerHTML='<span class="ok">✓ SQL 语法校验通过</span>'
+  }else{
+    try{new Function(c);o.innerHTML='<span class="ok">✓ Python 语法校验通过</span>'}catch(e){o.innerHTML='<span class="err">✗ '+e.message+'</span>'}
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('code-input').addEventListener('keydown',e=>{if(e.shiftKey&&e.key==='Enter'){e.preventDefault();runCheck()}});
+  renderBank();
+});
+</script>
+</body>
+</html>
