@@ -14,7 +14,7 @@
     },
     "af0f3014-900f-493f-9385-2cdadd7c15a1": {
       "name": "MacIntel",
-      "lastSeen": "2026-07-27T09:02:02.778Z"
+      "lastSeen": "2026-07-27T09:15:08.366Z"
     },
     "49d77f96-9380-40f7-9475-b32abf0f5046": {
       "name": "MacIntel",
@@ -10080,6 +10080,966 @@
       "_id": "3bd5b7aa-0c0a-431e-8991-a1e2922eead2",
       "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
       "_createdAt": "2026-07-27T09:02:02.778Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "e7937caa-dec1-41f7-bb49-2866ec8b960c",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:02:31.466Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "bc344cd7-0c8e-45d3-9e9f-fada3e4e3fd2",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:02:31.466Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "beedfbd8-391b-4b9f-af6e-5631babdaad8",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:02:32.771Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "5f3da3ed-1564-4a7a-a9b7-6aef31e43cab",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:02:32.771Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "ca25fa6c-eb49-4381-b427-ed6e2d31157b",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:03:02.778Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "32d0874f-18d7-4249-861f-c9312b375002",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:03:02.778Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "f2e34e2c-e725-45d2-b6f6-e49bdbf922a5",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:03:31.468Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "2336ead3-f317-4f8b-bf7e-782468d9e3ac",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:03:31.468Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "4ac937c0-8e41-462e-8f49-ff14cb45308e",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:03:32.776Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "528fdf01-dea2-4fd2-b239-bcd8cd0ff905",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:03:32.776Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "e6444d27-4304-44d6-9f44-2e9080050741",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:04:02.787Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "356919e5-fa29-455a-8dd7-053e7921d621",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:04:02.787Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "9b1972c1-9b39-4eb5-afde-c25a150c34c7",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:04:31.463Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "42021209-e5a2-4ffa-9a8f-f8849ae7fdf9",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:04:31.463Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "19915706-ebb9-4f72-a05d-44e4ebe6638b",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:04:32.766Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "b6fba80f-dfa1-49d3-bdcd-17890990c87e",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:04:32.766Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "b80a46f0-7ed2-4a0c-a3df-c6fa758bad13",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:05:02.780Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "75eef075-0fbb-4424-abeb-1a57c6a912c8",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:05:02.780Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "9b680a13-5a79-48bc-a4eb-e452ea2c61af",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:05:31.471Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "5f09ddf7-7b7e-46fa-9ef6-0d190a3a0325",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:05:31.471Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "1ef1ed58-ab90-45fc-9e92-1e5f15e3e0d1",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:05:33.466Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "9a4df8b9-e484-4e00-81c7-45c0bf098a69",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:05:33.466Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "cfaaec11-fc34-42e9-870b-912d9007ae3b",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:05:59.300Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "3bad1f28-7302-4012-be24-1d19e9e61a6b",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:05:59.300Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "1b2cb86b-d2e7-4084-b12b-c23d9decb0d3",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:06:03.467Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "4c582a51-5be2-4679-a6b1-10fa4335f689",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:06:03.467Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "157e77d4-fa7e-42ae-97e3-d663b2abba81",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:06:29.295Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "796dfa3f-bf57-458f-8100-74bb1292f5fa",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:06:29.295Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "2dafadee-a70c-4705-833f-c6c0cb5b4633",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:06:31.471Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "1ce4b5e8-a785-41c5-b515-46f85da762b1",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:06:31.471Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "15a62399-2307-4895-aa09-cf66672b221b",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:06:59.298Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "edbee6d1-e2aa-4f5a-97e1-47dda8d15843",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:06:59.298Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "4a6f9660-9a07-4b65-bf79-67f7c6eeb9fc",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:07:29.297Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "87bc65a5-a651-41f2-ae97-be2e48ae31a1",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:07:29.297Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "3d0aa9fc-06a4-4eff-9e29-0b92fa309430",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:07:31.472Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "8ff47a4e-8a96-47f1-b741-ae2fce7d3032",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:07:31.472Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "fc542f57-f691-42f9-bbda-758b2f3ccac2",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:07:31.480Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "79083af7-4cb0-4393-a5f6-778c039930f9",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:07:31.480Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "9639d0a8-f91c-4eaa-abf4-0a3277810ae7",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:07:59.297Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "64808fd8-5e72-4d67-a0d8-81eec0e004ef",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:07:59.297Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "2ce50a3e-9b1e-4d6c-ae8d-522abd9c1176",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:08:29.298Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "4e010c11-db12-4ee0-b1a4-24cc464a1fb1",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:08:29.298Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "5882006f-caac-46e5-b682-d7b33e938159",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:08:31.474Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "ef7bf861-bc49-40cb-87ed-32c218c1f823",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:08:31.474Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "4aa065e0-43a9-42f4-8255-c3e4c0328143",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:08:31.482Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "c470581a-89ca-4352-aba1-15f510abac77",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:08:31.482Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "8df6352c-237b-48d3-afd4-05a974c2c169",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:08:59.297Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "605c1e44-6fff-4366-8dbb-6cf1a93a688b",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:08:59.297Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "83dacffc-a726-4830-a7d8-a1af24725138",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:09:29.302Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "e9718a1f-8b26-4220-b39f-4621ee4041cd",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:09:29.302Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "1082287a-43d1-4f9c-9d89-bc028e6a5856",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:09:31.473Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "28a562f5-257c-432f-af11-ce479e1caf23",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:09:31.473Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "ec85b232-1183-46b5-bf29-812cf469dd48",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:09:31.480Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "c719a7c8-dd93-44f9-934f-a7e378cca36e",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:09:31.480Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "2ba24585-5074-4834-b096-8ecfa998b15e",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:09:59.299Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "bd368a2d-d059-41ab-8786-7a7e169d3c83",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:09:59.299Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "e015b1e8-2849-447c-ac50-5decb689e56a",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:10:29.300Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "d59c9340-b3b1-4f51-a91d-0812f13265ad",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:10:29.300Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "c5d816a3-4f35-428d-8e21-0d3ec005f498",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:10:31.473Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "1ed0c66c-5c6c-4289-91a6-36a6f60b55fa",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:10:31.473Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "331ece5b-469c-482d-abeb-ab5e3926baf4",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:10:31.481Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "314ce030-b848-4ef9-a9fa-f33accd97911",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:10:31.481Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "6dd19dfa-8a18-4180-9ca3-bff6400e14fd",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:10:59.300Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "c076d1d2-1c2a-4db9-8be5-b0a96bcc55b0",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:10:59.300Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "f6336a6e-300d-431f-b40f-0e484b251c70",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:11:29.300Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "98c9ee0f-5388-4020-ae2b-99755f59fe99",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:11:29.300Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "d1ee634a-c948-4a18-ab44-9fcd12fe15aa",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:11:31.475Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "e14990e8-a614-455e-b332-b2562f25285a",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:11:31.475Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "73cd6b72-bc18-4e6d-aea2-5a25b16b053b",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:11:31.484Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "8da04010-9c92-4a40-b59f-4e891613f6a3",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:11:31.484Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "34202a6b-82cd-4892-86a3-df7066f1d023",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:11:59.300Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "0579d883-2894-44b4-bcd8-3042625830f2",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:11:59.300Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "6d402f9a-0426-439c-b242-4c67c844afe7",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:12:29.303Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "703da2e6-b9e6-4d24-aaff-b8fb3c12ab68",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:12:29.303Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "05275e30-cd6c-4a5c-b007-89eb9edb0d84",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:12:31.478Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "75fbe5e1-eb92-4ce2-8b99-62a14bb1c0e7",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:12:31.478Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "93104de7-b430-41eb-8e8c-7468f10936bc",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:12:31.486Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "d48f58de-926f-4bff-bd29-58661ea3d5c6",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:12:31.486Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "48a32c7a-e169-43e8-953e-c3646d7eac49",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:12:59.303Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "1b02ebb7-d300-484e-80b5-0f2feb68522f",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:12:59.303Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "6df4162c-219f-4638-b63f-690add230d35",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:13:29.302Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "e7f8081e-436b-48db-b3ee-a16ed74a36b1",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:13:29.302Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "8b9c978a-833e-4242-9991-5a3bbfa463dd",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:13:31.477Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "8f819d5a-1ca8-4a2f-beaa-708fc872e506",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:13:31.477Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "e7d1f07e-837e-4b18-8ca6-5f3d826f579f",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:13:31.485Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "c7643ede-ef6b-4379-81a7-1c50d4970e4d",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:13:31.485Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "eaf60a14-5256-4c0a-838c-fe33af50cfc9",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:13:59.303Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "adf3b5bb-b43e-410a-bd4d-5c68a9947785",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:13:59.303Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "32becbe8-0f08-47cf-837e-4e2dfa71eecc",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:14:29.304Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "01ae2092-2ad0-4849-959d-96a7722a1d67",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:14:29.304Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "e768c881-3967-43bd-a468-52d8c5df326b",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:14:31.477Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "7f2b7c8b-20f9-4e90-bf80-720c6ca5e423",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:14:31.477Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "d27d087e-b6a7-4a7f-b201-8192faffd728",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:14:31.485Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "2b4e8028-5df1-4131-8724-83daff34d4d3",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:14:31.485Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "INNER JOIN 要点",
+      "content": "两个表中都有匹配行时才返回，等于两个集合的交集。",
+      "createdAt": "2026-07-27",
+      "id": 1,
+      "_id": "836a06b6-2919-4d6b-b08d-164234bda081",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:15:08.366Z"
+    },
+    {
+      "courseId": "s3",
+      "title": "LEFT JOIN 常见坑",
+      "content": "WHERE 中过滤右表可能导致退化为 INNER JOIN，应在 ON 中过滤。",
+      "createdAt": "2026-07-26",
+      "id": 2,
+      "_id": "434a94db-8632-418a-bb9a-3ba2d256343e",
+      "_device": "af0f3014-900f-493f-9385-2cdadd7c15a1",
+      "_createdAt": "2026-07-27T09:15:08.366Z"
     }
   ]
 }

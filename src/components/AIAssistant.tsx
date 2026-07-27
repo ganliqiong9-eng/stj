@@ -72,6 +72,7 @@ export default function AIAssistant() {
   const drag = useRef(false);
   const start = useRef({ mx: 0, my: 0, px: 0, py: 0 });
   const wasSnapped = useRef(false);
+  const [active, setActive] = useState(false);
 
   useEffect(() => { posRef.current = pos; }, [pos]);
   useEffect(() => { setPos({ x: window.innerWidth - BTN - 16, y: window.innerHeight - 160 }); }, []);
@@ -104,8 +105,8 @@ export default function AIAssistant() {
         if (dragDist > 40) { setOpen(true); return; }
       }
       // Snap back to nearest edge
-      if (p.x < M) { setPos({ x: -1, y: p.y }); setSnapped(true); }
-      else if (p.x + BTN > w - M) { setPos({ x: w - 3, y: p.y }); setSnapped(true); }
+      if (p.x < M) { setPos({ x: -8, y: p.y }); setSnapped(true); }
+      else if (p.x + BTN > w - M) { setPos({ x: w - 8, y: p.y }); setSnapped(true); }
     };
     const mm = (e: MouseEvent) => move(e.clientX, e.clientY);
     const mu = () => up();
@@ -118,11 +119,12 @@ export default function AIAssistant() {
     return () => { document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); document.removeEventListener('touchmove', tm); document.removeEventListener('touchend', te); };
   }, []);
 
-  const onDown = (cx: number, cy: number) => {
-    if (snapped) { setSnapped(false); }
+  const onDown = (cx: number, cy: number, isTouch = false) => {
+    if (snapped) { setSnapped(false); setActive(false); }
     drag.current = true;
     wasSnapped.current = snapped;
     start.current = { mx: cx, my: cy, px: posRef.current.x, py: posRef.current.y };
+    if (isTouch) setActive(true);
   };
 
   const hasKey = !!g(API_KEY, '');
@@ -147,17 +149,19 @@ export default function AIAssistant() {
     <>
       {/* Draggable button */}
       <button onMouseDown={e => onDown(e.clientX, e.clientY)}
-        onTouchStart={e => onDown(e.touches[0].clientX, e.touches[0].clientY)}
+        onTouchStart={e => onDown(e.touches[0].clientX, e.touches[0].clientY, true)}
+        onMouseEnter={() => { if (snapped) setActive(true); }}
+        onMouseLeave={() => { setActive(false); }}
         onClick={() => { if (!drag.current) setOpen(true); }}
         style={{
-          position: 'fixed', zIndex: 900, left: pos.x, top: pos.y,
-          width: snapped ? 4 : BTN, height: BTN,
-          borderRadius: snapped ? (pos.x > window.innerWidth / 2 ? '2px 0 0 2px' : '0 2px 2px 0') : '50%', border: 'none',
-          background: snapped ? '#2b2b2b' : 'linear-gradient(135deg,#ff6b6b,#ee5a24,#f093fb)',
+          position: 'fixed', zIndex: 900, left: snapped ? (pos.x + BTN > window.innerWidth / 2 ? (active ? window.innerWidth - 28 : window.innerWidth - 8) : (active ? -8 : -8)) : pos.x, top: pos.y,
+          width: snapped ? (active ? 28 : 8) : BTN, height: BTN,
+          borderRadius: snapped ? (pos.x > window.innerWidth / 2 ? (active ? '6px 0 0 6px' : '2px 0 0 2px') : (active ? '0 6px 6px 0' : '0 2px 2px 0')) : '50%', border: 'none',
+          background: snapped ? (active ? 'linear-gradient(135deg,#ff6b6b,#ee5a24,#f093fb)' : '#2b2b2b') : 'linear-gradient(135deg,#ff6b6b,#ee5a24,#f093fb)',
           color: '#fff', cursor: snapped ? 'pointer' : 'grab',
-          boxShadow: '0 4px 16px rgba(238,90,36,.4)',
+          boxShadow: snapped ? (active ? '0 4px 20px rgba(238,90,36,.5)' : 'none') : '0 4px 16px rgba(238,90,36,.4)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: drag.current ? 'none' : 'left .3s ease, width .3s ease, border-radius .3s ease, background .3s ease',
+          transition: drag.current ? 'none' : 'left .4s cubic-bezier(.22,1,.36,1), width .25s ease, border-radius .25s ease, background .25s ease, box-shadow .25s ease',
           touchAction: 'none', overflow: 'hidden',
         }}>
         {!snapped && <ChatIcon />}
