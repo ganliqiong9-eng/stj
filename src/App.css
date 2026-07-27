@@ -91,15 +91,9 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* ===== Tip Card ===== */
-.tip-card {
-  border: none;
-}
-.tip-card:active {
-  transform: scale(.99);
-}
+.tip-card { border: none; }
+.tip-card:active { transform: scale(.99); }
 
-/* ===== Step Status Colors ===== */
 .step-done { background: var(--green); color: #fff; }
 .step-active { background: var(--primary); color: #fff; }
 .step-pending { background: var(--border); color: var(--text-tertiary); }
