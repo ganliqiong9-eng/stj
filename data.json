@@ -1,0 +1,27 @@
+{
+  "devices": {
+    "test": {
+      "name": "unknown",
+      "lastSeen": "2026-07-27T06:06:20.873Z"
+    },
+    "e3f549e1-ac2d-4109-aaeb-3aae5a4ffc5c": {
+      "name": "unknown",
+      "lastSeen": "2026-07-27T06:06:25.017Z"
+    },
+    "b0df8c8a-b612-4314-9e1a-fbcaa9a98226": {
+      "name": "unknown",
+      "lastSeen": "2026-07-27T06:06:39.851Z"
+    },
+    "af0f3014-900f-493f-9385-2cdadd7c15a1": {
+      "name": "MacIntel",
+      "lastSeen": "2026-07-27T06:06:56.164Z"
+    },
+    "49d77f96-9380-40f7-9475-b32abf0f5046": {
+      "name": "MacIntel",
+      "lastSeen": "2026-07-27T06:06:56.166Z"
+    }
+  },
+  "progress": {},
+  "stars": {},
+  "notes": []
+}

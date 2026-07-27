@@ -16,6 +16,16 @@ import './App.css';
 export default function App() {
   useEffect(() => {
     db.initQuestions();
+    // Pull remote data on startup
+    db.pullSync();
+  }, []);
+  // Periodic sync
+  useEffect(() => {
+    const timer = setInterval(() => {
+      db.pushSync();
+      db.pullSync();
+    }, 30000);
+    return () => clearInterval(timer);
   }, []);
 
   return (

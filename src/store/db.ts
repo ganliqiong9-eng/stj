@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import { defaultQuestions, type Question } from '../data/questions';
+import { syncUpload, syncDownload } from '../api';
 
 export interface StoredNote {
   id?: number;
@@ -7,6 +8,7 @@ export interface StoredNote {
   title: string;
   content: string;
   createdAt: string;
+  _id?: string;
 }
 
 export interface StoredProgress {
@@ -50,7 +52,9 @@ class StudyDB extends Dexie {
   }
 
   async addNote(note: StoredNote) {
-    return this.notes.add(note);
+    note._id = crypto.randomUUID();
+    const id = await this.notes.add(note);
+    return id;
   }
 
   async getNotes(courseId: string) {
@@ -58,16 +62,40 @@ class StudyDB extends Dexie {
   }
 
   async markChapterDone(chapterId: string) {
-    await this.progress.put({
-      chapterId,
-      completed: true,
-      updatedAt: new Date().toISOString()
-    });
+    await this.progress.put({ chapterId, completed: true, updatedAt: new Date().toISOString() });
   }
 
   async isChapterDone(chapterId: string) {
     const p = await this.progress.get(chapterId);
     return p?.completed ?? false;
+  }
+
+  // === Sync methods ===
+  async pushSync() {
+    try {
+      const allQ = await this.questions.toArray();
+      const allP = await this.progress.toArray();
+      const allN = await this.notes.toArray();
+      const stars: Record<string, boolean> = {};
+      allQ.forEach(q => { stars[q.id] = q.star; });
+      const progress: Record<string, boolean> = {};
+      allP.forEach(p => { progress[p.chapterId] = p.completed; });
+      await syncUpload(progress, stars, allN);
+    } catch {}
+  }
+
+  async pullSync() {
+    try {
+      const data = await syncDownload();
+      if (!data) return;
+      // Merge stars
+      if (data.stars) {
+        for (const [qid, starred] of Object.entries(data.stars)) {
+          const existing = await this.questions.get(qid);
+          if (existing) await this.questions.update(qid, { star: starred });
+        }
+      }
+    } catch {}
   }
 }
 
