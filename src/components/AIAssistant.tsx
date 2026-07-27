@@ -50,13 +50,12 @@ async function callDoubao(messages: Message[]): Promise<string> {
   });
 
   if (!res.ok) {
-    if (res.status === 401) {
-      throw new Error('API_KEY_INVALID');
-    }
-    if (res.status === 429) {
-      throw new Error('RATE_LIMITED');
-    }
-    throw new Error(`API_ERROR: ${res.status}`);
+    let detail = '';
+    try { const errData = await res.json(); detail = errData.error?.message || ''; } catch(e) {}
+    const msg = detail ? `${detail} (HTTP ${res.status})` : `HTTP ${res.status}`;
+    if (res.status === 401) { throw new Error(`API_KEY_INVALID|${msg}`); }
+    if (res.status === 429) { throw new Error(`RATE_LIMITED|${msg}`); }
+    throw new Error(`API_ERROR: ${msg}`);
   }
 
   const data = await res.json();
@@ -69,7 +68,7 @@ function getLocalResponse(): string {
 
 export default function AIAssistant() {
   const [open, setOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(!getApiKey());
+  const [showSettings, setShowSettings] = useState(true);
   const [apiKeyInput, setApiKeyInput] = useState(getApiKey());
   const [msgs, setMsgs] = useState<Message[]>([
     { role: 'assistant', content: '👋 学习中遇到不懂的了？直接输入问题问我吧！' }
@@ -99,26 +98,20 @@ export default function AIAssistant() {
       setMsgs(prev => [...prev, { role: 'assistant', content: answer }]);
     } catch (e: unknown) {
       const err = (e as Error).message;
-      if (err === 'NO_API_KEY') {
+      if (err.startsWith('NO_API_KEY')) {
         setMsgs(prev => [...prev, {
           role: 'assistant',
           content: '⚠️ 还没设置 API Key。点击右上角 ⚙️ 配置豆包 API Key 即可使用 AI 回答。'
         }]);
-      } else if (err === 'API_KEY_INVALID') {
-        setMsgs(prev => [...prev, {
-          role: 'assistant',
-          content: '⚠️ API Key 无效，请检查后重新设置。点击右上角 ⚙️ 修改。'
-        }]);
-      } else if (err === 'RATE_LIMITED') {
-        setMsgs(prev => [...prev, {
-          role: 'assistant',
-          content: '⏳ 请求过于频繁，请稍后再试。'
-        }]);
+      } else if (err.startsWith('API_KEY_INVALID')) {
+        const detail = err.split('|')[1] || '';
+        setMsgs(p => [...p, { role: 'assistant', content: `⚠️ API Key 无效：${detail}\n\n请检查：\n1. API Key 是否完整正确（不含多余空格）\n2. 在火山引擎方舟确认已创建"推理接入点"（需用接入点ID作为model参数,不是模型名）\n3. 或开启"快捷推理"后用模型名 doubao-lite-32k\n\n点击 ⚙️ 修改设置。` }]);
+      } else if (err.startsWith('RATE_LIMITED')) {
+        const detail = err.split('|')[1] || '';
+        setMsgs(p => [...p, { role: 'assistant', content: `⏳ 请求过于频繁或配额不足：${detail}\n请稍后再试。` }]);
       } else {
-        setMsgs(prev => [...prev, {
-          role: 'assistant',
-          content: '😅 API 调用出错，先用本地回复：\n\n' + getLocalResponse()
-        }]);
+        const detail = err.startsWith('API_ERROR:') ? err.substring(10) : err;
+        setMsgs(p => [...p, { role: 'assistant', content: `😅 API 错误：${detail}\n\n先用本地回复：\n\n${getLocalResponse()}` }]);
       }
     } finally {
       setLoading(false);
