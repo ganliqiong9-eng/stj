@@ -71,6 +71,7 @@ export default function AIAssistant() {
   const posRef = useRef(pos);
   const drag = useRef(false);
   const start = useRef({ mx: 0, my: 0, px: 0, py: 0 });
+  const wasSnapped = useRef(false);
 
   useEffect(() => { posRef.current = pos; }, [pos]);
   useEffect(() => { setPos({ x: window.innerWidth - BTN - 16, y: window.innerHeight - 160 }); }, []);
@@ -92,6 +93,11 @@ export default function AIAssistant() {
       drag.current = false;
       const p = posRef.current;
       const w = window.innerWidth, M = 50;
+      if (wasSnapped.current) {
+        wasSnapped.current = false;
+        const d = Math.min(p.x + 4, w - p.x);
+        if (d > 40) { setOpen(true); return; }
+      }
       if (p.x < M) { setPos({ x: -1, y: p.y }); setSnapped(true); }
       else if (p.x + BTN > w - M) { setPos({ x: w - 3, y: p.y }); setSnapped(true); }
     };
@@ -109,6 +115,7 @@ export default function AIAssistant() {
   const onDown = (cx: number, cy: number) => {
     if (snapped) { setSnapped(false); }
     drag.current = true;
+    wasSnapped.current = snapped;
     start.current = { mx: cx, my: cy, px: posRef.current.x, py: posRef.current.y };
   };
 
