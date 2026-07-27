@@ -43,6 +43,11 @@
   padding-bottom: 54px;
 }
 
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(28,176,246,.4); }
+  50% { box-shadow: 0 0 0 6px rgba(28,176,246,.1); }
+}
+
 /* ===== Page ===== */
 .page {
   display: flex;
