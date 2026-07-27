@@ -21,6 +21,8 @@ export default function Home() {
   const nav = useNavigate();
   const [tip, setTip] = useState<Tip | null>(null);
   const [starred, setStarred] = useState(0);
+  const [syncing, setSyncing] = useState(false);
+  const [synced, setSynced] = useState(false);
 
   const refreshStarred = useCallback(async () => {
     const n = await db.getStarredCount();
@@ -48,6 +50,24 @@ export default function Home() {
       <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 16px 2px'}}>
         <span style={{fontSize:22, fontWeight:800, letterSpacing:-.5, color:'var(--text)'}}>学习伴侣</span>
         <span style={{display:'flex', alignItems:'center', gap:3, padding:'4px 10px', borderRadius:20, background:'var(--primary-light)', color:'var(--primary-dark)', fontSize:12, fontWeight:700, marginLeft:'auto'}}>⚡ 240 XP</span>
+        <button onClick={async () => {
+          if (syncing) return;
+          setSyncing(true);
+          await db.pushSync();
+          await db.pullSync();
+          setSyncing(false);
+          setSynced(true);
+          setTimeout(() => setSynced(false), 2000);
+        }}
+          style={{
+            border:'none', borderRadius:50, padding:'4px 10px',
+            background: synced ? '#e5f5d0' : syncing ? '#fef3c7' : '#f0f0f0',
+            color: synced ? '#58cc02' : syncing ? '#b36b00' : '#666',
+            fontSize:12, fontWeight:700, cursor:'pointer',
+            fontFamily:'var(--font)', display:'flex', alignItems:'center', gap:3,
+          }}>
+          {synced ? '✓ 已同步' : syncing ? '⟳ 同步中' : '🔄 同步'}
+        </button>
         <span style={{display:'flex', alignItems:'center', gap:4, padding:'4px 10px', borderRadius:20, background:'var(--orange-light)', color:'#b36b00', fontSize:12, fontWeight:700}}>🔥 7</span>
       </div>
       <div style={{padding:'2px 16px 0', fontSize:14, color:'var(--text-secondary)', marginBottom:10}}>
