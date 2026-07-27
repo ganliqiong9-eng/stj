@@ -32,8 +32,8 @@ export default function App() {
             <Route path="/notes" element={<Notes />} />
           </Routes>
         </div>
-        <BottomNav />
         <AIAssistant />
+        <BottomNav />
       </div>
     </BrowserRouter>
   );
