@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import BottomNav from './components/BottomNav';
 import AIAssistant from './components/AIAssistant';
+import SelectionTooltip from './components/SelectionTooltip';
 import Home from './pages/Home';
 import SubjectDetail from './pages/SubjectDetail';
 import Learn from './pages/Learn';
@@ -33,6 +34,7 @@ export default function App() {
           </Routes>
         </div>
         <AIAssistant />
+        <SelectionTooltip />
         <BottomNav />
       </div>
     </BrowserRouter>

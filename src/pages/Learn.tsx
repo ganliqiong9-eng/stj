@@ -1,5 +1,30 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { courseContent, fallbackContent } from '../data/content';
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
+  return (
+    <button onClick={copy}
+      style={{
+        position: 'absolute', top: 6, right: 6, zIndex: 2,
+        padding: '3px 10px', border: '1px solid #ddd',
+        borderRadius: 5, background: copied ? '#e5f5d0' : '#fff',
+        color: copied ? '#58cc02' : '#666',
+        fontSize: 11, fontWeight: 600, cursor: 'pointer',
+        fontFamily: 'var(--font)',
+      }}>
+      {copied ? '✓ 已复制' : '复制'}
+    </button>
+  );
+}
 
 export default function Learn() {
   const { chapterId } = useParams<{ chapterId: string }>();
@@ -35,11 +60,14 @@ export default function Learn() {
             <h4 style={{fontSize:14, fontWeight:700, marginBottom:6}}>{sec.title}</h4>
             <p style={{fontSize:13, lineHeight:1.7, color:'var(--text-secondary)'}}>{sec.body}</p>
             {sec.code && (
-              <pre style={{
-                background:'#f4f4f4', borderRadius:8, padding:12, margin:'10px 0',
-                fontSize:12, fontFamily:'var(--mono)', overflowX:'auto', lineHeight:1.6,
-                color:'var(--text)', border:'1px solid var(--border)'
-              }}>{sec.code}</pre>
+              <div style={{position:'relative'}}>
+                <CopyButton text={sec.code} />
+                <pre style={{
+                  background:'#f4f4f4', borderRadius:8, padding:12, margin:'10px 0',
+                  fontSize:12, fontFamily:'var(--mono)', overflowX:'auto', lineHeight:1.6,
+                  color:'var(--text)', border:'1px solid var(--border)'
+                }}>{sec.code}</pre>
+              </div>
             )}
             {sec.tip && (
               <p style={{fontSize:12, color:'var(--text-tertiary)'}}>💡 {sec.tip}</p>
