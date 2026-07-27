@@ -86,18 +86,24 @@ export default function AIAssistant() {
   useEffect(() => {
     const move = (cx: number, cy: number) => {
       if (!drag.current) return;
-      setPos({ x: start.current.px + cx - start.current.mx, y: start.current.py + cy - start.current.my });
+      const nx = start.current.px + cx - start.current.mx;
+      const ny = start.current.py + cy - start.current.my;
+      posRef.current = { x: nx, y: ny };
+      setPos({ x: nx, y: ny });
     };
     const up = () => {
       if (!drag.current) return;
       drag.current = false;
       const p = posRef.current;
       const w = window.innerWidth, M = 50;
+      // If was snapped and dragged inward past threshold, open modal
       if (wasSnapped.current) {
         wasSnapped.current = false;
-        const d = Math.min(p.x + 4, w - p.x);
-        if (d > 40) { setOpen(true); return; }
+        const wasLeft = start.current.px < w / 2;
+        const dragDist = wasLeft ? p.x - start.current.px : start.current.px - p.x;
+        if (dragDist > 40) { setOpen(true); return; }
       }
+      // Snap back to nearest edge
       if (p.x < M) { setPos({ x: -1, y: p.y }); setSnapped(true); }
       else if (p.x + BTN > w - M) { setPos({ x: w - 3, y: p.y }); setSnapped(true); }
     };
