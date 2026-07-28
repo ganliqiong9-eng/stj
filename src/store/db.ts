@@ -139,13 +139,14 @@ class StudyDB extends Dexie {
           if (existing) await this.questions.update(qid, { star: starred });
         }
       }
-      // Merge knowledge from server
-      if (data.knowledge) {
-        for (const k of data.knowledge) {
-          const existing = await this.knowledge.where('_id').equals(k._id).first();
-          if (!existing) {
-            await this.knowledge.add(k);
-          }
+      // Knowledge 同步由服务端 RAG 管线管理，不从 sync 拉取 knowledge 到本地 IndexedDB
+      // 如果需要合并，只在本地无该条记录时写入，避免覆盖本地编辑
+      if (data.knowledge && data.knowledge.length > 0) {
+        const localAll = await this.knowledge.toArray();
+        const localIds = new Set(localAll.map(k => k._id).filter(Boolean));
+        const toAdd = data.knowledge.filter((k: any) => !localIds.has(k._id));
+        if (toAdd.length > 0) {
+          await this.knowledge.bulkAdd(toAdd);
         }
       }
     } catch {}

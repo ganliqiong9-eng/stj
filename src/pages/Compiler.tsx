@@ -48,11 +48,41 @@ export default function Compiler() {
       if (bal !== 0) { setOutput({ ok: false, msg: '括号不匹配' }); return; }
       setOutput({ ok: true, msg: 'SQL 语法校验通过' });
     } else {
-      try {
-        new Function(trimmed);
-        setOutput({ ok: true, msg: 'Python 语法校验通过' });
-      } catch (e: unknown) {
-        setOutput({ ok: false, msg: (e as Error).message });
+      // Python 基础语法静态检查（非完整解析，仅捕获明显错误）
+      const lines = trimmed.split('\n');
+      const errors: string[] = [];
+      let pBal = 0, bBal = 0, cBal = 0;
+      const kwNeedsColon = /^(def |class |if |elif |else|for |while |with |try|except |finally|match )/;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const stripped = line.replace(/#.*$/, '').trimEnd();
+        if (!stripped || stripped.startsWith('#')) continue;
+        // 括号匹配
+        for (const ch of stripped.replace(/(['"]).*?\1/g, '')) {
+          if (ch === '(') pBal++;
+          if (ch === ')') pBal--;
+          if (ch === '[') bBal++;
+          if (ch === ']') bBal--;
+          if (ch === '{') cBal++;
+          if (ch === '}') cBal--;
+        }
+        // 需要冒号的语句缺少冒号
+        if (kwNeedsColon.test(stripped.trimStart()) && !stripped.trimEnd().endsWith(':') && !stripped.trimEnd().endsWith('\\')) {
+          errors.push(`第 ${i + 1} 行: '${stripped.trimStart().split(/[ (:]/)[0]}' 语句末尾缺少 ':'`);
+        }
+        // 缩进检查：非空行不能以单个空格开头（要么不缩进，要么4空格/1tab）
+        const indent = line.match(/^( +)/);
+        if (indent && indent[1].length % 4 !== 0 && indent[1].length !== 0) {
+          errors.push(`第 ${i + 1} 行: 缩进为 ${indent[1].length} 空格，Python 标准缩进为 4 空格`);
+        }
+      }
+      if (pBal !== 0) errors.push(`圆括号不匹配（差 ${Math.abs(pBal)} 个 ${pBal > 0 ? '(' : ')'}）`);
+      if (bBal !== 0) errors.push(`方括号不匹配（差 ${Math.abs(bBal)} 个 ${bBal > 0 ? '[' : ']'}）`);
+      if (cBal !== 0) errors.push(`花括号不匹配（差 ${Math.abs(cBal)} 个 ${cBal > 0 ? '{' : '}'}）`);
+      if (errors.length > 0) {
+        setOutput({ ok: false, msg: '发现以下问题:\n' + errors.slice(0, 5).join('\n') });
+      } else {
+        setOutput({ ok: true, msg: 'Python 基础语法校验通过（仅检查括号/缩进/冒号）' });
       }
     }
   };

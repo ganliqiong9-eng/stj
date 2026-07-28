@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import FloatingPanel from './FloatingPanel';
+import FloatingPanel, { startPanelSwipe } from './FloatingPanel';
 import { ragQuery, getRagStatus } from '../api';
 
 interface Message { role: 'user' | 'assistant'; content: string; }
@@ -13,8 +13,20 @@ const MODEL_KEY = 'sbuddy_model';
 function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
 function s(k: string, v: string) { try { localStorage.setItem(k, v); } catch {} }
 
+// API Key 编码存储（非加密，仅防止明文裸奔被直接读取）
+const KEY_ENC_PREFIX = 'enc:';
+function encodeKey(raw: string): string {
+  try { return KEY_ENC_PREFIX + btoa(encodeURIComponent(raw)); } catch { return raw; }
+}
+function decodeKey(stored: string): string {
+  if (!stored.startsWith(KEY_ENC_PREFIX)) return stored; // 兼容旧版明文
+  try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
+}
+function getKey(): string { return decodeKey(g(API_KEY, '')); }
+function setKey(v: string) { s(API_KEY, encodeKey(v)); }
+
 async function callAPI(msgs: Message[], ragContext?: string): Promise<string> {
-  const key = g(API_KEY, ''); if (!key) throw new Error('NO_KEY');
+  const key = getKey(); if (!key) throw new Error('NO_KEY');
   const ep = g(ENDPOINT_KEY, DEFAULT_ENDPOINT), model = g(MODEL_KEY, DEFAULT_MODEL);
 
   const systemBase = '你是一个学习助手，帮助用户学习SQL、Python、数据分析、DAMA数据管理知识。请用中文回答，简洁专业。';
@@ -76,9 +88,9 @@ function formatContent(text: string): React.ReactNode {
 }
 
 export default function AIAssistant() {
-  const [showSetup, setShowSetup] = useState(!g(API_KEY, ''));
+  const [showSetup, setShowSetup] = useState(!getKey());
   const [ragReady, setRagReady] = useState<'unknown' | 'ready' | 'unconfigured' | 'error'>('unknown');
-  const [keyInput, setKeyInput] = useState(g(API_KEY, ''));
+  const [keyInput, setKeyInput] = useState(getKey());
   const [epInput, setEpInput] = useState(g(ENDPOINT_KEY, DEFAULT_ENDPOINT));
   const [mdInput, setMdInput] = useState(g(MODEL_KEY, DEFAULT_MODEL));
   const [msgs, setMsgs] = useState<Message[]>([]);
@@ -86,7 +98,7 @@ export default function AIAssistant() {
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const hasKey = !!g(API_KEY, '');
+  const hasKey = !!getKey();
   useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [msgs]);
 
   // Check RAG status
@@ -101,7 +113,7 @@ export default function AIAssistant() {
     })();
   }, []);
   const save = () => {
-    s(ENDPOINT_KEY, epInput); s(API_KEY, keyInput);
+    s(ENDPOINT_KEY, epInput); setKey(keyInput);
     s(MODEL_KEY, mdInput); setShowSetup(false);
   };
 
@@ -164,8 +176,8 @@ export default function AIAssistant() {
   const panelContent = (
     <>
       {/* Draggable header + setup */}
-      <div onMouseDown={e => { (window as any).__swipeRef = { active: true, startX: e.clientX, startY: e.clientY, dx: 0, dy: 0 }; }}
-        onTouchStart={e => { (window as any).__swipeRef = { active: true, startX: e.touches[0].clientX, startY: e.touches[0].clientY, dx: 0, dy: 0 }; }}
+      <div onMouseDown={e => startPanelSwipe(e.clientX, e.clientY)}
+        onTouchStart={e => startPanelSwipe(e.touches[0].clientX, e.touches[0].clientY)}
         style={{ padding: '14px 14px 10px', borderBottom: '1px solid #313244', background: showSetup ? '#313244' : '#1e1e2e' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: showSetup ? 8 : 0 }}>
           <span style={{ fontSize: 18 }}>💬</span>
@@ -187,7 +199,7 @@ export default function AIAssistant() {
               <button onClick={save} style={{ padding: '7px 12px', border: 'none', borderRadius: 10, background: '#89b4fa', color: '#1e1e2e', fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}>保存</button>
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
-              <input value={keyInput} onChange={e => setKeyInput(e.target.value)} placeholder="API Key"
+              <input type="password" value={keyInput} onChange={e => setKeyInput(e.target.value)} placeholder="API Key（sk-...）"
                 style={{ flex: 1, padding: '7px 10px', border: '2px solid #45475a', borderRadius: 10, fontSize: 16, outline: 'none', fontFamily: 'var(--font)', background: '#313244', color: '#cdd6f4' }} />
               <input value={mdInput} onChange={e => setMdInput(e.target.value)} placeholder="deepseek-chat"
                 style={{ width: 100, padding: '7px 10px', border: '2px solid #45475a', borderRadius: 10, fontSize: 16, outline: 'none', fontFamily: 'var(--font)', background: '#313244', color: '#cdd6f4' }} />

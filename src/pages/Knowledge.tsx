@@ -42,10 +42,11 @@ function KnowledgeList({ onView, onAdd }: { onView: (id: number) => void; onAdd:
 
   const handleDelete = async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
+    // 先查出要删除的条目（在 setEntries 之前，避免闭包陷阱）
+    const entry = entries.find(e => e.id === id);
     await db.deleteKnowledge(id);
     setEntries(prev => prev.filter(e => e.id !== id));
     // Also try server-side delete
-    const entry = entries.find(e => e.id === id);
     if (entry?._id) deleteKnowledge(entry._id).catch(() => {});
   };
 

@@ -1,4 +1,16 @@
-const API_BASE = `http://${window.location.hostname}:8086`;
+// API 地址：优先使用 localStorage 中配置的地址，否则自动检测
+function getApiBase(): string {
+  // 1. 用户手动配置的地址（优先级最高）
+  const custom = localStorage.getItem('sbuddy_api_base');
+  if (custom) return custom;
+  // 2. PWA standalone 模式：回退到 localhost
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  if (isStandalone) return 'http://localhost:8086';
+  // 3. 开发环境或同域部署：使用当前 hostname
+  return `http://${window.location.hostname}:8086`;
+}
+
+export const API_BASE = getApiBase();
 
 export interface RagChunk {
   id: string;

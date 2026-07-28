@@ -1,34 +1,80 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import db from '../store/db';
 import { subjNames } from '../data/questions';
 
 interface QItem {
-  id: string; q: string; opts: string[]; a: number; subj: string;
+  id: string; q: string; opts: string[]; a: number; subj: string; star: boolean;
 }
-
-const quizPool: QItem[] = [
-  {id:'q1', q:'以下哪个 JOIN 会返回左表中的所有行？', opts:['INNER JOIN','LEFT JOIN','RIGHT JOIN','CROSS JOIN'], a:1, subj:'sql'},
-  {id:'q6', q:'Python 中获取列表长度的函数是？', opts:['len()','length()','size()','count()'], a:0, subj:'py'},
-  {id:'q10', q:'维度建模的核心表类型是？', opts:['事实表 & 维度表','主表 & 子表','宽表 & 窄表','分区表 & 桶表'], a:0, subj:'da'},
-];
 
 export default function Quiz() {
   const nav = useNavigate();
   const [selected, setSelected] = useState<number | null>(null);
   const [answered, setAnswered] = useState(false);
   const [qIdx, setQIdx] = useState(0);
-  const [starred, setStarred] = useState(false);
   const [starFilter, setStarFilter] = useState(false);
+  const [activeSubj, setActiveSubj] = useState<string>('all');
+  const [allQuestions, setAllQuestions] = useState<QItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const q = quizPool[qIdx % quizPool.length];
-
+  // 从数据库加载题目
   useEffect(() => {
     (async () => {
-      const item = await db.questions.get(q.id);
-      setStarred(item?.star ?? false);
+      const raw = await db.questions.toArray();
+      const mapped: QItem[] = raw.map(q => ({
+        id: q.id,
+        q: q.q,
+        opts: q.answer.split('—').map(s => s.trim()).filter(Boolean),
+        a: 0, // db 里 answer 是文本，第一句就是正确答案
+        subj: q.subj,
+        star: q.star ?? false,
+      }));
+      setAllQuestions(mapped);
+      setLoading(false);
     })();
-  }, [qIdx]);
+  }, []);
+
+  // 按科目和收藏筛选
+  const filteredQuestions = useMemo(() => {
+    let qs = allQuestions;
+    if (activeSubj !== 'all') qs = qs.filter(q => q.subj === activeSubj);
+    if (starFilter) qs = qs.filter(q => q.star);
+    return qs;
+  }, [allQuestions, activeSubj, starFilter]);
+
+  if (loading) {
+    return (
+      <div className="page">
+        <div style={{textAlign:'center', padding:40, color:'var(--text-tertiary)'}}>加载中...</div>
+      </div>
+    );
+  }
+
+  if (filteredQuestions.length === 0) {
+    return (
+      <div className="page">
+        <div className="status-bar"><span>9:43</span><span>📶 ████ 🔋</span></div>
+        <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 12px 2px'}}>
+          <button onClick={() => nav('/')} style={{
+            width:32, height:32, borderRadius:8, border:'none',
+            background:'var(--surface)', color:'var(--text-secondary)',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            cursor:'pointer', boxShadow:'var(--shadow-sm)', fontSize:18, flexShrink:0
+          }}>‹</button>
+          <h2 style={{fontSize:17, fontWeight:700}}>✍️ 练习</h2>
+        </div>
+        <div style={{textAlign:'center', padding:40, color:'var(--text-tertiary)'}}>
+          <div style={{fontSize:40, marginBottom:10}}>📭</div>
+          <div style={{fontSize:14, fontWeight:600}}>当前筛选条件下没有题目</div>
+          <div style={{fontSize:12, marginTop:4}}>换个科目或取消收藏筛选试试</div>
+        </div>
+      </div>
+    );
+  }
+
+  const q = filteredQuestions[qIdx % filteredQuestions.length];
+
+  const currentStarred = allQuestions.find(aq => aq.id === q.id)?.star ?? false;
 
   const select = (i: number) => { if (!answered) setSelected(i); };
 
@@ -61,15 +107,21 @@ export default function Quiz() {
       </div>
       <div className="scroll">
         <div style={{display:'flex', gap:6, marginBottom:12, overflowX:'auto', padding:'2px 0'}}>
-          {['全部','SQL','Python','数据分析','DAMA'].map(t => (
-            <span key={t} style={{
-              padding:'6px 16px', borderRadius:20, border:'2px solid var(--border)',
-              background:'var(--surface)', fontSize:12, fontWeight:600,
-              color:'var(--text-secondary)', cursor:'pointer', whiteSpace:'nowrap',
-              fontFamily:'var(--font)'
-            }}>{t}</span>
-          ))}
-          <span onClick={() => setStarFilter(!starFilter)} style={{
+          {['all','sql','py','da','dma'].map(s => {
+            const label = s === 'all' ? '全部' : subjNames[s] || s;
+            const isActive = activeSubj === s;
+            return (
+              <span key={s} onClick={() => { setActiveSubj(s); setQIdx(0); setSelected(null); setAnswered(false); }} style={{
+                padding:'6px 16px', borderRadius:20, border:'2px solid',
+                borderColor: isActive ? 'var(--primary)' : 'var(--border)',
+                background: isActive ? 'var(--primary)' : 'var(--surface)',
+                fontSize:12, fontWeight:600,
+                color: isActive ? '#fff' : 'var(--text-secondary)',
+                cursor:'pointer', whiteSpace:'nowrap', fontFamily:'var(--font)'
+              }}>{label}</span>
+            );
+          })}
+          <span onClick={() => { setStarFilter(!starFilter); setQIdx(0); setSelected(null); setAnswered(false); }} style={{
             padding:'6px 16px', borderRadius:20, border:'2px solid var(--orange)',
             background: starFilter ? 'var(--orange)' : 'var(--surface)',
             fontSize:12, fontWeight:600,
@@ -83,14 +135,14 @@ export default function Quiz() {
           marginBottom:10, boxShadow:'var(--shadow-sm)', position:'relative'
         }}>
           <button onClick={async () => {
-            const s = await db.toggleStar(q.id);
-            setStarred(s);
+            const newStar = await db.toggleStar(q.id);
+            setAllQuestions(prev => prev.map(aq => aq.id === q.id ? { ...aq, star: newStar } : aq));
           }} style={{
             position:'absolute', top:12, right:14, fontSize:22,
             cursor:'pointer', border:'none', background:'none', padding:4
-          }}>{starred ? '⭐' : '☆'}</button>
+          }}>{currentStarred ? '⭐' : '☆'}</button>
           <div style={{fontSize:11, color:'var(--text-tertiary)', fontWeight:600, marginBottom:6, textTransform:'uppercase', letterSpacing:.5}}>
-            第 {qIdx + 1} 题 · {subjNames[q.subj] || q.subj}
+            第 {qIdx + 1} / {filteredQuestions.length} 题 · {subjNames[q.subj] || q.subj}
           </div>
           <div style={{fontSize:15, fontWeight:700, lineHeight:1.6, marginBottom:16, color:'var(--text)', paddingRight:28}}>{q.q}</div>
           {q.opts.map((opt, i) => {

@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { courseContent, fallbackContent } from '../data/content';
+import { subjectData } from '../data/chapters';
+import db from '../store/db';
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -30,6 +32,30 @@ export default function Learn() {
   const { chapterId } = useParams<{ chapterId: string }>();
   const nav = useNavigate();
   const content = chapterId ? (courseContent[chapterId] || fallbackContent) : fallbackContent;
+  const [isDone, setIsDone] = useState(false);
+
+  // 加载当前章节完成状态
+  useEffect(() => {
+    if (chapterId) {
+      db.isChapterDone(chapterId).then(setIsDone);
+    }
+  }, [chapterId]);
+
+  // 找到当前章节在所属科目中的位置，计算上一节
+  const prevChapterId = (() => {
+    if (!chapterId) return null;
+    for (const subj of Object.values(subjectData)) {
+      const idx = subj.chapters.findIndex(c => c.id === chapterId);
+      if (idx > 0) return subj.chapters[idx - 1].id;
+    }
+    return null;
+  })();
+
+  const handleMarkDone = async () => {
+    if (!chapterId) return;
+    await db.markChapterDone(chapterId);
+    setIsDone(true);
+  };
 
   return (
     <div className="page">
@@ -75,8 +101,13 @@ export default function Learn() {
           </div>
         ))}
         <div style={{display:'flex', gap:8, padding:'2px 0 10px'}}>
-          <button style={{flex:1, padding:'12px 8px', border:'2px solid var(--border)', borderRadius:'var(--radius-sm)', fontSize:13, fontWeight:700, cursor:'pointer', background:'var(--surface)', color:'var(--text)', fontFamily:'var(--font)'}}>← 上一节</button>
-          <button style={{flex:1, padding:'12px 8px', border:'none', borderRadius:'var(--radius-sm)', fontSize:13, fontWeight:700, cursor:'pointer', background:'var(--primary)', color:'#fff', boxShadow:'0 4px 12px rgba(28,176,246,.3)', fontFamily:'var(--font)'}}>✓ 标记完成</button>
+          <button
+            disabled={!prevChapterId}
+            onClick={() => prevChapterId && nav(`/learn/${prevChapterId}`)}
+            style={{flex:1, padding:'12px 8px', border:'2px solid var(--border)', borderRadius:'var(--radius-sm)', fontSize:13, fontWeight:700, cursor: prevChapterId ? 'pointer' : 'default', background:'var(--surface)', color: prevChapterId ? 'var(--text)' : 'var(--text-tertiary)', fontFamily:'var(--font)', opacity: prevChapterId ? 1 : 0.5}}>← 上一节</button>
+          <button
+            onClick={handleMarkDone}
+            style={{flex:1, padding:'12px 8px', border:'none', borderRadius:'var(--radius-sm)', fontSize:13, fontWeight:700, cursor:'pointer', background: isDone ? 'var(--green)' : 'var(--primary)', color:'#fff', boxShadow: isDone ? '0 4px 12px rgba(88,204,2,.3)' : '0 4px 12px rgba(28,176,246,.3)', fontFamily:'var(--font)'}}>{isDone ? '✓ 已完成' : '✓ 标记完成'}</button>
         </div>
       </div>
     </div>

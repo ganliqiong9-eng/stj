@@ -31,6 +31,13 @@ interface FloatingPanelProps {
   initialPosition?: Position;
 }
 
+// 模块级拖拽状态，替代 window.__swipeRef，供子组件通过 startPanelSwipe 激活拖拽
+interface SwipeState { active: boolean; startX: number; startY: number; dx: number; dy: number; }
+const panelSwipe: SwipeState = { active: false, startX: 0, startY: 0, dx: 0, dy: 0 };
+export function startPanelSwipe(x: number, y: number) {
+  panelSwipe.active = true; panelSwipe.startX = x; panelSwipe.startY = y; panelSwipe.dx = 0; panelSwipe.dy = 0;
+}
+
 const BTN_SIZE = 46;
 
 export default function FloatingPanel({
@@ -115,11 +122,12 @@ export default function FloatingPanel({
   // Global event listeners
   useEffect(() => {
     const move = (cx: number, cy: number) => {
-      const sw = swipeRef.current.active ? swipeRef : ((window as any).__swipeRef?.active ? { current: (window as any).__swipeRef } : null);
-      if (sw) {
-        const dx = cx - sw.current.startX;
-        const dy = cy - sw.current.startY;
-        sw.current.dx = dx; sw.current.dy = dy;
+      // 检查内部拖拽和子组件通过模块级 panelSwipe 激活的拖拽
+      const activeSwipe = swipeRef.current.active ? swipeRef.current : (panelSwipe.active ? panelSwipe : null);
+      if (activeSwipe) {
+        const dx = cx - activeSwipe.startX;
+        const dy = cy - activeSwipe.startY;
+        activeSwipe.dx = dx; activeSwipe.dy = dy;
         setSwipeDx(dx); setSwipeDy(dy);
         return;
       }
@@ -131,15 +139,15 @@ export default function FloatingPanel({
     };
 
     const up = (clientY?: number) => {
-      const sw = swipeRef.current.active ? swipeRef : ((window as any).__swipeRef?.active ? { current: (window as any).__swipeRef } : null);
-      if (sw) {
-        sw.current.active = false;
-        const hDx = Math.abs(sw.current.dx);
-        const hDy = Math.abs(sw.current.dy);
+      const activeSwipe = swipeRef.current.active ? swipeRef.current : (panelSwipe.active ? panelSwipe : null);
+      if (activeSwipe) {
+        activeSwipe.active = false;
+        const hDx = Math.abs(activeSwipe.dx);
+        const hDy = Math.abs(activeSwipe.dy);
         if (hDx > swipeThreshold && hDx > hDy) {
           const w = window.innerWidth;
-          const targetX = sw.current.dx > 0 ? w - 14 : -6;
-          setSwipeDx(sw.current.dx > 0 ? w * 1.2 : -w * 0.5);
+          const targetX = activeSwipe.dx > 0 ? w - 14 : -6;
+          setSwipeDx(activeSwipe.dx > 0 ? w * 1.2 : -w * 0.5);
           setSwipeScale(0.1);
           setIsExiting(true);
           setTimeout(() => {
@@ -149,8 +157,8 @@ export default function FloatingPanel({
             setSnapped(true);
             onClose?.();
           }, 380);
-        } else if (Math.abs(sw.current.dy) > dragThreshold) {
-          setModalY(m => m + sw.current.dy);
+        } else if (Math.abs(activeSwipe.dy) > dragThreshold) {
+          setModalY(m => m + activeSwipe.dy);
         }
         setSwipeDx(0); setSwipeDy(0);
         return;

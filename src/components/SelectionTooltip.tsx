@@ -25,10 +25,17 @@ export default function SelectionTooltip() {
     // Delay to let the browser's selection UI show first
     let timer: ReturnType<typeof setTimeout>;
     const delayed = () => { clearTimeout(timer); timer = setTimeout(handler, 100); };
+    const onMouseDown = () => setShow(false);
+    const onScroll = () => setShow(false);
     document.addEventListener('selectionchange', delayed);
-    document.addEventListener('mousedown', () => setShow(false));
-    document.addEventListener('scroll', () => setShow(false), true);
-    return () => { clearTimeout(timer); document.removeEventListener('selectionchange', delayed); };
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('scroll', onScroll, true);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('selectionchange', delayed);
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('scroll', onScroll, true);
+    };
   }, []);
 
   const ask = () => {

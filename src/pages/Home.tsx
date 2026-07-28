@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tips, type Tip } from '../data/tips';
-import { subjectData } from '../data/chapters';
+import { subjectData, chaptersList } from '../data/chapters';
 import db from '../store/db';
 
 const subjectList = ['sql', 'py', 'da', 'dma'];
@@ -21,15 +21,25 @@ export default function Home() {
   const nav = useNavigate();
   const [tip, setTip] = useState<Tip | null>(null);
   const [starred, setStarred] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [streak, setStreak] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [synced, setSynced] = useState(false);
+  const totalCount = chaptersList.length;
 
-  const refreshStarred = useCallback(async () => {
+  const refreshStats = useCallback(async () => {
     const n = await db.getStarredCount();
     setStarred(n);
+    const allProgress = await db.progress.toArray();
+    const completed = allProgress.filter(p => p.completed).length;
+    setCompletedCount(completed);
+    setXp(completed * 20);
+    const storedStreak = localStorage.getItem('study_streak');
+    setStreak(storedStreak ? parseInt(storedStreak, 10) : 0);
   }, []);
 
-  useEffect(() => { refreshStarred(); }, [refreshStarred]);
+  useEffect(() => { refreshStats(); }, [refreshStats]);
 
   useEffect(() => {
     if (tips.length > 0) {
@@ -49,7 +59,7 @@ export default function Home() {
       <div className="status-bar"><span>9:41</span><span>📶 ████ 🔋</span></div>
       <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 16px 2px'}}>
         <span style={{fontSize:22, fontWeight:800, letterSpacing:-.5, color:'var(--text)'}}>学习伴侣</span>
-        <span style={{display:'flex', alignItems:'center', gap:3, padding:'4px 10px', borderRadius:20, background:'var(--primary-light)', color:'var(--primary-dark)', fontSize:12, fontWeight:700, marginLeft:'auto'}}>⚡ 240 XP</span>
+        <span style={{display:'flex', alignItems:'center', gap:3, padding:'4px 10px', borderRadius:20, background:'var(--primary-light)', color:'var(--primary-dark)', fontSize:12, fontWeight:700, marginLeft:'auto'}}>⚡ {xp} XP</span>
         <button onClick={async () => {
           if (syncing) return;
           setSyncing(true);
@@ -68,7 +78,7 @@ export default function Home() {
           }}>
           {synced ? '✓ 已同步' : syncing ? '⟳ 同步中' : '🔄 同步'}
         </button>
-        <span style={{display:'flex', alignItems:'center', gap:4, padding:'4px 10px', borderRadius:20, background:'var(--orange-light)', color:'#b36b00', fontSize:12, fontWeight:700}}>🔥 7</span>
+        <span style={{display:'flex', alignItems:'center', gap:4, padding:'4px 10px', borderRadius:20, background:'var(--orange-light)', color:'#b36b00', fontSize:12, fontWeight:700}}>🔥 {streak}</span>
       </div>
       <div style={{padding:'2px 16px 0', fontSize:14, color:'var(--text-secondary)', marginBottom:10}}>
         <strong style={{color:'var(--text)'}}>下午好 👋</strong> 继续你的学习之旅
@@ -84,9 +94,9 @@ export default function Home() {
           <div style={{fontSize:13, color:'var(--text-secondary)', marginBottom:8}}>SQL · 5 小节 · 第 2 节</div>
           <div style={{display:'flex', alignItems:'center', gap:10}}>
             <div style={{flex:1, height:10, background:'var(--border)', borderRadius:5, overflow:'hidden'}}>
-              <div style={{height:'100%', borderRadius:5, background:'linear-gradient(90deg,var(--primary),var(--green))', width:'40%'}} />
+              <div style={{height:'100%', borderRadius:5, background:'linear-gradient(90deg,var(--primary),var(--green))', width: totalCount > 0 ? `${Math.round(completedCount / totalCount * 100)}%` : '0%'}} />
             </div>
-            <span style={{fontSize:14, fontWeight:700, color:'var(--primary)'}}>40%</span>
+            <span style={{fontSize:14, fontWeight:700, color:'var(--primary)'}}>{totalCount > 0 ? Math.round(completedCount / totalCount * 100) : 0}%</span>
           </div>
           <div style={{
             width:44, height:44, borderRadius:'50%', border:'none',
@@ -143,8 +153,9 @@ export default function Home() {
             <div style={{fontSize:32, marginBottom:4}}>{tip.emoji}</div>
             <div style={{fontSize:14, fontWeight:700, marginBottom:3}}>{tip.title}</div>
             <div style={{fontSize:13, fontWeight:600, color:'var(--text)', marginBottom:4}}>{tip.saying}</div>
-            <div style={{fontSize:12, lineHeight:1.6, color:'var(--text-secondary)'}}
-              dangerouslySetInnerHTML={{ __html: tip.explain }} />
+            <div style={{fontSize:12, lineHeight:1.6, color:'var(--text-secondary)'}}>
+              {tip.explain}
+            </div>
             <div style={{display:'flex', alignItems:'center', gap:8, marginTop:6}}>
               <span style={{fontSize:10, fontWeight:700, color:'#fff', background:'var(--primary)', padding:'2px 10px', borderRadius:4}}>{tip.tag}</span>
               <span style={{fontSize:11, color:'var(--text-secondary)'}}>点一下换一条</span>
@@ -158,20 +169,20 @@ export default function Home() {
           marginBottom:4, display:'flex', alignItems:'center', gap:10, boxShadow:'var(--shadow-sm)'
         }}>
           <div style={{flex:1, textAlign:'center'}}>
-            <div style={{fontSize:16, fontWeight:700, color:'var(--green)'}}>12</div>
+            <div style={{fontSize:16, fontWeight:700, color:'var(--green)'}}>{completedCount}</div>
             <div style={{fontSize:10, color:'var(--text-tertiary)', marginTop:1}}>已掌握</div>
           </div>
           <div style={{flex:1, textAlign:'center'}}>
-            <div style={{fontSize:16, fontWeight:700, color:'var(--orange)'}}>8</div>
-            <div style={{fontSize:10, color:'var(--text-tertiary)', marginTop:1}}>待复习</div>
+            <div style={{fontSize:16, fontWeight:700, color:'var(--orange)'}}>{totalCount - completedCount}</div>
+            <div style={{fontSize:10, color:'var(--text-tertiary)', marginTop:1}}>待学习</div>
           </div>
           <div style={{flex:1, textAlign:'center'}}>
             <div style={{fontSize:16, fontWeight:700, color:'var(--primary)'}}>{starred}</div>
             <div style={{fontSize:10, color:'var(--text-tertiary)', marginTop:1}}>收藏题目</div>
           </div>
           <div style={{flex:1, textAlign:'center'}}>
-            <div style={{fontSize:16, fontWeight:700, color:'var(--green)'}}>45</div>
-            <div style={{fontSize:10, color:'var(--text-tertiary)', marginTop:1}}>今日学习</div>
+            <div style={{fontSize:16, fontWeight:700, color:'var(--green)'}}>{xp}</div>
+            <div style={{fontSize:10, color:'var(--text-tertiary)', marginTop:1}}>总经验</div>
           </div>
         </div>
       </div>
