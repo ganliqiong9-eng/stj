@@ -10,6 +10,7 @@ import Quiz from './pages/Quiz';
 import Bank from './pages/Bank';
 import Compiler from './pages/Compiler';
 import Notes from './pages/Notes';
+import Knowledge from './pages/Knowledge';
 import db from './store/db';
 import './App.css';
 
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/bank" element={<Bank />} />
             <Route path="/compiler" element={<Compiler />} />
             <Route path="/notes" element={<Notes />} />
+            <Route path="/knowledge" element={<Knowledge />} />
           </Routes>
         </div>
         <AIAssistant />

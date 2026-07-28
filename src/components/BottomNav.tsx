@@ -4,6 +4,7 @@ const navItems = [
   { path: '/', icon: '🏠', label: '首页' },
   { path: '/quiz', icon: '✍️', label: '练习' },
   { path: '/bank', icon: '📚', label: '题库' },
+  { path: '/knowledge', icon: '📖', label: '知识' },
   { path: '/compiler', icon: '💻', label: '编译器' },
 ];
 

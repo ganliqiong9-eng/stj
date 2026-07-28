@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import FloatingPanel from './FloatingPanel';
-import { ragQuery, getRagStatus } from '../api';
 
 interface Message { role: 'user' | 'assistant'; content: string; }
 
@@ -13,22 +12,16 @@ const MODEL_KEY = 'sbuddy_model';
 function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
 function s(k: string, v: string) { try { localStorage.setItem(k, v); } catch {} }
 
-async function callAPI(msgs: Message[], ragContext?: string): Promise<string> {
+async function callAPI(msgs: Message[]): Promise<string> {
   const key = g(API_KEY, ''); if (!key) throw new Error('NO_KEY');
   const ep = g(ENDPOINT_KEY, DEFAULT_ENDPOINT), model = g(MODEL_KEY, DEFAULT_MODEL);
-
-  const systemBase = '你是一个学习助手，帮助用户学习SQL、Python、数据分析、DAMA数据管理知识。请用中文回答，简洁专业。';
-  const systemContent = ragContext
-    ? `${systemBase}\n\n## 知识库参考资料\n${ragContext}\n\n请优先基于以上参考资料回答，并说明信息来源。如果参考资料不足，可以结合你自己的知识补充。`
-    : systemBase;
-
   const res = await fetch(ep, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
     body: JSON.stringify({
       model,
       messages: [
-        { role: 'system', content: systemContent },
+        { role: 'system', content: '你是一个学习助手，帮助用户学习SQL、Python、数据分析、DAMA数据管理知识。请用中文回答，简洁专业。' },
         ...msgs.map(m => ({ role: m.role, content: m.content }))
       ],
       max_tokens: 1024, temperature: 0.7,
@@ -77,7 +70,6 @@ function formatContent(text: string): React.ReactNode {
 
 export default function AIAssistant() {
   const [showSetup, setShowSetup] = useState(!g(API_KEY, ''));
-  const [ragReady, setRagReady] = useState<'unknown' | 'ready' | 'unconfigured' | 'error'>('unknown');
   const [keyInput, setKeyInput] = useState(g(API_KEY, ''));
   const [epInput, setEpInput] = useState(g(ENDPOINT_KEY, DEFAULT_ENDPOINT));
   const [mdInput, setMdInput] = useState(g(MODEL_KEY, DEFAULT_MODEL));
@@ -89,62 +81,17 @@ export default function AIAssistant() {
   const hasKey = !!g(API_KEY, '');
   useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [msgs]);
 
-  // Check RAG status
-  useEffect(() => {
-    (async () => {
-      try {
-        const s = await getRagStatus();
-        if (!s) { setRagReady('error'); return; }
-        if (s.chunks > 0 && s.status !== 'unconfigured') setRagReady('ready');
-        else setRagReady('unconfigured');
-      } catch { setRagReady('error'); }
-    })();
-  }, []);
   const save = () => {
     s(ENDPOINT_KEY, epInput); s(API_KEY, keyInput);
     s(MODEL_KEY, mdInput); setShowSetup(false);
   };
 
-  const [ragSearching, setRagSearching] = useState(false);
   const send = async () => {
     const q = input.trim(); if (!q || loading) return;
     setInput(''); const msgs2 = [...msgs, { role: 'user' as const, content: q }];
     setMsgs(msgs2); setLoading(true);
-
-    // RAG search
-    let ragContext: string | undefined;
-    let sources: {title: string; score: number}[] | null = null;
     try {
-      setRagSearching(true);
-      const rag = await ragQuery(q, 4);
-      if (rag.status !== 'empty' && rag.results.length > 0) {
-        const seen = new Set<string>();
-        ragContext = rag.results.filter(r => {
-          if (seen.has(r.article_title)) return false;
-          seen.add(r.article_title);
-          return true;
-        }).map(r => `[${r.article_title}]\n${r.content}`).join('\n\n---\n\n');
-        sources = Array.from(seen).map(t => ({
-          title: t,
-          score: Math.max(...rag.results.filter(r => r.article_title === t).map(r => r.score)),
-        }));
-      }
-    } catch {} finally { setRagSearching(false); }
-
-    try {
-      const a = await callAPI(msgs2, ragContext);
-
-      // Append sources if RAG was used
-      let display = a;
-      if (sources && sources.length > 0) {
-        const sourceLines = sources
-          .sort((a, b) => b.score - a.score)
-          .map(s => `📖 ${s.title}`)
-          .join('\n');
-        display += `\n\n${sourceLines}`;
-      }
-
-      setMsgs(p => [...p, { role: 'assistant', content: display }]);
+      const a = await callAPI(msgs2); setMsgs(p => [...p, { role: 'assistant', content: a }]);
     } catch (e: unknown) {
       const err = (e as Error).message;
       if (err.startsWith('NO_KEY')) setMsgs(p => [...p, { role: 'assistant', content: '⚠️ 请先设置 API Key。' }]);
@@ -172,7 +119,6 @@ export default function AIAssistant() {
           <span style={{ fontSize: 14, fontWeight: 700, flex: 1 }}>
             AI 学习助手
             {hasKey ? <span style={{ fontSize: 10, background: '#e5f5d0', color: '#58cc02', padding: '1px 6px', borderRadius: 4, marginLeft: 6 }}>已配置</span> : <span style={{ fontSize: 10, background: '#fef3c7', color: '#b36b00', padding: '1px 6px', borderRadius: 4, marginLeft: 6 }}>需配置</span>}
-            {ragReady === 'ready' ? <span style={{ fontSize: 9, background: '#45475a', color: '#a6adc8', padding: '1px 6px', borderRadius: 4, marginLeft: 4 }}>📚RAG</span> : null}
           </span>
           <button onClick={() => setShowSetup(!showSetup)} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: '#313244', color: '#cdd6f4', cursor: 'pointer', fontSize: 13 }}>⚙️</button>
         </div>
@@ -197,15 +143,13 @@ export default function AIAssistant() {
       </div>
 
       {/* Chat messages */}
-          <div ref={ref} style={{
+      <div ref={ref} style={{
         flex: 1, overflowY: 'auto', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8,
         minHeight: 140, maxHeight: 360, background: '#11111b',
       }}>
         {msgs.length === 0 && (
           <div style={{ textAlign: 'center', color: '#585b70', fontSize: 13, padding: '20px 0' }}>
-            {hasKey
-              ? `输入问题开始学习 👇${ragReady === 'ready' ? '\n知识库已就绪，回答将自动参考你的笔记' : ''}`
-              : '填写上方 API Key 后开始提问'}
+            {hasKey ? '输入问题开始学习 👇' : '填写上方 API Key 后开始提问'}
           </div>
         )}
         {msgs.map((m, i) => (
@@ -222,9 +166,7 @@ export default function AIAssistant() {
         ))}
         {loading && (
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <div style={{ padding: '10px 14px', borderRadius: '16px 16px 16px 4px', background: '#313244', color: '#a6adc8', fontSize: 13, boxShadow: 'none' }}>
-              {ragSearching ? '🔍 搜索知识库...' : '思考中...'}
-            </div>
+            <div style={{ padding: '10px 14px', borderRadius: '16px 16px 16px 4px', background: '#313244', color: '#a6adc8', fontSize: 13, boxShadow: 'none' }}>思考中...</div>
           </div>
         )}
       </div>

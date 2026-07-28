@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "server": "node server.mjs",
+    "start": "node server.mjs",
     "lint": "oxlint",
     "preview": "vite preview"
   },

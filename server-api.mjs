@@ -4,6 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 
 const DATA_FILE = path.join('/Users/albee/Documents/stj', 'data.json');
+const KNOWLEDGE_FILE = path.join('/Users/albee/Documents/stj', 'knowledge.json');
 const PORT = 8086;
 
 // Load or create data file
@@ -15,6 +16,16 @@ function loadData() {
 }
 function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+function loadKnowledge() {
+  try {
+    if (fs.existsSync(KNOWLEDGE_FILE)) return JSON.parse(fs.readFileSync(KNOWLEDGE_FILE, 'utf-8'));
+  } catch {}
+  return [];
+}
+function saveKnowledge(data) {
+  fs.writeFileSync(KNOWLEDGE_FILE, JSON.stringify(data, null, 2));
 }
 
 // Get or create device ID from token
@@ -101,6 +112,21 @@ http.createServer(async (req, res) => {
         }
       });
     }
+    // Update knowledge (append new ones from this device)
+    if (body.knowledge) {
+      const knowledge = loadKnowledge();
+      const existingIds = new Set(knowledge.map(k => k._id));
+      body.knowledge.forEach(k => {
+        if (!k._id) k._id = crypto.randomUUID();
+        if (!existingIds.has(k._id)) {
+          k._device = deviceId;
+          k._serverCreatedAt = new Date().toISOString();
+          knowledge.push(k);
+          existingIds.add(k._id);
+        }
+      });
+      saveKnowledge(knowledge);
+    }
     data.devices[deviceId].lastSeen = new Date().toISOString();
     saveData(data);
     return json(res, { ok: true });
@@ -123,6 +149,7 @@ http.createServer(async (req, res) => {
       progress: mergedProgress,
       stars: mergedStars,
       notes: data.notes || [],
+      knowledge: loadKnowledge(),
       devices: Object.keys(data.devices).length,
     });
   }

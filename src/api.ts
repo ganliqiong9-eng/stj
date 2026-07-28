@@ -1,5 +1,29 @@
 const API_BASE = `http://${window.location.hostname}:8086`;
 
+export interface RagChunk {
+  id: string;
+  article_id: string;
+  article_title: string;
+  content: string;
+  score: number;
+}
+
+export interface RagQueryResult {
+  results: RagChunk[];
+  answer: string | null;
+  status: string;
+}
+
+export interface RagStatus {
+  status: string;
+  dimension: number;
+  articles: number;
+  chunks: number;
+  configured: boolean;
+  endpoint: string;
+  model: string;
+}
+
 function getDeviceToken(): string {
   let token = localStorage.getItem('sync_device_token');
   if (!token) {
@@ -24,20 +48,79 @@ const headers = () => ({
   'x-device-name': navigator.platform || 'unknown',
 });
 
-export async function syncUpload(progress: Record<string, boolean>, stars: Record<string, boolean>, notes: any[]) {
+export async function syncUpload(progress: Record<string, boolean>, stars: Record<string, boolean>, notes: any[], knowledge?: any[]) {
   try {
     const res = await fetch(`${API_BASE}/api/sync`, {
       method: 'POST', headers: headers(),
-      body: JSON.stringify({ progress, stars, notes }),
+      body: JSON.stringify({ progress, stars, notes, knowledge }),
     });
     return res.ok;
   } catch { return false; }
 }
 
-export async function syncDownload(): Promise<{ progress: Record<string, boolean>; stars: Record<string, boolean>; notes: any[] } | null> {
+export async function syncDownload(): Promise<{ progress: Record<string, boolean>; stars: Record<string, boolean>; notes: any[]; knowledge: any[] } | null> {
   try {
     const res = await fetch(`${API_BASE}/api/sync`, { headers: headers() });
     if (!res.ok) return null;
     return await res.json();
   } catch { return null; }
+}
+
+// === RAG API ===
+
+export async function ragQuery(query: string, topK = 5): Promise<RagQueryResult> {
+  try {
+    const res = await fetch(`${API_BASE}/api/rag/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, top_k: topK }),
+    });
+    if (!res.ok) return { results: [], answer: null, status: 'error' };
+    return await res.json();
+  } catch { return { results: [], answer: null, status: 'error' }; }
+}
+
+export async function getRagStatus(): Promise<RagStatus | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/rag/status`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+export async function configureRag(endpoint: string, model: string, key: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/rag/configure`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint, model, key }),
+    });
+    return res.ok;
+  } catch { return false; }
+}
+
+export async function addKnowledge(article: { _id?: string; title: string; subj?: string; tags?: string; source?: string; sections?: any[]; createdAt?: string; updatedAt?: string }): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/knowledge`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(article),
+    });
+    return res.ok;
+  } catch { return false; }
+}
+
+export async function listKnowledge(): Promise<any[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/knowledge`);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
+}
+
+export async function deleteKnowledge(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/knowledge/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    return res.ok;
+  } catch { return false; }
 }
