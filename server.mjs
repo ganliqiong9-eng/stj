@@ -320,44 +320,45 @@ async function seedBuiltinContent() {
   const existing = loadKnowledge();
   if (existing.length > 0) return; // Already seeded
 
-  // Try to load the built-in course content
-  try {
-    const contentPath = path.join(BASE, 'src', 'data', 'content.ts');
-    if (!fs.existsSync(contentPath)) return;
+  // Hard-code built-in course titles (avoids fragile regex on content.ts)
+  const builtinCourses = [
+    { id: 's1', title: 'SELECT 基础查询', subj: 'sql' },
+    { id: 's2', title: 'WHERE 条件过滤', subj: 'sql' },
+    { id: 's3', title: 'JOIN 多表连接', subj: 'sql' },
+    { id: 's4', title: '窗口函数', subj: 'sql' },
+    { id: 's5', title: '子查询与 CTE', subj: 'sql' },
+    { id: 'p1', title: '变量与数据类型', subj: 'py' },
+    { id: 'p2', title: '列表与循环', subj: 'py' },
+    { id: 'p3', title: '函数与模块', subj: 'py' },
+    { id: 'p4', title: '字典与集合', subj: 'py' },
+    { id: 'd1', title: '数据分析流程', subj: 'da' },
+    { id: 'd2', title: '数据清洗基础', subj: 'da' },
+    { id: 'd3', title: '可视化入门', subj: 'da' },
+    { id: 'm1', title: '数据管理概述', subj: 'dma' },
+    { id: 'm2', title: '数据治理框架', subj: 'dma' },
+    { id: 'm3', title: '数据架构', subj: 'dma' },
+  ];
 
-    const content = fs.readFileSync(contentPath, 'utf-8');
-    // Extract section data - simple regex approach
-    const courses = [];
-    const courseMatches = content.matchAll(/'([a-z]\d+)':\s*\{[^}]*title:\s*'([^']+)'/g);
-    for (const match of courseMatches) {
-      courses.push({ id: match[1], title: match[2] });
-    }
+  const knowledge = builtinCourses.map(c => ({
+    id: uuid(),
+    _id: uuid(),
+    title: c.title,
+    subj: c.subj,
+    tags: '内置课程',
+    source: '课程内容',
+    sections: [{ title: '内置内容', body: `这是来自课程「${c.title}」的内容，可通过学习页面查看完整版本。` }],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    _builtin: true,
+  }));
 
-    if (courses.length === 0) return;
+  saveKnowledge(knowledge);
+  console.log(`Seeded ${knowledge.length} built-in courses into knowledge base`);
 
-    const knowledge = courses.map(c => ({
-      id: uuid(),
-      _id: uuid(),
-      title: c.title,
-      subj: c.id[0] === 's' ? 'sql' : c.id[0] === 'p' ? 'py' : c.id[0] === 'd' ? 'da' : c.id[0] === 'm' ? 'dma' : 'custom',
-      tags: '内置课程',
-      source: '课程内容',
-      sections: [{ title: '内置内容', body: `这是来自课程「${c.title}」的内容，可通过学习页面查看完整版本。` }],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      _builtin: true,
-    }));
-
-    saveKnowledge(knowledge);
-    console.log(`Seeded ${knowledge.length} built-in courses into knowledge base`);
-
-    // Reindex after seeding
-    const ragCfg = loadRagConfig();
-    await reindexAll(ragCfg);
-    console.log('Reindexed knowledge base after seeding');
-  } catch (e) {
-    console.error('Seed error:', e);
-  }
+  // Reindex after seeding
+  const ragCfg = loadRagConfig();
+  await reindexAll(ragCfg);
+  console.log('Reindexed knowledge base after seeding');
 }
 
 // ============================================================
@@ -556,6 +557,23 @@ http.createServer(async (req, res) => {
   }
 
   // ---- 404 ---- //
+  // Root URL — return friendly info for browser access
+  if (url === '/') {
+    return json(res, {
+      service: '学习伴侣 API Server',
+      version: 2,
+      endpoints: {
+        sync: '/api/sync',
+        register: '/api/register',
+        knowledge: '/api/knowledge',
+        rag_query: '/api/rag/query',
+        rag_status: '/api/rag/status',
+        rag_reindex: '/api/rag/reindex',
+      },
+      frontend: 'http://localhost:5173',
+    });
+  }
+
   json(res, { error: 'Not found' }, 404);
 }).listen(PORT, '0.0.0.0', async () => {
   console.log(`\n📚 学习伴侣服务器 v2 (unified)`);

@@ -39,57 +39,113 @@
     "verify-k": {
       "name": "unknown",
       "lastSeen": "2026-07-28T07:26:03.243Z"
+    },
+    "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": {
+      "name": "MacIntel",
+      "lastSeen": "2026-07-28T16:16:30.972Z"
+    },
+    "3dd3bbaf-2aaf-4b1e-bc6a-38afe5eb481a": {
+      "name": "MacIntel",
+      "lastSeen": "2026-07-28T16:21:27.453Z"
+    },
+    "7484a194-2c8d-4a59-a75c-aa90f35263cc": {
+      "name": "MacIntel",
+      "lastSeen": "2026-07-28T16:46:48.231Z"
+    },
+    "b81f99fb-9ada-4cc1-982f-9e1a792c8ec8": {
+      "name": "MacIntel",
+      "lastSeen": "2026-07-28T16:21:32.126Z"
+    },
+    "cf22e86c-4db6-45c7-893e-571c6008bfa7": {
+      "name": "MacIntel",
+      "lastSeen": "2026-07-28T16:46:32.233Z"
     }
   },
   "progress": {},
   "stars": {
     "q1": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": false,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": false
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": false,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": false,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": false,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": false
     },
     "q10": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": false,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": false
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": false,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": false,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": false,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": false
     },
     "q11": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": true,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": true
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": true,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": true,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": true,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": true
     },
     "q12": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": true,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": true
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": true,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": true,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": true,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": true
     },
     "q2": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": true,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": true
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": true,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": true,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": true,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": true
     },
     "q3": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": false,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": false
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": false,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": false,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": false,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": false
     },
     "q4": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": true,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": true
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": true,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": true,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": true,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": true
     },
     "q5": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": false,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": false
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": false,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": false,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": false,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": false
     },
     "q6": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": false,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": false
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": false,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": false,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": false,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": false
     },
     "q7": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": true,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": true
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": true,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": true,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": true,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": true
     },
     "q8": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": false,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": false
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": false,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": false,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": false,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": false
     },
     "q9": {
       "af0f3014-900f-493f-9385-2cdadd7c15a1": false,
-      "ef2fe58b-bb09-486a-9955-46241b95b86c": false
+      "ef2fe58b-bb09-486a-9955-46241b95b86c": false,
+      "ab7d3379-5cbe-49fc-90dc-3485709ac2c6": false,
+      "7484a194-2c8d-4a59-a75c-aa90f35263cc": false,
+      "cf22e86c-4db6-45c7-893e-571c6008bfa7": false
     }
   },
   "notes": [

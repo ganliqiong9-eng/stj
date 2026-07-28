@@ -1,1 +1,122 @@
-[]
+[
+  {
+    "id": "47a5ba4f-88fc-4830-b789-56e45bfec871",
+    "article_id": "6726557a-0317-414d-bcae-f49468628a7d",
+    "article_title": "SELECT 基础查询",
+    "content": "# SELECT 基础查询\n\n内置内容\n这是来自课程「SELECT 基础查询」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "b74bcf2f-451e-4959-b8c4-c0e62bbf7d02",
+    "article_id": "91efacab-b3e6-48c3-8431-b6e5771753cc",
+    "article_title": "WHERE 条件过滤",
+    "content": "# WHERE 条件过滤\n\n内置内容\n这是来自课程「WHERE 条件过滤」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "9a3ee026-145e-469a-877b-6bd0fa164b98",
+    "article_id": "449a7871-1f62-4dd1-9839-496bdc412809",
+    "article_title": "JOIN 多表连接",
+    "content": "# JOIN 多表连接\n\n内置内容\n这是来自课程「JOIN 多表连接」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "fedbb327-ca7b-4e59-b5d4-15b942d213ab",
+    "article_id": "f634fadd-356d-42bd-8b49-acc19af80867",
+    "article_title": "窗口函数",
+    "content": "# 窗口函数\n\n内置内容\n这是来自课程「窗口函数」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "27be24cb-c103-442f-b2c7-a6af837ce354",
+    "article_id": "2802018b-a747-4ecb-9d4d-306d3a2675de",
+    "article_title": "子查询与 CTE",
+    "content": "# 子查询与 CTE\n\n内置内容\n这是来自课程「子查询与 CTE」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "85a2ee37-bca4-4e09-aaf9-990224bd6d5a",
+    "article_id": "a974c1d4-95af-472b-b1ec-3de6e80b4295",
+    "article_title": "变量与数据类型",
+    "content": "# 变量与数据类型\n\n内置内容\n这是来自课程「变量与数据类型」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "5dc4a0c2-b877-40f2-932c-8935334f6061",
+    "article_id": "2c18fd99-fb8f-4339-a892-560309be894f",
+    "article_title": "列表与循环",
+    "content": "# 列表与循环\n\n内置内容\n这是来自课程「列表与循环」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "1728e7eb-8863-4f69-8dc4-6a6c309508e7",
+    "article_id": "9f7253f9-b3b0-4422-8887-e6bfed2c8e09",
+    "article_title": "函数与模块",
+    "content": "# 函数与模块\n\n内置内容\n这是来自课程「函数与模块」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "15b60899-5494-42b7-9d68-3fbc914715ee",
+    "article_id": "a0495441-6cfb-4180-a71d-95e5213fb3d9",
+    "article_title": "字典与集合",
+    "content": "# 字典与集合\n\n内置内容\n这是来自课程「字典与集合」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "9312f545-22d8-4c37-a7c5-f502f8feb339",
+    "article_id": "94dd17db-9320-4897-80b8-d292c7305369",
+    "article_title": "数据分析流程",
+    "content": "# 数据分析流程\n\n内置内容\n这是来自课程「数据分析流程」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "91d55518-8129-4860-b66a-bd3216cc51be",
+    "article_id": "f551ea0f-1531-4cd0-a8e2-f86052e47cda",
+    "article_title": "数据清洗基础",
+    "content": "# 数据清洗基础\n\n内置内容\n这是来自课程「数据清洗基础」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "680693ba-0aaf-426e-911e-58d551850180",
+    "article_id": "e5f6f16c-c0dc-4690-8cfd-67570efc5575",
+    "article_title": "可视化入门",
+    "content": "# 可视化入门\n\n内置内容\n这是来自课程「可视化入门」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "589bdf05-4a55-4e72-9a5c-ff6aade4ff0a",
+    "article_id": "79797e0e-5d6e-405d-92ad-9bcb2395176e",
+    "article_title": "数据管理概述",
+    "content": "# 数据管理概述\n\n内置内容\n这是来自课程「数据管理概述」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "3a4bac1c-3fa4-491c-b07c-6f38e195af65",
+    "article_id": "3436d468-3d4a-42e6-94a5-cb8aecef124e",
+    "article_title": "数据治理框架",
+    "content": "# 数据治理框架\n\n内置内容\n这是来自课程「数据治理框架」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  },
+  {
+    "id": "020dc98c-506b-4b9e-a297-8a5f46614e5a",
+    "article_id": "7a51088e-b6fe-4000-a29b-b5ca5a61f878",
+    "article_title": "数据架构",
+    "content": "# 数据架构\n\n内置内容\n这是来自课程「数据架构」的内容，可通过学习页面查看完整版本。",
+    "chunk_index": 0,
+    "embedding": null
+  }
+]
