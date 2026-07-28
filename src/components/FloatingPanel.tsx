@@ -96,16 +96,16 @@ export default function FloatingPanel({
     const tx = window.innerWidth - buttonSize - 16;
     const ty = window.innerHeight - 160;
     const w = window.innerWidth;
-    const snapX = tx + buttonSize > w / 2 ? w - 14 : -14;
-    // 按钮直接滑向最近边缘 + 同步 snapped 过渡（CSS transition 同时执行）
+    const snapX = tx + buttonSize > w / 2 ? w - 16 : 0;
+    // 按钮先滑到边缘位置（保持正常样式）
     setPos({ x: snapX, y: ty });
-    setSnapped(true);
     setIsExiting(true);
     setSwipeScale(0);
     setCardOpacity(0);
     setTimeout(() => {
       setOpen(false); setSwipeScale(1);
       setIsExiting(false); setCardOpacity(1);
+      setSnapped(true);
       onClose?.();
     }, 380);
   };
@@ -146,16 +146,16 @@ export default function FloatingPanel({
         const hDy = Math.abs(activeSwipe.dy);
         if (hDx > swipeThreshold && hDx > hDy) {
           const w = window.innerWidth;
-          const targetX = activeSwipe.dx > 0 ? w - 14 : -6;
+          const targetX = activeSwipe.dx > 0 ? w - 16 : 0;
           // 按钮滑向边缘 + 同步 snapped 过渡
           setPos({ x: targetX, y: clientY !== undefined ? Math.max(40, Math.min(window.innerHeight - 60, clientY - 23)) : window.innerHeight - 160 });
-          setSnapped(true);
           setSwipeDx(activeSwipe.dx > 0 ? w * 1.2 : -w * 0.5);
           setSwipeScale(0.1);
           setIsExiting(true);
           setTimeout(() => {
             setOpen(false); setSwipeScale(1); setSwipeDx(0);
             setIsExiting(false); setModalY(0);
+            setSnapped(true);
             onClose?.();
           }, 380);
         } else if (Math.abs(activeSwipe.dy) > dragThreshold) {
@@ -232,19 +232,14 @@ export default function FloatingPanel({
         onMouseLeave={() => { setActive(false); }}
         onClick={() => { resetIdle(); if (!drag.current) { setOpen(true); onOpen?.(); } }}
         style={{
-          position: 'fixed', zIndex: 1001,
-          left: snapped ? (pos.x + buttonSize > window.innerWidth / 2
-            ? (active ? window.innerWidth - 18 : window.innerWidth - 6)
-            : (active ? -6 : -6)) : pos.x,
+          position: 'fixed', zIndex: 900,
+          left: snapped ? (pos.x + buttonSize > window.innerWidth / 2 ? undefined : 0) : pos.x,
+          right: snapped && pos.x + buttonSize > window.innerWidth / 2 ? 0 : undefined,
           top: pos.y,
-          width: snapped ? (active ? 24 : 10) : buttonSize,
+          width: snapped ? (active ? 30 : 16) : buttonSize,
           height: snapped ? (active ? buttonSize : 80) : buttonSize,
           border: 'none',
-          borderWidth: snapped && !active ? '0 20px' : 0,
-          borderStyle: snapped && !active ? 'solid' : 'none',
-          borderColor: 'transparent',
-          backgroundClip: snapped && !active ? 'padding-box' : 'border-box',
-          borderRadius: snapped ? (pos.x > window.innerWidth / 2
+          borderRadius: snapped ? (pos.x + buttonSize > window.innerWidth / 2
             ? (active ? '8px 0 0 8px' : '6px 0 0 6px')
             : (active ? '0 8px 8px 0' : '0 6px 6px 0')) : 14,
           background: snapped ? (active ? 'linear-gradient(135deg,#89b4fa,#b4befe)' : 'rgba(30,30,46,0.45)') : 'rgba(30,30,46,0.3)',
@@ -255,8 +250,8 @@ export default function FloatingPanel({
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: drag.current ? 'none' : 'left .4s cubic-bezier(.22,1,.36,1), width .25s ease, border-radius .25s ease, background .25s ease, box-shadow .25s ease, opacity .5s ease',
           touchAction: 'none', overflow: 'hidden',
-          backdropFilter: snapped && !active ? 'none' : 'blur(24px)',
-          WebkitBackdropFilter: snapped && !active ? 'none' : 'blur(24px)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
         }}>
         {snapped && !active ? null : buttonContent}
       </button>
