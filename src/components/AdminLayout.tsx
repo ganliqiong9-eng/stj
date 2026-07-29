@@ -16,7 +16,7 @@ export default function AdminLayout({ children, title }: { children: ReactNode; 
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#f5f5f5', fontFamily: 'var(--font)' }}>
       {/* Sidebar */}
-      <div style={{ width: 220, background: '#fff', borderRight: '1px solid #e0e0e0', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+      <div style={{ width: 200, minWidth: 200, background: '#fff', borderRight: '1px solid #e0e0e0', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
         <div style={{ padding: '20px 16px', borderBottom: '1px solid #e0e0e0' }}>
           <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -.5 }}>STJ</div>
           <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>管理后台</div>
@@ -40,9 +40,13 @@ export default function AdminLayout({ children, title }: { children: ReactNode; 
 
       {/* Content */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {title && <div style={{ padding: '16px 24px', borderBottom: '1px solid #e0e0e0', background: '#fff', fontSize: 18, fontWeight: 700 }}>{title}</div>}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
-          {children}
+        {title && <div style={{ padding: '16px 24px', borderBottom: '1px solid #e0e0e0', background: '#fff', fontSize: 18, fontWeight: 700, display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: '100%', maxWidth: 1200 }}>{title}</div>
+        </div>}
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: '100%', maxWidth: 1200, padding: '16px 24px' }}>
+            {children}
+          </div>
         </div>
       </div>
     </div>

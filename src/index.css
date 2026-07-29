@@ -67,6 +67,23 @@ html,body{
   .phone-notch{display:none!important}
   .status-bar{display:none!important}
 }
-@media(min-width:769px){
-  body{display:flex;align-items:center;justify-content:center;min-height:100vh}
+@media (min-width: 769px) {
+  body:has(.admin-wrapper) {
+    display: block;
+    align-items: unset;
+    justify-content: unset;
+  }
+  .admin-wrapper {
+    min-height: 100vh;
+    width: 100%;
+  }
+  .admin-wrapper > * {
+    min-height: 100vh;
+  }
+  body:not(:has(.admin-wrapper)) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
 }

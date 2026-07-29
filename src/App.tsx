@@ -80,14 +80,16 @@ function AppContent() {
 
   if (isAdmin) {
     return (
-      <Routes>
-        <Route path="/admin" element={<AdminDashboard />} />
+      <div className="admin-wrapper">
+        <Routes>
+          <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/knowledge" element={<AdminKnowledge />} />
         <Route path="/admin/knowledge/:id" element={<AdminEditor />} />
         <Route path="/admin/upload" element={<AdminUpload />} />
         <Route path="/admin/annotate" element={<AdminAnnotate />} />
-        <Route path="/admin/quiz" element={<AdminQuiz />} />
-      </Routes>
+          <Route path="/admin/quiz" element={<AdminQuiz />} />
+        </Routes>
+      </div>
     );
   }
 
