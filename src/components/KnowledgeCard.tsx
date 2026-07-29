@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { QACard, KnowledgeLevel } from '../data/content';
 
 interface KnowledgeCardProps {
