@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import BottomNav from './components/BottomNav';
 import AIAssistant from './components/AIAssistant';
@@ -69,30 +69,46 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="phone-frame" id="app-root">
-        <div className="phone-notch" />
-        <div className="page-container">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/subject/:id" element={<SubjectDetail />} />
-            <Route path="/learn/:chapterId" element={<Learn />} />
-            <Route path="/quiz" element={<Quiz />} />
-            <Route path="/bank" element={<Bank />} />
-            <Route path="/compiler" element={<Compiler />} />
-            <Route path="/notes" element={<Notes />} />
-          <Route path="/knowledge" element={<Knowledge />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/knowledge" element={<AdminKnowledge />} />
-          <Route path="/admin/knowledge/:id" element={<AdminEditor />} />
-          <Route path="/admin/upload" element={<AdminUpload />} />
-          <Route path="/admin/annotate" element={<AdminAnnotate />} />
-          <Route path="/admin/quiz" element={<AdminQuiz />} />
-        </Routes>
-        </div>
-        <AIAssistant />
-        <SelectionTooltip />
-        <BottomNav />
-      </div>
+      <AppContent />
     </BrowserRouter>
+  );
+}
+
+function AppContent() {
+  const loc = useLocation();
+  const isAdmin = loc.pathname.startsWith('/admin');
+
+  if (isAdmin) {
+    return (
+      <Routes>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/knowledge" element={<AdminKnowledge />} />
+        <Route path="/admin/knowledge/:id" element={<AdminEditor />} />
+        <Route path="/admin/upload" element={<AdminUpload />} />
+        <Route path="/admin/annotate" element={<AdminAnnotate />} />
+        <Route path="/admin/quiz" element={<AdminQuiz />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <div className="phone-frame" id="app-root">
+      <div className="phone-notch" />
+      <div className="page-container">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/subject/:id" element={<SubjectDetail />} />
+          <Route path="/learn/:chapterId" element={<Learn />} />
+          <Route path="/quiz" element={<Quiz />} />
+          <Route path="/bank" element={<Bank />} />
+          <Route path="/compiler" element={<Compiler />} />
+          <Route path="/notes" element={<Notes />} />
+          <Route path="/knowledge" element={<Knowledge />} />
+        </Routes>
+      </div>
+      <AIAssistant />
+      <SelectionTooltip />
+      <BottomNav />
+    </div>
   );
 }
