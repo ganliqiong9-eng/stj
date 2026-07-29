@@ -10,6 +10,8 @@ function getApiBase(): string {
   return `http://${window.location.hostname}:8086`;
 }
 
+import type { QA } from './data/content';
+
 export const API_BASE = getApiBase();
 
 export interface RagChunk {
@@ -135,4 +137,285 @@ export async function deleteKnowledge(id: string): Promise<boolean> {
     const res = await fetch(`${API_BASE}/api/knowledge/${encodeURIComponent(id)}`, { method: 'DELETE' });
     return res.ok;
   } catch { return false; }
+}
+
+// ============================================================
+// Compiler API
+// ============================================================
+
+/** 数据行类型：字符串 / 数字 / null */
+export type Row = (string | number | null)[];
+/** 文件上传最大大小：50 MB */
+export const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
+
+export interface CompilerResult {
+  ok: boolean;
+  msg: string;
+  columns: string[];
+  rows: Row[];
+}
+
+export interface CompilerTable {
+  name: string;
+  columns: string[];
+  rowCount: number;
+}
+
+export async function runCompilerCode(language: 'sql' | 'python', code: string): Promise<CompilerResult> {
+  try {
+    const res = await fetch(`${API_BASE}/api/compiler/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language, code }),
+    });
+    if (!res.ok) return { ok: false, msg: '服务器连接失败', columns: [], rows: [] };
+    return await res.json();
+  } catch {
+    return { ok: false, msg: '网络错误: 无法连接服务器', columns: [], rows: [] };
+  }
+}
+
+export async function listCompilerTables(): Promise<CompilerTable[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/compiler/tables`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.tables || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getCompilerTableData(name: string): Promise<{ columns: string[]; rows: Row[] }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/compiler/table/${encodeURIComponent(name)}`);
+    if (!res.ok) return { columns: [], rows: [] };
+    return await res.json();
+  } catch {
+    return { columns: [], rows: [] };
+  }
+}
+
+export interface ImportExcelResult {
+  ok: boolean;
+  msg: string;
+  tableName?: string;
+  rowCount?: number;
+  columns?: { name: string; type: string; original: string }[];
+}
+
+export async function importCompilerExcel(file: File, tableName?: string): Promise<ImportExcelResult> {
+  try {
+    // Read file as base64
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = btoa(binary);
+
+    const res = await fetch(`${API_BASE}/api/compiler/import-excel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file_base64: base64, table_name: tableName }),
+    });
+    if (!res.ok) return { ok: false, msg: '导入请求失败' };
+    return await res.json();
+  } catch {
+    return { ok: false, msg: '导入出错: 请检查文件格式' };
+  }
+}
+
+export async function resetCompilerDB(): Promise<{ ok: boolean; msg: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/compiler/reset`, { method: 'POST' });
+    return await res.json();
+  } catch {
+    return { ok: false, msg: '重置失败: 无法连接服务器' };
+  }
+}
+
+export async function getCompilerSampleQueries(): Promise<{ sql: { title: string; code: string }[]; python: { title: string; code: string }[] }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/compiler/sample-queries`);
+    if (!res.ok) return { sql: [], python: [] };
+    return await res.json();
+  } catch {
+    return { sql: [], python: [] };
+  }
+}
+
+// ============================================================
+// File Parser & Document Upload API
+// ============================================================
+
+export interface ParsedSection {
+  id: string;
+  title: string;
+  body: string;
+  code: string;
+  tip: string;
+}
+
+export interface UploadDocResult {
+  ok: boolean;
+  msg: string;
+  title?: string;
+  fileType?: string;
+  sections?: ParsedSection[];
+  articleId?: string;
+}
+
+export async function uploadDocForRag(
+  file: File,
+  subject?: string,
+  tags?: string,
+): Promise<UploadDocResult> {
+  try {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const base64 = btoa(binary);
+
+    const res = await fetch(`${API_BASE}/api/rag/upload-doc`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        file_base64: base64,
+        filename: file.name,
+        subj: subject || 'custom',
+        tags: tags || '文档',
+      }),
+    });
+    if (!res.ok) return { ok: false, msg: '上传失败' };
+    return await res.json();
+  } catch {
+    return { ok: false, msg: '网络错误: 无法连接服务器' };
+  }
+}
+
+// ============================================================
+// Excel Analysis API
+// ============================================================
+
+export interface AnalyzedColumn {
+  name: string;
+  originalName: string;
+  type: string;
+  description: string;
+  sampleValues: string[];
+  nonNullCount: number;
+  totalCount: number;
+}
+
+export interface AnalyzeExcelResult {
+  ok: boolean;
+  msg: string;
+  tableName?: string;
+  rowCount?: number;
+  columnCount?: number;
+  columns?: AnalyzedColumn[];
+  suggestedCategory?: string;
+  folderId?: string;
+  createSql?: string;
+}
+
+export async function analyzeExcel(file: File): Promise<AnalyzeExcelResult> {
+  try {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const base64 = btoa(binary);
+
+    const res = await fetch(`${API_BASE}/api/compiler/analyze-excel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file_base64: base64, filename: file.name }),
+    });
+    if (!res.ok) return { ok: false, msg: '分析请求失败' };
+    return await res.json();
+  } catch {
+    return { ok: false, msg: '网络错误: 无法连接服务器' };
+  }
+}
+
+export interface CreateFromExcelResult {
+  ok: boolean;
+  msg: string;
+  tableName?: string;
+  rowCount?: number;
+  columns?: AnalyzedColumn[];
+  folderId?: string;
+  createSql?: string;
+}
+
+export async function createTableFromExcel(
+  file: File,
+  folderId?: string,
+  customSql?: string,
+): Promise<CreateFromExcelResult> {
+  try {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const base64 = btoa(binary);
+
+    const res = await fetch(`${API_BASE}/api/compiler/create-from-excel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        file_base64: base64,
+        filename: file.name,
+        folder_id: folderId,
+        custom_sql: customSql,
+      }),
+    });
+    if (!res.ok) return { ok: false, msg: '创建请求失败' };
+    return await res.json();
+  } catch {
+    return { ok: false, msg: '网络错误: 无法连接服务器' };
+  }
+}
+
+// ============================================================
+// Folder API
+// ============================================================
+
+export interface FolderInfo {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+}
+
+export interface FolderData {
+  folders: FolderInfo[];
+  tableAssignments: Record<string, string>;
+}
+
+export async function getFolders(): Promise<FolderData> {
+  try {
+    const res = await fetch(`${API_BASE}/api/compiler/folders`);
+    if (!res.ok) return { folders: [], tableAssignments: {} };
+    return await res.json();
+  } catch {
+    return { folders: [], tableAssignments: {} };
+  }
+}
+
+export async function moveTableToFolder(tableName: string, folderId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/compiler/move-table`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ table_name: tableName, folder_id: folderId }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }

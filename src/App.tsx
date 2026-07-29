@@ -56,7 +56,7 @@ export default function App() {
     const timer = setInterval(() => {
       db.pushSync();
       db.pullSync();
-    }, 30000);
+    }, 60000);
     return () => clearInterval(timer);
   }, []);
 

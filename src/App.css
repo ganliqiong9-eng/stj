@@ -40,7 +40,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  padding-bottom: 54px;
+  padding-bottom: 64px;
 }
 
 @keyframes pulse {
@@ -116,4 +116,12 @@
   padding: 2px 0 calc(env(safe-area-inset-bottom,6px));
   border-top: 2px solid var(--border);
   z-index: 50;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1s linear infinite;
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import db from '../store/db';
 import { subjNames } from '../data/questions';
+import StatusBar from '../components/StatusBar';
 
 interface QItem {
   id: string; q: string; opts: string[]; a: number; subj: string; star: boolean;
@@ -53,7 +54,7 @@ export default function Quiz() {
   if (filteredQuestions.length === 0) {
     return (
       <div className="page">
-        <div className="status-bar"><span>9:43</span><span style={{display:'inline-flex',alignItems:'center',gap:5}}><svg width="14" height="10" viewBox="0 0 14 10" style={{display:'block'}}><rect x="0" y="6" width="2.5" height="4" rx="0.5" fill="currentColor"/><rect x="3.5" y="4" width="2.5" height="6" rx="0.5" fill="currentColor"/><rect x="7" y="2" width="2.5" height="8" rx="0.5" fill="currentColor"/><rect x="10.5" y="0" width="2.5" height="10" rx="0.5" fill="currentColor"/></svg><svg width="18" height="10" viewBox="0 0 18 10" style={{display:'block'}}><rect x="0.5" y="1" width="14" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="0.8"/><rect x="2" y="2.5" width="9" height="5" rx="0.8" fill="currentColor"/><rect x="15" y="3.5" width="2" height="3" rx="0.8" fill="currentColor"/></svg></span></div>
+        <StatusBar />
         <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 12px 2px'}}>
           <button onClick={() => nav('/')} style={{
             width:32, height:32, borderRadius:8, border:'none',
@@ -61,7 +62,7 @@ export default function Quiz() {
             display:'flex', alignItems:'center', justifyContent:'center',
             cursor:'pointer', boxShadow:'var(--shadow-sm)', fontSize:18, flexShrink:0
           }}>‹</button>
-          <h2 style={{fontSize:17, fontWeight:700}}>✍️ 练习</h2>
+          <h2 style={{fontSize:17, fontWeight:700}}>练习</h2>
         </div>
         <div style={{textAlign:'center', padding:40, color:'var(--text-tertiary)'}}>
           <div style={{fontSize:40, marginBottom:10}}>📭</div>
@@ -89,7 +90,7 @@ export default function Quiz() {
 
   return (
     <div className="page">
-      <div className="status-bar"><span>9:43</span><span style={{display:'inline-flex',alignItems:'center',gap:5}}><svg width="14" height="10" viewBox="0 0 14 10" style={{display:'block'}}><rect x="0" y="6" width="2.5" height="4" rx="0.5" fill="currentColor"/><rect x="3.5" y="4" width="2.5" height="6" rx="0.5" fill="currentColor"/><rect x="7" y="2" width="2.5" height="8" rx="0.5" fill="currentColor"/><rect x="10.5" y="0" width="2.5" height="10" rx="0.5" fill="currentColor"/></svg><svg width="18" height="10" viewBox="0 0 18 10" style={{display:'block'}}><rect x="0.5" y="1" width="14" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="0.8"/><rect x="2" y="2.5" width="9" height="5" rx="0.8" fill="currentColor"/><rect x="15" y="3.5" width="2" height="3" rx="0.8" fill="currentColor"/></svg></span></div>
+      <StatusBar />
       <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 12px 2px'}}>
         <button onClick={() => nav('/')} style={{
           width:32, height:32, borderRadius:8, border:'none',
@@ -97,13 +98,7 @@ export default function Quiz() {
           display:'flex', alignItems:'center', justifyContent:'center',
           cursor:'pointer', boxShadow:'var(--shadow-sm)', fontSize:18, flexShrink:0
         }}>‹</button>
-        <h2 style={{fontSize:17, fontWeight:700}}>✍️ 练习</h2>
-        <button onClick={() => nav('/bank')} style={{
-          marginLeft:'auto', width:32, height:32, borderRadius:8, border:'none',
-          background:'var(--surface)', color:'var(--text-secondary)',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          cursor:'pointer', boxShadow:'var(--shadow-sm)', fontSize:14
-        }}>📚</button>
+        <h2 style={{fontSize:17, fontWeight:700}}>练习</h2>
       </div>
       <div className="scroll">
         <div style={{display:'flex', gap:6, marginBottom:12, overflowX:'auto', padding:'2px 0'}}>
@@ -127,7 +122,7 @@ export default function Quiz() {
             fontSize:12, fontWeight:600,
             color: starFilter ? '#fff' : 'var(--orange)',
             cursor:'pointer', whiteSpace:'nowrap', fontFamily:'var(--font)'
-          }}>⭐ 收藏</span>
+          }}>收藏</span>
         </div>
 
         <div style={{
@@ -192,7 +187,7 @@ export default function Quiz() {
           fontSize:15, fontWeight:700, cursor: selected === null ? 'default' : 'pointer',
           fontFamily:'var(--font)', marginBottom:6,
           background:'var(--primary)', color:'#fff', opacity: selected === null ? .5 : 1,
-          boxShadow: selected === null ? 'none' : '0 4px 12px rgba(28,176,246,.3)'
+          boxShadow: selected === null ? 'none' : '0 4px 12px rgba(124,58,237,.3)'
         }}>提交答案</button>
         <button onClick={next} style={{
           width:'100%', padding:'14px 0', border:'2px solid var(--border)',

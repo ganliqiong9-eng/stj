@@ -3,11 +3,15 @@ import { useState, useEffect, useCallback } from 'react';
 import db from '../store/db';
 import { subjNames } from '../data/questions';
 import type { Question } from '../data/questions';
+import StatusBar from '../components/StatusBar';
 
 export default function Bank() {
   // const nav = useNavigate();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [filter, setFilter] = useState('all');
+  const [showImport, setShowImport] = useState(false);
+  const [importData, setImportData] = useState('');
+  const [importing, setImporting] = useState(false);
 
   const load = useCallback(async () => {
     await db.initQuestions();
@@ -18,6 +22,31 @@ export default function Bank() {
   }, [filter]);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleBatchImport = async () => {
+    try {
+      setImporting(true);
+      const questions = JSON.parse(importData);
+      if (!Array.isArray(questions)) throw new Error('请提供数组格式');
+      for (const q of questions) {
+        if (!q.id || !q.subj || !q.q || !q.answer) throw new Error(`题目缺少必填字段: ${q.q || q.id}`);
+        await db.questions.put({
+          id: q.id,
+          subj: q.subj,
+          q: q.q,
+          answer: q.answer,
+          star: q.star || false
+        });
+      }
+      setShowImport(false);
+      setImportData('');
+      load();
+    } catch (e) {
+      alert(`导入失败: ${(e as Error).message}`);
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const toggle = async (id: string) => {
     await db.toggleStar(id);
@@ -35,10 +64,11 @@ export default function Bank() {
 
   return (
     <div className="page">
-      <div className="status-bar"><span>9:43</span><span style={{display:'inline-flex',alignItems:'center',gap:5}}><svg width="14" height="10" viewBox="0 0 14 10" style={{display:'block'}}><rect x="0" y="6" width="2.5" height="4" rx="0.5" fill="currentColor"/><rect x="3.5" y="4" width="2.5" height="6" rx="0.5" fill="currentColor"/><rect x="7" y="2" width="2.5" height="8" rx="0.5" fill="currentColor"/><rect x="10.5" y="0" width="2.5" height="10" rx="0.5" fill="currentColor"/></svg><svg width="18" height="10" viewBox="0 0 18 10" style={{display:'block'}}><rect x="0.5" y="1" width="14" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="0.8"/><rect x="2" y="2.5" width="9" height="5" rx="0.8" fill="currentColor"/><rect x="15" y="3.5" width="2" height="3" rx="0.8" fill="currentColor"/></svg></span></div>
+      <StatusBar />
       <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 12px 2px'}}>
-        <h2 style={{fontSize:17, fontWeight:700}}>📚 题库</h2>
-        <span style={{marginLeft:'auto', fontSize:12, fontWeight:400, color:'var(--text-tertiary)'}}>
+        <h2 style={{fontSize:17, fontWeight:700}}>题库</h2>
+        <span style={{marginLeft:'auto', fontSize:12, fontWeight:400, color:'var(--text-tertiary)', display:'flex', gap:8, alignItems:'center'}}>
+          <button onClick={() => setShowImport(true)} style={{padding:'3px 10px',border:'2px solid var(--border)',borderRadius:8,background:'var(--surface)',color:'var(--text)',fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'var(--font)'}}>+批量导入</button>
           共 {questions.length} 题
         </span>
       </div>
@@ -102,6 +132,60 @@ export default function Bank() {
           ))
         )}
       </div>
+
+      {/* Batch Import Modal */}
+      {showImport && (
+        <div onClick={() => setShowImport(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 2000,
+          background: 'rgba(0,0,0,.4)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', padding: 20,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'var(--surface)', borderRadius: 'var(--radius)',
+            width: '100%', maxWidth: 360, maxHeight: '70vh',
+            display: 'flex', flexDirection: 'column',
+            boxShadow: '0 12px 48px rgba(0,0,0,.2)',
+          }}>
+            <div style={{ padding: '14px 16px', borderBottom: '2px solid var(--border)', fontSize: 14, fontWeight: 700 }}>
+              批量导入题目
+            </div>
+            <div style={{ flex: 1, padding: 12, overflowY: 'auto' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 6, lineHeight: 1.5 }}>
+                粘贴 JSON 数组，格式如下：{'{'}&ldquo;id&rdquo;: ..., &ldquo;subj&rdquo;: &ldquo;sql|py|da|dma&rdquo;, &ldquo;q&rdquo;: &ldquo;...&rdquo;, &ldquo;answer&rdquo;: &ldquo;...&rdquo;, &ldquo;star&rdquo;: false{'}'}
+              </div>
+              <textarea value={importData} onChange={e => setImportData(e.target.value)}
+                placeholder={'e.g. [{"id":"q13","subj":"sql","q":"...","answer":"..."}]'}
+                rows={8}
+                style={{
+                  width: '100%', border: '2px solid var(--border)', borderRadius: 10,
+                  padding: '10px 12px', fontSize: 12, fontFamily: 'var(--mono)',
+                  background: 'var(--bg)', color: 'var(--text)', outline: 'none',
+                  resize: 'vertical', lineHeight: 1.5,
+                }} />
+            </div>
+            <div style={{ display: 'flex', gap: 8, padding: 12, borderTop: '2px solid var(--border)' }}>
+              <button onClick={() => setShowImport(false)}
+                style={{
+                  flex: 1, padding: '10px 0', border: '2px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'var(--font)',
+                  background: 'var(--surface)', color: 'var(--text)',
+                }}>取消</button>
+              <button onClick={handleBatchImport} disabled={importing || !importData.trim()}
+                style={{
+                  flex: 2, padding: '10px 0', border: 'none',
+                  borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 700,
+                  cursor: importing ? 'default' : 'pointer', fontFamily: 'var(--font)',
+                  background: 'var(--primary)', color: '#fff',
+                  opacity: importing ? 0.6 : 1,
+                }}>
+                {importing ? '导入中...' : '开始导入'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

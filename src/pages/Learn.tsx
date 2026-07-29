@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { courseContent, fallbackContent } from '../data/content';
 import { subjectData } from '../data/chapters';
 import db from '../store/db';
+import StatusBar from '../components/StatusBar';
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -18,12 +19,12 @@ function CopyButton({ text }: { text: string }) {
       style={{
         position: 'absolute', top: 6, right: 6, zIndex: 2,
         padding: '3px 10px', border: '1px solid #ddd',
-        borderRadius: 5, background: copied ? '#e5f5d0' : '#fff',
-        color: copied ? '#58cc02' : '#666',
+        borderRadius: 5, background: copied ? 'var(--green-light)' : 'var(--surface)',
+        color: copied ? 'var(--green)' : 'var(--text-secondary)',
         fontSize: 11, fontWeight: 600, cursor: 'pointer',
         fontFamily: 'var(--font)',
       }}>
-      {copied ? '✓ 已复制' : '复制'}
+      {copied ? '已复制' : '复制'}
     </button>
   );
 }
@@ -59,7 +60,7 @@ export default function Learn() {
 
   return (
     <div className="page">
-      <div className="status-bar"><span>9:42</span><span style={{display:'inline-flex',alignItems:'center',gap:5}}><svg width="14" height="10" viewBox="0 0 14 10" style={{display:'block'}}><rect x="0" y="6" width="2.5" height="4" rx="0.5" fill="currentColor"/><rect x="3.5" y="4" width="2.5" height="6" rx="0.5" fill="currentColor"/><rect x="7" y="2" width="2.5" height="8" rx="0.5" fill="currentColor"/><rect x="10.5" y="0" width="2.5" height="10" rx="0.5" fill="currentColor"/></svg><svg width="18" height="10" viewBox="0 0 18 10" style={{display:'block'}}><rect x="0.5" y="1" width="14" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="0.8"/><rect x="2" y="2.5" width="9" height="5" rx="0.8" fill="currentColor"/><rect x="15" y="3.5" width="2" height="3" rx="0.8" fill="currentColor"/></svg></span></div>
+      <StatusBar />
       <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 12px 2px'}}>
         <button onClick={() => nav(-1)} style={{
           width:32, height:32, borderRadius:8, border:'none',
@@ -73,9 +74,9 @@ export default function Learn() {
         display:'flex', gap:4, margin:'4px 16px 12px', background:'var(--border)',
         padding:3, borderRadius:10
       }}>
-        <button style={{flex:1, padding:'8px 0', border:'none', borderRadius:8, fontSize:12, fontWeight:600, cursor:'pointer', background:'var(--surface)', color:'var(--text)', boxShadow:'var(--shadow-sm)', fontFamily:'var(--font)'}}>📖 学习</button>
-        <button onClick={() => nav('/notes')} style={{flex:1, padding:'8px 0', border:'none', borderRadius:8, fontSize:12, fontWeight:600, cursor:'pointer', background:'transparent', color:'var(--text-secondary)', fontFamily:'var(--font)'}}>📝 笔记</button>
-        <button onClick={() => nav('/quiz')} style={{flex:1, padding:'8px 0', border:'none', borderRadius:8, fontSize:12, fontWeight:600, cursor:'pointer', background:'transparent', color:'var(--text-secondary)', fontFamily:'var(--font)'}}>✍️ 练习</button>
+        <button style={{flex:1, padding:'8px 0', border:'none', borderRadius:8, fontSize:12, fontWeight:600, cursor:'pointer', background:'var(--surface)', color:'var(--text)', boxShadow:'var(--shadow-sm)', fontFamily:'var(--font)'}}>学习</button>
+        <button onClick={() => nav('/notes')} style={{flex:1, padding:'8px 0', border:'none', borderRadius:8, fontSize:12, fontWeight:600, cursor:'pointer', background:'transparent', color:'var(--text-secondary)', fontFamily:'var(--font)'}}>笔记</button>
+        <button onClick={() => nav('/quiz')} style={{flex:1, padding:'8px 0', border:'none', borderRadius:8, fontSize:12, fontWeight:600, cursor:'pointer', background:'transparent', color:'var(--text-secondary)', fontFamily:'var(--font)'}}>练习</button>
       </div>
       <div className="content-scroll">
         {content.sections.map((sec, i) => (
@@ -96,7 +97,7 @@ export default function Learn() {
               </div>
             )}
             {sec.tip && (
-              <p style={{fontSize:12, color:'var(--text-tertiary)'}}>💡 {sec.tip}</p>
+              <p style={{fontSize:12, color:'var(--text-tertiary)'}}>{sec.tip}</p>
             )}
           </div>
         ))}
@@ -107,7 +108,7 @@ export default function Learn() {
             style={{flex:1, padding:'12px 8px', border:'2px solid var(--border)', borderRadius:'var(--radius-sm)', fontSize:13, fontWeight:700, cursor: prevChapterId ? 'pointer' : 'default', background:'var(--surface)', color: prevChapterId ? 'var(--text)' : 'var(--text-tertiary)', fontFamily:'var(--font)', opacity: prevChapterId ? 1 : 0.5}}>← 上一节</button>
           <button
             onClick={handleMarkDone}
-            style={{flex:1, padding:'12px 8px', border:'none', borderRadius:'var(--radius-sm)', fontSize:13, fontWeight:700, cursor:'pointer', background: isDone ? 'var(--green)' : 'var(--primary)', color:'#fff', boxShadow: isDone ? '0 4px 12px rgba(88,204,2,.3)' : '0 4px 12px rgba(28,176,246,.3)', fontFamily:'var(--font)'}}>{isDone ? '✓ 已完成' : '✓ 标记完成'}</button>
+            style={{flex:1, padding:'12px 8px', border:'none', borderRadius:'var(--radius-sm)', fontSize:13, fontWeight:700, cursor:'pointer', background: isDone ? 'var(--green)' : 'var(--primary)', color:'#fff', boxShadow: isDone ? '0 4px 12px rgba(88,204,2,.3)' : '0 4px 12px rgba(124,58,237,.3)', fontFamily:'var(--font)'}}>{isDone ? '✓ 已完成' : '✓ 标记完成'}</button>
         </div>
       </div>
     </div>

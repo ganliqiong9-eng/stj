@@ -6,9 +6,11 @@ interface Message { role: 'user' | 'assistant'; content: string; }
 
 const DEFAULT_ENDPOINT = 'https://api.deepseek.com/chat/completions';
 const DEFAULT_MODEL = 'deepseek-chat';
+const DEFAULT_SYSTEM_PROMPT = '你是一个学习助手，帮助用户学习SQL、Python、数据分析、DAMA数据管理知识。请用中文回答，简洁专业。';
 const ENDPOINT_KEY = 'sbuddy_endpoint';
 const API_KEY = 'sbuddy_key';
 const MODEL_KEY = 'sbuddy_model';
+const SYSTEM_PROMPT_KEY = 'sbuddy_system_prompt';
 
 function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
 function s(k: string, v: string) { try { localStorage.setItem(k, v); } catch {} }
@@ -29,7 +31,7 @@ async function callAPI(msgs: Message[], ragContext?: string): Promise<string> {
   const key = getKey(); if (!key) throw new Error('NO_KEY');
   const ep = g(ENDPOINT_KEY, DEFAULT_ENDPOINT), model = g(MODEL_KEY, DEFAULT_MODEL);
 
-  const systemBase = '你是一个学习助手，帮助用户学习SQL、Python、数据分析、DAMA数据管理知识。请用中文回答，简洁专业。';
+  const systemBase = g(SYSTEM_PROMPT_KEY, DEFAULT_SYSTEM_PROMPT);
   const systemContent = ragContext
     ? `${systemBase}\n\n## 知识库参考资料\n${ragContext}\n\n请优先基于以上参考资料回答，并说明信息来源。如果参考资料不足，可以结合你自己的知识补充。`
     : systemBase;
@@ -93,6 +95,7 @@ export default function AIAssistant() {
   const [keyInput, setKeyInput] = useState(getKey());
   const [epInput, setEpInput] = useState(g(ENDPOINT_KEY, DEFAULT_ENDPOINT));
   const [mdInput, setMdInput] = useState(g(MODEL_KEY, DEFAULT_MODEL));
+  const [spInput, setSpInput] = useState(g(SYSTEM_PROMPT_KEY, DEFAULT_SYSTEM_PROMPT));
   const [msgs, setMsgs] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -114,7 +117,7 @@ export default function AIAssistant() {
   }, []);
   const save = () => {
     s(ENDPOINT_KEY, epInput); setKey(keyInput);
-    s(MODEL_KEY, mdInput); setShowSetup(false);
+    s(MODEL_KEY, mdInput); s(SYSTEM_PROMPT_KEY, spInput); setShowSetup(false);
   };
 
   const [ragSearching, setRagSearching] = useState(false);
@@ -151,7 +154,7 @@ export default function AIAssistant() {
       if (sources && sources.length > 0) {
         const sourceLines = sources
           .sort((a, b) => b.score - a.score)
-          .map(s => `📖 ${s.title}`)
+          .map(s => `${s.title}`)
           .join('\n');
         display += `\n\n${sourceLines}`;
       }
@@ -162,7 +165,7 @@ export default function AIAssistant() {
       if (err.startsWith('NO_KEY')) setMsgs(p => [...p, { role: 'assistant', content: '⚠️ 请先设置 API Key。' }]);
       else if (err.startsWith('KEY_INVALID')) setMsgs(p => [...p, { role: 'assistant', content: `⚠️ API Key 无效：${err.split('|')[1] || ''}` }]);
       else if (err.startsWith('RATE_LIMITED')) setMsgs(p => [...p, { role: 'assistant', content: `⏳ ${err.split('|')[1] || '请求受限'}` }]);
-      else setMsgs(p => [...p, { role: 'assistant', content: `😅 错误：${err.startsWith('ERR:') ? err.substring(5) : err}` }]);
+      else setMsgs(p => [...p, { role: 'assistant', content: `错误：${err.startsWith('ERR:') ? err.substring(5) : err}` }]);
     } finally { setLoading(false); }
   };
 
@@ -180,11 +183,11 @@ export default function AIAssistant() {
         onTouchStart={e => startPanelSwipe(e.touches[0].clientX, e.touches[0].clientY)}
         style={{ padding: '14px 14px 10px', borderBottom: '1px solid #313244', background: showSetup ? '#313244' : '#1e1e2e' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: showSetup ? 8 : 0 }}>
-          <span style={{ fontSize: 18 }}>💬</span>
+          <span style={{width:28,height:28,borderRadius:'50%',background:'#89b4fa',color:'#1e1e2e',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,flexShrink:0}}>AI</span>
           <span style={{ fontSize: 14, fontWeight: 700, flex: 1 }}>
             AI 学习助手
             {hasKey ? <span style={{ fontSize: 10, background: '#e5f5d0', color: '#58cc02', padding: '1px 6px', borderRadius: 4, marginLeft: 6 }}>已配置</span> : <span style={{ fontSize: 10, background: '#fef3c7', color: '#b36b00', padding: '1px 6px', borderRadius: 4, marginLeft: 6 }}>需配置</span>}
-            {ragReady === 'ready' ? <span style={{ fontSize: 9, background: '#45475a', color: '#a6adc8', padding: '1px 6px', borderRadius: 4, marginLeft: 4 }}>📚RAG</span> : null}
+            {ragReady === 'ready' ? <span style={{ fontSize: 9, background: '#45475a', color: '#a6adc8', padding: '1px 6px', borderRadius: 4, marginLeft: 4 }}>RAG</span> : null}
           </span>
           <button onClick={() => { const t = (window as any).__toggleTheme; if (t) t(); }} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: '#313244', color: '#cdd6f4', cursor: 'pointer', fontSize: 14, marginRight: 4 }}>{document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}</button><button onClick={() => setShowSetup(!showSetup)} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: '#313244', color: '#cdd6f4', cursor: 'pointer', fontSize: 13 }}>⚙️</button>
         </div>
@@ -201,7 +204,11 @@ export default function AIAssistant() {
             <div style={{ display: 'flex', gap: 4 }}>
               <input type="password" value={keyInput} onChange={e => setKeyInput(e.target.value)} placeholder="API Key（sk-...）"
                 style={{ flex: 1, padding: '7px 10px', border: '2px solid #45475a', borderRadius: 10, fontSize: 16, outline: 'none', fontFamily: 'var(--font)', background: '#313244', color: '#cdd6f4' }} />
-              <input value={mdInput} onChange={e => setMdInput(e.target.value)} placeholder="deepseek-chat"
+              <textarea value={spInput} onChange={e => setSpInput(e.target.value)}
+              placeholder="系统提示词（简洁专业学习助手）"
+              rows={2}
+              style={{ width: '100%', padding: '7px 10px', border: '2px solid #45475a', borderRadius: 10, fontSize: 12, outline: 'none', fontFamily: 'var(--font)', background: '#313244', color: '#cdd6f4', marginBottom: 4, resize: 'vertical' }} />
+            <input value={mdInput} onChange={e => setMdInput(e.target.value)} placeholder="deepseek-chat"
                 style={{ width: 100, padding: '7px 10px', border: '2px solid #45475a', borderRadius: 10, fontSize: 16, outline: 'none', fontFamily: 'var(--font)', background: '#313244', color: '#cdd6f4' }} />
             </div>
           </>

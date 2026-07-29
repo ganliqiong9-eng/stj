@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import db, { type StoredNote } from '../store/db';
+import StatusBar from '../components/StatusBar';
 
 const dummyNotes: StoredNote[] = [
   { courseId: 's3', title: 'INNER JOIN 要点', content: '两个表中都有匹配行时才返回，等于两个集合的交集。', createdAt: '2026-07-27' },
@@ -23,6 +24,20 @@ export default function Notes() {
     })();
   }, []);
 
+  const exportMarkdown = () => {
+    let md = '# 笔记导出\n\n';
+    notes.forEach(n => {
+      md += `## ${n.title}\n\n${n.content}\n\n_${n.createdAt}_\n\n---\n\n`;
+    });
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `笔记_${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const addNote = async () => {
     const titles = ['内连接 vs 外连接对比','ON 与 WHERE 执行顺序','CROSS JOIN 注意事项'];
     const t = titles[Math.floor(Math.random() * titles.length)];
@@ -37,7 +52,7 @@ export default function Notes() {
 
   return (
     <div className="page">
-      <div className="status-bar"><span>9:42</span><span style={{display:'inline-flex',alignItems:'center',gap:5}}><svg width="14" height="10" viewBox="0 0 14 10" style={{display:'block'}}><rect x="0" y="6" width="2.5" height="4" rx="0.5" fill="currentColor"/><rect x="3.5" y="4" width="2.5" height="6" rx="0.5" fill="currentColor"/><rect x="7" y="2" width="2.5" height="8" rx="0.5" fill="currentColor"/><rect x="10.5" y="0" width="2.5" height="10" rx="0.5" fill="currentColor"/></svg><svg width="18" height="10" viewBox="0 0 18 10" style={{display:'block'}}><rect x="0.5" y="1" width="14" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="0.8"/><rect x="2" y="2.5" width="9" height="5" rx="0.8" fill="currentColor"/><rect x="15" y="3.5" width="2" height="3" rx="0.8" fill="currentColor"/></svg></span></div>
+      <StatusBar />
       <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 12px 2px'}}>
         <button onClick={() => nav(-1)} style={{
           width:32, height:32, borderRadius:8, border:'none',
@@ -46,6 +61,7 @@ export default function Notes() {
           cursor:'pointer', boxShadow:'var(--shadow-sm)', fontSize:18, flexShrink:0
         }}>‹</button>
         <h2 style={{fontSize:17, fontWeight:700}}>JOIN 笔记</h2>
+        <button onClick={exportMarkdown} style={{marginRight:6, width:32, height:32, borderRadius:8, border:'none', background:'var(--surface)', color:'var(--text-secondary)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', boxShadow:'var(--shadow-sm)', fontSize:12, fontWeight:600, fontFamily:'var(--font)'}} title="导出 Markdown">↑</button>
         <button onClick={addNote} style={{
           marginLeft:'auto', width:32, height:32, borderRadius:8, border:'none',
           background:'var(--surface)', color:'var(--text)',

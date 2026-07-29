@@ -51,13 +51,13 @@ export default function SelectionTooltip() {
         position: 'fixed', zIndex: 2000,
         left: pos.x - 50, top: pos.y - 38,
         padding: '6px 12px', border: 'none', borderRadius: 8,
-        background: 'linear-gradient(135deg,#1cb0f6,#0f8ac9)',
+        background: 'linear-gradient(135deg,var(--primary),var(--primary-dark))',
         color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-        boxShadow: '0 2px 10px rgba(28,176,246,.4)',
+        boxShadow: '0 2px 10px rgba(124,58,237,.4)',
         fontFamily: 'var(--font)',
         whiteSpace: 'nowrap',
       }}>
-      🤖 问助手
+      问助手
     </button>
   );
 }

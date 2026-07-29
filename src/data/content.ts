@@ -3,6 +3,14 @@ export interface Section {
   body: string;
   code?: string;
   tip?: string;
+  qa?: QA;
+}
+
+export interface QA {
+  question: string;
+  answer: string;
+  plain: string;
+  analogy: string;
 }
 
 export interface CourseContent {

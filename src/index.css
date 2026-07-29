@@ -2,9 +2,12 @@
   --bg:#f7f7f7;
   --desktop-bg:#ddd;
   --surface:#fff;
-  --primary:#1cb0f6;
-  --primary-dark:#0f8ac9;
-  --primary-light:#ddf4ff;
+  --bottom-nav-bg:rgba(255,255,255,.95);
+  --snapped-bar-bg:rgba(30,30,46,0.45);
+  --float-btn-bg:rgba(30,30,46,0.3);
+  --primary:#7C3AED;
+  --primary-dark:#5B21B6;
+  --primary-light:#F5F3FF;
   --green:#58cc02;
   --green-light:#e5f5d0;
   --orange:#ff9600;
@@ -16,8 +19,8 @@
   --text-tertiary:#afafaf;
   --border:#e5e5e5;
   --border-light:#f0f0f0;
-  --shadow-sm:0 2px 8px rgba(0,0,0,.06);
-  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --shadow-sm:0 1px 4px rgba(0,0,0,.04);
+  --shadow:0 2px 8px rgba(0,0,0,.06);
   --radius:14px;
   --radius-sm:10px;
   --font:'Inter','Noto Sans SC',system-ui,-apple-system,sans-serif;
@@ -29,8 +32,11 @@
   --bg:#1e1e2e;
   --desktop-bg:#11111b;
   --surface:#313244;
-  --primary:#89b4fa;
-  --primary-dark:#74c7ec;
+  --bottom-nav-bg:rgba(49,52,68,.95);
+  --snapped-bar-bg:rgba(205,214,244,0.2);
+  --float-btn-bg:rgba(205,214,244,0.12);
+  --primary:#A78BFA;
+  --primary-dark:#8B5CF6;
   --primary-light:#45475a;
   --green:#a6e3a1;
   --green-light:#45475a;
@@ -43,8 +49,8 @@
   --text-tertiary:#585b70;
   --border:#45475a;
   --border-light:#585b70;
-  --shadow-sm:0 2px 8px rgba(0,0,0,.3);
-  --shadow:0 4px 16px rgba(0,0,0,.4);
+  --shadow-sm:0 1px 4px rgba(0,0,0,.15);
+  --shadow:0 2px 8px rgba(0,0,0,.2);
   --radius:14px;
   --radius-sm:10px;
 }

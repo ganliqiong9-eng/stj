@@ -1,7 +1,10 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { initCompilerDB, runSQL, runPython, listTables, getTableData, importExcel, resetDatabase, getSampleQueries } from './server-compiler.mjs';
 import crypto from 'node:crypto';
+import { parseDocForRAG, analyzeExcelFields, createTableFromExcel, getFolders, moveTableToFolder } from './server-file-parser.mjs';
+
 
 // ============================================================
 // Configuration
@@ -556,6 +559,173 @@ http.createServer(async (req, res) => {
     return json(res, result);
   }
 
+  // POST /api/rag/upload-doc - Upload and parse document for RAG
+  if (url === '/api/rag/upload-doc' && method === 'POST') {
+    const body = await parseBody(req);
+    if (!body.file_base64) return json(res, { error: 'file_base64 required' }, 400);
+    const buffer = Buffer.from(body.file_base64, 'base64');
+    const filename = body.filename || 'document';
+    const result = parseDocForRAG(buffer, filename);
+    if (!result.ok) return json(res, result);
+    const article = {
+      _id: body._id || crypto.randomUUID(),
+      title: result.title || filename,
+      subj: body.subj || 'custom',
+      tags: body.tags || '文档',
+      source: "文件上传: " + filename + " (" + result.fileType + ")",
+      sections: result.sections,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const knowledge = loadKnowledge();
+    knowledge.push(article);
+    saveKnowledge(knowledge);
+    const ragCfg = loadRagConfig();
+    reindexAll(ragCfg).catch(() => {});
+    return json(res, { ok: true, sections: result.sections, title: result.title, fileType: result.fileType, articleId: article._id });
+  }
+
+  // ---- Compiler API ---- //
+  if (url.startsWith("/api/compiler/")) {
+    if (url === "/api/compiler/run" && method === "POST") {
+      const body = await parseBody(req);
+      if (!body.language || !body.code) return json(res, { error: "language and code required" }, 400);
+      let result;
+      if (body.language === "sql") {
+        result = runSQL(body.code);
+      } else if (body.language === "python") {
+        result = runPython(body.code);
+      } else {
+        return json(res, { error: "Unsupported language" }, 400);
+      }
+      return json(res, result);
+    }
+    if (url === "/api/compiler/tables" && method === "GET") {
+      const tables = listTables();
+      return json(res, { tables });
+    }
+    if (url === "/api/compiler/sample-queries" && method === "GET") {
+      return json(res, getSampleQueries());
+    }
+    if (url === "/api/compiler/reset" && method === "POST") {
+      return json(res, resetDatabase());
+    }
+    if (url === "/api/compiler/import-excel" && method === "POST") {
+      const body = await parseBody(req);
+      if (!body.file_base64) return json(res, { error: "file_base64 required" }, 400);
+      const buffer = Buffer.from(body.file_base64, "base64");
+      const result = importExcel(buffer, body.table_name);
+      return json(res, result);
+    }
+    const tableMatch = url.match(/^\/api\/compiler\/table\/([^/]+)$/);
+    if (tableMatch && method === "GET") {
+      const data = getTableData(decodeURIComponent(tableMatch[1]));
+      return json(res, data);
+    }
+    if (url === '/api/compiler/analyze-excel' && method === 'POST') {
+      const body = await parseBody(req);
+      if (!body.file_base64) return json(res, { error: 'file_base64 required' }, 400);
+      const buffer = Buffer.from(body.file_base64, 'base64');
+      const result = analyzeExcelFields(buffer, body.filename || 'spreadsheet.xlsx');
+      return json(res, result);
+    }
+    if (url === '/api/compiler/create-from-excel' && method === 'POST') {
+      const body = await parseBody(req);
+      if (!body.file_base64) return json(res, { error: 'file_base64 required' }, 400);
+      const buffer = Buffer.from(body.file_base64, 'base64');
+      const options = { folderId: body.folder_id, customSql: body.custom_sql };
+      const result = createTableFromExcel(buffer, body.filename || 'spreadsheet.xlsx', options);
+      return json(res, result);
+    }
+    if (url === '/api/compiler/folders' && method === 'GET') {
+      return json(res, getFolders());
+    }
+    if (url === '/api/compiler/move-table' && method === 'POST') {
+      const body = await parseBody(req);
+      if (!body.table_name || !body.folder_id) return json(res, { error: 'table_name and folder_id required' }, 400);
+      return json(res, moveTableToFolder(body.table_name, body.folder_id));
+    }
+    return json(res, { error: "Not found" }, 404);
+  }
+
+
+  // POST /api/generate-cards - AI generate knowledge cards from sections
+  if (url === '/api/generate-cards' && method === 'POST') {
+    (async () => {
+      const body = await parseBody(req);
+      const sections = body.sections || [];
+      if (sections.length === 0) return json(res, { ok: false, cards: [], error: 'No sections provided' });
+
+      const llmConfig = body.llm_config || {};
+      if (!llmConfig.api_key) return json(res, { ok: false, cards: sections.map(() => null), error: 'LLM not configured' });
+
+      const SYSTEM_PROMPT = `你是一个技术教育专家。用户会给你技术文档的章节内容，你需要为每个章节生成一个知识点卡片。
+
+每个卡片包含4个字段，输出JSON数组：
+1. question: 一句话提问，贴近实战场景，像面试题或考试题
+2. answer: 标准答案，简洁准确，3-5行
+3. plain: 大白话解析，用日常口语，零基础也能听懂，用“说白了”“就是说”开头
+4. analogy: 生动比喻，用日常生活场景类比技术概念，越具体越好
+
+要求：
+- 比喻要接地气、有趣、帮助记忆
+- 大白话要真的通俗，不要换个方式说术语
+- 如果某个章节内容不足以生成卡片，返回null
+
+严格输出JSON数组，每个元素是 {question, answer, plain, analogy} 或 null`;
+
+      const userContent = sections.map((s, i) =>
+        `第${i+1}章: ${s.title}\n内容: ${s.body}\n代码: ${s.code || '无'}`
+      ).join('\n\n---\n\n');
+
+      // Call LLM
+      try {
+        const res = await fetch(llmConfig.endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${llmConfig.api_key}`,
+          },
+          body: JSON.stringify({
+            model: llmConfig.model || 'deepseek-chat',
+            messages: [
+              { role: 'system', content: SYSTEM_PROMPT },
+              { role: 'user', content: userContent },
+            ],
+            max_tokens: 4096,
+            temperature: 0.7,
+            response_format: { type: 'json_object' },
+          }),
+        });
+
+        if (!res.ok) {
+          let d = '';
+          try { const j = await res.json(); d = j.error?.message || ''; } catch {}
+          throw new Error(d || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content || '[]';
+        let cards;
+        try {
+          const parsed = JSON.parse(text);
+          cards = parsed.cards || parsed;
+          if (!Array.isArray(cards)) cards = [cards];
+        } catch {
+          cards = sections.map(() => null);
+        }
+
+        // Ensure cards length matches sections
+        while (cards.length < sections.length) cards.push(null);
+
+        return json(res, { ok: true, cards });
+      } catch (err) {
+        return json(res, { ok: false, cards: sections.map(() => null), error: err.message });
+      }
+    })();
+    return;
+  }
+
   // ---- 404 ---- //
   // Root URL — return friendly info for browser access
   if (url === '/') {
@@ -576,6 +746,8 @@ http.createServer(async (req, res) => {
 
   json(res, { error: 'Not found' }, 404);
 }).listen(PORT, '0.0.0.0', async () => {
+  initCompilerDB();
+
   console.log(`\n📚 kye-test服务器 v2 (unified)`);
   console.log(`   Sync API + RAG → http://0.0.0.0:${PORT}/`);
   console.log(`   Tailscale: http://100.101.115.91:${PORT}/`);

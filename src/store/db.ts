@@ -2,6 +2,7 @@ import Dexie, { type Table } from 'dexie';
 import { defaultQuestions, type Question } from '../data/questions';
 import type { Section } from '../data/content';
 import { syncUpload, syncDownload } from '../api';
+import type { Row } from '../api';
 
 export interface StoredNote {
   id?: number;
@@ -30,6 +31,12 @@ export interface KnowledgeEntry {
   updatedAt: string;
   _device?: string;
 }
+
+/** 同步锁，防止并发请求 */
+let _syncLock = false;
+/** 末次同步时间戳 */
+let _lastSyncAt = 0;
+const SYNC_COOLDOWN = 60_000;
 
 class StudyDB extends Dexie {
   questions!: Table<Question, string>;
@@ -79,11 +86,55 @@ class StudyDB extends Dexie {
 
   async markChapterDone(chapterId: string) {
     await this.progress.put({ chapterId, completed: true, updatedAt: new Date().toISOString() });
+    this.trackStudy();
   }
 
   async isChapterDone(chapterId: string) {
     const p = await this.progress.get(chapterId);
     return p?.completed ?? false;
+  }
+
+
+  // === Streak & XP tracking ===
+  async trackStudy() {
+    const today = new Date().toISOString().slice(0, 10);
+    const days = JSON.parse(localStorage.getItem('study_days') || '[]');
+    if (!days.includes(today)) {
+      days.push(today);
+      localStorage.setItem('study_days', JSON.stringify(days));
+    }
+    // Calculate streak
+    let streak = 0;
+    const d = new Date();
+    while (true) {
+      const ds = d.toISOString().slice(0, 10);
+      if (days.includes(ds)) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    localStorage.setItem('study_streak', String(streak));
+    return streak;
+  }
+
+  async getXp(): Promise<number> {
+    const allProgress = await this.progress.toArray();
+    return allProgress.filter(p => p.completed).length * 20 + this.calculateBonusXp();
+  }
+
+  async getCompletedCount(): Promise<number> {
+    return (await this.progress.toArray()).filter(p => p.completed).length;
+  }
+
+  async getStreak(): Promise<number> {
+    return parseInt(localStorage.getItem('study_streak') || '0', 10);
+  }
+
+  private calculateBonusXp(): number {
+    const days = JSON.parse(localStorage.getItem('study_days') || '[]');
+    return Math.floor(days.length / 3) * 10; // 每学习3天奖励10XP
   }
 
   // === Knowledge CRUD ===
@@ -113,7 +164,9 @@ class StudyDB extends Dexie {
 
   // === Sync methods ===
   async pushSync() {
+    if (_syncLock) return;
     try {
+      _syncLock = true;
       const allQ = await this.questions.toArray();
       const allP = await this.progress.toArray();
       const allN = await this.notes.toArray();
@@ -123,11 +176,18 @@ class StudyDB extends Dexie {
       const progress: Record<string, boolean> = {};
       allP.forEach(p => { progress[p.chapterId] = p.completed; });
       await syncUpload(progress, stars, allN, allK);
-    } catch {}
+    } catch {} finally {
+      _syncLock = false;
+    }
   }
 
   async pullSync() {
+    const now = Date.now();
+    if (now - _lastSyncAt < SYNC_COOLDOWN) return;
+    if (_syncLock) return;
     try {
+      _syncLock = true;
+      _lastSyncAt = now;
       const data = await syncDownload();
       if (!data) return;
       // Don't pull knowledge from sync since we use the server API directly
@@ -139,17 +199,37 @@ class StudyDB extends Dexie {
           if (existing) await this.questions.update(qid, { star: starred });
         }
       }
-      // Knowledge 同步由服务端 RAG 管线管理，不从 sync 拉取 knowledge 到本地 IndexedDB
-      // 如果需要合并，只在本地无该条记录时写入，避免覆盖本地编辑
-      if (data.knowledge && data.knowledge.length > 0) {
+      // last-modified 对比：只合并服务端更新的记录，避免覆盖本地编辑
+      if (data.knowledge && Array.isArray(data.knowledge) && data.knowledge.length > 0) {
         const localAll = await this.knowledge.toArray();
-        const localIds = new Set(localAll.map(k => k._id).filter(Boolean));
-        const toAdd = data.knowledge.filter((k: any) => !localIds.has(k._id));
-        if (toAdd.length > 0) {
-          await this.knowledge.bulkAdd(toAdd);
+        const localById = new Map(localAll.filter(k => k._id).map(k => [k._id!, k]));
+        const toUpsert: any[] = [];
+        for (const remote of data.knowledge) {
+          if (!remote || !remote._id) continue;
+          const local = localById.get(remote._id);
+          if (!local) {
+            toUpsert.push(remote);
+          } else if (remote.updatedAt && local.updatedAt && remote.updatedAt > local.updatedAt) {
+            toUpsert.push({ ...remote, id: local.id });
+          }
+        }
+        for (const entry of toUpsert) {
+          if (entry.id) {
+            await this.knowledge.update(entry.id, entry);
+          } else {
+            await this.knowledge.add(entry);
+          }
         }
       }
-    } catch {}
+    } catch {} finally {
+      _syncLock = false;
+    }
+  }
+
+  async forceSync() {
+    _lastSyncAt = 0;
+    await this.pushSync();
+    await this.pullSync();
   }
 }
 

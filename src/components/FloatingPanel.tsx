@@ -242,7 +242,7 @@ export default function FloatingPanel({
           borderRadius: snapped ? (pos.x + buttonSize > window.innerWidth / 2
             ? (active ? '8px 0 0 8px' : '6px 0 0 6px')
             : (active ? '0 8px 8px 0' : '0 6px 6px 0')) : 14,
-          background: snapped ? (active ? 'linear-gradient(135deg,#89b4fa,#b4befe)' : 'rgba(30,30,46,0.45)') : 'rgba(30,30,46,0.3)',
+          background: snapped ? (active ? 'linear-gradient(135deg,#89b4fa,#b4befe)' : 'var(--snapped-bar-bg)') : 'var(--float-btn-bg)',
           color: 'rgba(255,255,255,0.65)',
           opacity: snapped ? 1 : (isIdle ? idleOpacity : 1),
           cursor: snapped ? 'pointer' : 'grab',

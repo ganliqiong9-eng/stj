@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { tips, type Tip } from '../data/tips';
 import { subjectData, chaptersList } from '../data/chapters';
 import db from '../store/db';
+import StatusBar from '../components/StatusBar';
 
 const subjectList = ['sql', 'py', 'da', 'dma'];
 
 function ringStyle(subj: string, pct: number): React.CSSProperties {
   const deg = Math.round(pct * 3.6);
   const colors: Record<string, string> = {
-    sql: '#1cb0f6', py: '#ff9600', da: '#ce82ff', dma: '#58cc02'
+    sql: '#7C3AED', py: '#ff9600', da: '#ce82ff', dma: '#58cc02'
   };
   const c = colors[subj] || '#1cb0f6';
   return {
@@ -26,17 +27,18 @@ export default function Home() {
   const [streak, setStreak] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [synced, setSynced] = useState(false);
+  const [syncConflict, setSyncConflict] = useState(false);
   const totalCount = chaptersList.length;
 
   const refreshStats = useCallback(async () => {
     const n = await db.getStarredCount();
     setStarred(n);
-    const allProgress = await db.progress.toArray();
-    const completed = allProgress.filter(p => p.completed).length;
+    const completed = await db.getCompletedCount();
     setCompletedCount(completed);
-    setXp(completed * 20);
-    const storedStreak = localStorage.getItem('study_streak');
-    setStreak(storedStreak ? parseInt(storedStreak, 10) : 0);
+    const xpVal = await db.getXp();
+    setXp(xpVal);
+    const streakVal = await db.getStreak();
+    setStreak(streakVal);
   }, []);
 
   useEffect(() => { refreshStats(); }, [refreshStats]);
@@ -47,6 +49,27 @@ export default function Home() {
     }
   }, []);
 
+  const exportProgress = async () => {
+    const allNotes = await db.notes.toArray();
+    const completed = await db.getCompletedCount();
+    const xpVal = await db.getXp();
+    const s = await db.getStreak();
+    let md = '# kye-test 学习进度报告\n\n';
+    md += `- 已学完成: ${completed} 节\n`;
+    md += `- 经验值: ${xpVal} XP\n`;
+    md += `- 连续学习: ${s} 天\n`;
+    md += `- 笔记数: ${allNotes.length}\n`;
+    md += `\n## 笔记\n\n`;
+    allNotes.forEach(n => {
+      md += `### ${n.title}\n${n.content}\n_${n.createdAt}_\n\n`;
+    });
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `学习进度_${new Date().toISOString().slice(0, 10)}.md`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
   const nextTip = () => {
     if (tips.length === 0) return;
     let i: number;
@@ -56,10 +79,10 @@ export default function Home() {
 
   return (
     <div className="page">
-      <div className="status-bar"><span>9:41</span><span style={{display:'inline-flex',alignItems:'center',gap:5}}><svg width="14" height="10" viewBox="0 0 14 10" style={{display:'block'}}><rect x="0" y="6" width="2.5" height="4" rx="0.5" fill="currentColor"/><rect x="3.5" y="4" width="2.5" height="6" rx="0.5" fill="currentColor"/><rect x="7" y="2" width="2.5" height="8" rx="0.5" fill="currentColor"/><rect x="10.5" y="0" width="2.5" height="10" rx="0.5" fill="currentColor"/></svg><svg width="18" height="10" viewBox="0 0 18 10" style={{display:'block'}}><rect x="0.5" y="1" width="14" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="0.8"/><rect x="2" y="2.5" width="9" height="5" rx="0.8" fill="currentColor"/><rect x="15" y="3.5" width="2" height="3" rx="0.8" fill="currentColor"/></svg></span></div>
+      <StatusBar />
       <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 16px 2px'}}>
         <span style={{fontSize:22, fontWeight:800, letterSpacing:-.5, color:'var(--text)'}}>kye-test</span>
-        <span style={{display:'flex', alignItems:'center', gap:3, padding:'4px 10px', borderRadius:20, background:'var(--primary-light)', color:'var(--primary-dark)', fontSize:12, fontWeight:700, marginLeft:'auto'}}>⚡ {xp} XP</span>
+        <span style={{display:'flex', alignItems:'center', gap:3, padding:'3px 10px', borderRadius:20, background:'var(--primary)', color:'#fff', fontSize:11, fontWeight:600, marginLeft:'auto'}}>{xp} XP</span>
         <button onClick={async () => {
           if (syncing) return;
           setSyncing(true);
@@ -67,21 +90,22 @@ export default function Home() {
           await db.pullSync();
           setSyncing(false);
           setSynced(true);
+          setSyncConflict(false);
           setTimeout(() => setSynced(false), 2000);
         }}
           style={{
             border:'none', borderRadius:50, padding:'4px 10px',
-            background: synced ? '#e5f5d0' : syncing ? '#fef3c7' : '#f0f0f0',
-            color: synced ? '#58cc02' : syncing ? '#b36b00' : '#666',
+            background: synced ? '#e8f5e9' : syncing ? '#fff8e8' : '#f5f5f5',
+            color: synced ? '#58cc02' : syncing ? '#b36b00' : '#999',
             fontSize:12, fontWeight:700, cursor:'pointer',
             fontFamily:'var(--font)', display:'flex', alignItems:'center', gap:3,
           }}>
-          {synced ? '✓ 已同步' : syncing ? '⟳ 同步中' : '🔄 同步'}
+          {synced ? '已同步' : syncing ? '同步中' : '同步'}
         </button>
-        <span style={{display:'flex', alignItems:'center', gap:4, padding:'4px 10px', borderRadius:20, background:'var(--orange-light)', color:'#b36b00', fontSize:12, fontWeight:700}}>🔥 {streak}</span>
+        <span style={{display:'flex', alignItems:'center', gap:4, padding:'3px 10px', borderRadius:20, background:'#f5f5f5', color:'var(--text-secondary)', fontSize:11, fontWeight:600}}>{streak}</span>
       </div>
       <div style={{padding:'2px 16px 0', fontSize:14, color:'var(--text-secondary)', marginBottom:10}}>
-        <strong style={{color:'var(--text)'}}>下午好 👋</strong> 继续你的学习之旅
+        <strong>继续你的学习之旅</strong>
       </div>
       <div className="scroll">
         {/* 继续学习卡片 */}
@@ -103,8 +127,8 @@ export default function Home() {
             background:'var(--primary)', color:'#fff', fontSize:20,
             display:'flex', alignItems:'center', justifyContent:'center',
             position:'absolute', right:14, top:'50%', transform:'translateY(-50%)',
-            boxShadow:'0 4px 12px rgba(28,176,246,.3)', cursor:'pointer'
-          }}>▶</div>
+          boxShadow:'0 4px 12px rgba(124,58,237,.3)', cursor:'pointer'
+        }}>▸</div>
         </div>
 
         {/* 科目网格 */}

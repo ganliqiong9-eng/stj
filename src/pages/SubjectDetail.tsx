@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { subjectData } from '../data/chapters';
+import { subjectData, type Chapter } from '../data/chapters';
+import db from '../store/db';
+import StatusBar from '../components/StatusBar';
 
 function statusIcon(st: 'done' | 'active' | 'pending') {
   if (st === 'done') return { el: '✓', cls: 'step-done' };
@@ -8,19 +11,40 @@ function statusIcon(st: 'done' | 'active' | 'pending') {
 }
 
 const colors: Record<string, string> = {
-  'SQL 数据库': '#1cb0f6', 'Python': '#ff9600',
+  'SQL 数据库': '#7C3AED', 'Python': '#ff9600',
   '数据分析': '#ce82ff', 'DAMA 认证': '#58cc02'
 };
 
 export default function SubjectDetail() {
+  const [chapterStatus, setChapterStatus] = useState<Record<string, 'done' | 'active' | 'pending'>>({});
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
+  useEffect(() => {
+    if (!sd) return;
+    (async () => {
+      const status: Record<string, 'done' | 'active' | 'pending'> = {};
+      let foundActive = false;
+      for (const ch of sd.chapters) {
+        const done = await db.isChapterDone(ch.id);
+        if (done) {
+          status[ch.id] = 'done';
+        } else if (!foundActive) {
+          status[ch.id] = 'active';
+          foundActive = true;
+        } else {
+          status[ch.id] = 'pending';
+        }
+      }
+      setChapterStatus(status);
+    })();
+  }, [sd]);
+
   const sd = id ? subjectData[id] : null;
   if (!sd) return <div className="page"><div style={{padding:40, textAlign:'center', color:'var(--text-tertiary)'}}>科目未找到</div></div>;
 
   return (
     <div className="page">
-      <div className="status-bar"><span>9:41</span><span style={{display:'inline-flex',alignItems:'center',gap:5}}><svg width="14" height="10" viewBox="0 0 14 10" style={{display:'block'}}><rect x="0" y="6" width="2.5" height="4" rx="0.5" fill="currentColor"/><rect x="3.5" y="4" width="2.5" height="6" rx="0.5" fill="currentColor"/><rect x="7" y="2" width="2.5" height="8" rx="0.5" fill="currentColor"/><rect x="10.5" y="0" width="2.5" height="10" rx="0.5" fill="currentColor"/></svg><svg width="18" height="10" viewBox="0 0 18 10" style={{display:'block'}}><rect x="0.5" y="1" width="14" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="0.8"/><rect x="2" y="2.5" width="9" height="5" rx="0.8" fill="currentColor"/><rect x="15" y="3.5" width="2" height="3" rx="0.8" fill="currentColor"/></svg></span></div>
+      <StatusBar />
       <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 12px 2px'}}>
         <button onClick={() => nav('/')} style={{
           width:32, height:32, borderRadius:8, border:'none',
@@ -35,7 +59,7 @@ export default function SubjectDetail() {
       </div>
       <div className="scroll" style={{paddingTop:4}}>
         {sd.chapters.map((ch) => {
-          const st = statusIcon(ch.status);
+          const st = statusIcon(chapterStatus[ch.id] || ch.status);
           return (
             <div key={ch.id} onClick={() => ch.status !== 'pending' && nav(`/learn/${ch.id}`)}
               style={{
@@ -48,8 +72,8 @@ export default function SubjectDetail() {
                 width:32, height:32, borderRadius:'50%',
                 display:'flex', alignItems:'center', justifyContent:'center',
                 fontSize:12, fontWeight:700, flexShrink:0,
-                background: ch.status === 'done' ? 'var(--green)' :
-                           ch.status === 'active' ? 'var(--primary)' : 'var(--border)',
+                background: (chapterStatus[ch.id] || ch.status) === 'done' ? 'var(--green)' :
+                           (chapterStatus[ch.id] || ch.status) === 'active' ? 'var(--primary)' : 'var(--border)',
                 color: ch.status === 'pending' ? 'var(--text-tertiary)' : '#fff'
               }}>{st.el}</div>
               <div style={{flex:1}}>
@@ -58,10 +82,10 @@ export default function SubjectDetail() {
               </div>
               <span style={{
                 fontSize:11, fontWeight:600, flexShrink:0,
-                color: ch.status === 'done' ? 'var(--green)' :
-                       ch.status === 'active' ? 'var(--primary)' : 'var(--text-tertiary)'
+                color: (chapterStatus[ch.id] || ch.status) === 'done' ? 'var(--green)' :
+                       (chapterStatus[ch.id] || ch.status) === 'active' ? 'var(--primary)' : 'var(--text-tertiary)'
               }}>
-                {ch.status === 'done' ? '已学' : ch.status === 'active' ? '学习中' : '未开始'}
+                {(chapterStatus[ch.id] || ch.status) === 'done' ? '已学' : (chapterStatus[ch.id] || ch.status) === 'active' ? '学习中' : '未开始'}
               </span>
             </div>
           );
