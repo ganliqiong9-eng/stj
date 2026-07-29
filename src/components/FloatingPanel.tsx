@@ -236,7 +236,7 @@ export default function FloatingPanel({
           left: snapped ? (pos.x + buttonSize > window.innerWidth / 2 ? undefined : 0) : pos.x,
           right: snapped && pos.x + buttonSize > window.innerWidth / 2 ? 0 : undefined,
           top: pos.y,
-          width: snapped ? (active ? 30 : 16) : buttonSize,
+          width: snapped ? (active ? 15 : 8) : buttonSize,
           height: snapped ? (active ? buttonSize : 80) : buttonSize,
           border: 'none',
           borderRadius: snapped ? (pos.x + buttonSize > window.innerWidth / 2

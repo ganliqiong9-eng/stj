@@ -560,7 +560,7 @@ http.createServer(async (req, res) => {
   // Root URL — return friendly info for browser access
   if (url === '/') {
     return json(res, {
-      service: '学习伴侣 API Server',
+      service: 'kye-test API Server',
       version: 2,
       endpoints: {
         sync: '/api/sync',
@@ -576,7 +576,7 @@ http.createServer(async (req, res) => {
 
   json(res, { error: 'Not found' }, 404);
 }).listen(PORT, '0.0.0.0', async () => {
-  console.log(`\n📚 学习伴侣服务器 v2 (unified)`);
+  console.log(`\n📚 kye-test服务器 v2 (unified)`);
   console.log(`   Sync API + RAG → http://0.0.0.0:${PORT}/`);
   console.log(`   Tailscale: http://100.101.115.91:${PORT}/`);
 

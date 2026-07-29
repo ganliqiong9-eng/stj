@@ -14,7 +14,38 @@ import Knowledge from './pages/Knowledge';
 import db from './store/db';
 import './App.css';
 
+
+// Theme: auto-detect from system or localStorage
+function getPreferredTheme(): string {
+  const stored = localStorage.getItem('kye_theme');
+  if (stored === 'dark' || stored === 'light') return stored;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme(theme: string) {
+  document.documentElement.setAttribute('data-theme', theme);
+}
+// Expose toggle for AI Assistant / other components
+(window as any).__toggleTheme = () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  localStorage.setItem('kye_theme', next);
+};
+
 export default function App() {
+  useEffect(() => {
+    const theme = getPreferredTheme();
+    applyTheme(theme);
+    // Listen for system preference changes (only when user hasn't manually set)
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => {
+      if (!localStorage.getItem('kye_theme')) {
+        applyTheme(mq.matches ? 'dark' : 'light');
+      }
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
   useEffect(() => {
     db.initQuestions();
     // Pull remote data on startup

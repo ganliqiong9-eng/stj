@@ -1,5 +1,6 @@
 :root{
   --bg:#f7f7f7;
+  --desktop-bg:#ddd;
   --surface:#fff;
   --primary:#1cb0f6;
   --primary-dark:#0f8ac9;
@@ -23,18 +24,43 @@
   --mono:'SF Mono','JetBrains Mono','Menlo',monospace;
 }
 
+/* Dark theme */
+[data-theme="dark"] {
+  --bg:#1e1e2e;
+  --desktop-bg:#11111b;
+  --surface:#313244;
+  --primary:#89b4fa;
+  --primary-dark:#74c7ec;
+  --primary-light:#45475a;
+  --green:#a6e3a1;
+  --green-light:#45475a;
+  --orange:#fab387;
+  --orange-light:#45475a;
+  --rose:#f38ba8;
+  --rose-light:#45475a;
+  --text:#cdd6f4;
+  --text-secondary:#a6adc8;
+  --text-tertiary:#585b70;
+  --border:#45475a;
+  --border-light:#585b70;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.3);
+  --shadow:0 4px 16px rgba(0,0,0,.4);
+  --radius:14px;
+  --radius-sm:10px;
+}
+
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{
-  height:100%;font-family:var(--font);background:#ddd;
+  height:100%;font-family:var(--font);background:var(--desktop-bg);
   color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased;
 }
 
-@media(max-width:480px){
+@media(max-width:768px){
   body{background:var(--bg);overflow:auto}
   #app-root{width:100%!important;height:100vh!important;border-radius:0!important;margin:0!important;box-shadow:none!important}
   .phone-notch{display:none!important}
-  .status-bar{padding:10px 20px 4px!important;font-size:11px!important}
+  .status-bar{display:none!important}
 }
-@media(min-width:481px){
+@media(min-width:769px){
   body{display:flex;align-items:center;justify-content:center;min-height:100vh}
 }

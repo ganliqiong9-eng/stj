@@ -68,7 +68,7 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text);
-  z-index: 99;
+  z-index: 101;
   position: relative;
 }
 
