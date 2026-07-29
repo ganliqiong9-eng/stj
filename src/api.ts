@@ -140,6 +140,110 @@ export async function deleteKnowledge(id: string): Promise<boolean> {
 }
 
 // ============================================================
+// AI Generate Cards API
+// ============================================================
+
+export async function generateQACards(sections: { title: string; body: string; code: string }[]): Promise<{
+  ok: boolean;
+  cards: (import('./data/content').QA | null)[];
+  error?: string;
+}> {
+  const API_KEY_READ = 'sbuddy_key';
+  const ENDPOINT_KEY = 'sbuddy_endpoint';
+  const MODEL_KEY = 'sbuddy_model';
+  
+  function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
+  
+  const KEY_ENC_PREFIX = 'enc:';
+  function decodeKey(stored: string): string {
+    if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
+    try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
+  }
+  const rawKey = g(API_KEY_READ, '');
+  if (!rawKey) return { ok: false, cards: sections.map(() => null), error: '请先在 AI 助手中配置 API Key' };
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/generate-cards`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sections,
+        llm_config: {
+          endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
+          api_key: decodeKey(rawKey),
+          model: g(MODEL_KEY, 'deepseek-chat'),
+        },
+      }),
+    });
+    if (!res.ok) return { ok: false, cards: sections.map(() => null), error: '服务器失败: HTTP ' + res.status };
+    return await res.json();
+  } catch {
+    return { ok: false, cards: sections.map(() => null), error: '网络错误' };
+  }
+}
+
+
+
+// ============================================================
+// Quiz API
+// ============================================================
+
+export async function generateQuiz(params: {
+  subj?: string;
+  level?: string;
+  count?: number;
+  types?: string[];
+}): Promise<{ ok: boolean; quiz: any[]; error?: string }> {
+  const API_KEY = 'sbuddy_key';
+  const ENDPOINT_KEY = 'sbuddy_endpoint';
+  const MODEL_KEY = 'sbuddy_model';
+  function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
+  const KEY_ENC_PREFIX = 'enc:';
+  function decodeKey(stored: string): string {
+    if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
+    try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
+  }
+  const rawKey = g(API_KEY, '');
+  if (!rawKey) return { ok: false, quiz: [], error: 'API Key not configured' };
+  try {
+    const res = await fetch(`${API_BASE}/api/rag/generate-quiz`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...params,
+        llm_config: {
+          endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
+          api_key: decodeKey(rawKey),
+          model: g(MODEL_KEY, 'deepseek-chat'),
+        },
+      }),
+    });
+    return await res.json();
+  } catch { return { ok: false, quiz: [], error: 'Network error' }; }
+}
+
+// ============================================================
+// Knowledge Relations API
+// ============================================================
+
+export async function getKnowledgeByLevel(subj?: string, level?: string): Promise<{ ok: boolean; items: any[] }> {
+  try {
+    const params = new URLSearchParams();
+    if (subj) params.set('subj', subj);
+    if (level) params.set('level', level);
+    const res = await fetch(`${API_BASE}/api/knowledge/by-level?${params}`);
+    return await res.json();
+  } catch { return { ok: false, items: [] }; }
+}
+
+export async function getRelatedKnowledge(id: string): Promise<{ ok: boolean; related: any[] }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/knowledge/${encodeURIComponent(id)}/related`);
+    return await res.json();
+  } catch { return { ok: false, related: [] }; }
+}
+
+// ============================================================
 // Compiler API
 // ============================================================
 

@@ -956,6 +956,97 @@ http.createServer(async (req, res) => {
     return json(res, { ok: true, related: related.slice(0, 10) });
   }
 
+
+
+  // POST /api/rag/generate-quiz - Generate quiz questions from knowledge base
+  if (url === '/api/rag/generate-quiz' && method === 'POST') {
+    (async () => {
+      const body = await parseBody(req);
+      const subj = body.subj || '';
+      const level = body.level || '';
+      const count = body.count || 10;
+      const types = body.types || ['choice', 'fill', 'short_answer'];
+      const llmConfig = body.llm_config || {};
+      if (!llmConfig.api_key) return json(res, { ok: false, quiz: [], error: 'LLM not configured' });
+
+      // Fetch relevant chunks
+      const knowledge = loadKnowledge();
+      let relevantSections = [];
+      for (const article of knowledge) {
+        if (subj && article.subj !== subj) continue;
+        for (const sec of article.sections || []) {
+          if (level && sec.level !== level) continue;
+          relevantSections.push({
+            title: sec.title,
+            body: sec.body,
+            qa: sec.qa || null,
+            level: sec.level || 'beginner',
+            tags: sec.tags || [],
+          });
+        }
+      }
+      if (relevantSections.length === 0) {
+        return json(res, { ok: false, quiz: [], error: 'No matching knowledge found' });
+      }
+
+      const SYS_PROMPT = `You are a quiz generation expert. Based on the following knowledge points, generate exam questions.
+
+Requirements:
+- Choice questions: 4 options, 1 correct answer
+- Fill-in-the-blank: blank out a keyword
+- Short answer: requires explaining concepts or writing code
+
+Output strict JSON array:
+[{
+  "type": "choice|fill|short_answer",
+  "question": "...",
+  "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
+  "correctAnswer": "A",
+  "explanation": "..."
+}]`;
+
+      const knowledgeText = relevantSections.slice(0, 15).map(s =>
+        `Title: ${s.title || 'Untitled'}\nContent: ${(s.body || '').substring(0, 300)}\nLevel: ${s.level}\nTags: ${(s.tags || []).join(', ')}`
+      ).join('\n\n---\n\n');
+
+      try {
+        const res = await fetch(llmConfig.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
+          body: JSON.stringify({
+            model: llmConfig.model || 'deepseek-chat',
+            messages: [
+              { role: 'system', content: SYS_PROMPT },
+              { role: 'user', content: `Generate ${count} questions (types: ${types.join(', ')}). Knowledge base:\n\n${knowledgeText}` },
+            ],
+            max_tokens: 4096,
+            temperature: 0.7,
+            response_format: { type: 'json_object' },
+          }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content || '[]';
+        let quiz = [];
+        try { const p = JSON.parse(text); quiz = p.quiz || p; if (!Array.isArray(quiz)) quiz = [quiz]; } catch { quiz = []; }
+        // Attach knowledgeId to each quiz item
+        quiz = quiz.slice(0, count).map((q, i) => ({
+          id: crypto.randomUUID(),
+          knowledgeId: relevantSections[i % relevantSections.length]?.title || '',
+          type: q.type || 'choice',
+          question: q.question || '',
+          options: q.options || [],
+          correctAnswer: q.correctAnswer || '',
+          explanation: q.explanation || '',
+        }));
+        return json(res, { ok: true, quiz });
+      } catch (err) {
+        return json(res, { ok: false, quiz: [], error: err.message });
+      }
+    })();
+    return;
+  }
+
   // ---- 404 ---- //
   // Root URL — return friendly info for browser access
   if (url === '/') {

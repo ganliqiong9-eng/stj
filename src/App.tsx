@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import BottomNav from './components/BottomNav';
 import AIAssistant from './components/AIAssistant';
 import SelectionTooltip from './components/SelectionTooltip';
+import AdminLayout from './components/AdminLayout';
 import Home from './pages/Home';
 import SubjectDetail from './pages/SubjectDetail';
 import Learn from './pages/Learn';
@@ -11,6 +12,12 @@ import Bank from './pages/Bank';
 import Compiler from './pages/Compiler';
 import Notes from './pages/Notes';
 import Knowledge from './pages/Knowledge';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminKnowledge from './pages/AdminKnowledge';
+import AdminEditor from './pages/AdminEditor';
+import AdminUpload from './pages/AdminUpload';
+import AdminAnnotate from './pages/AdminAnnotate';
+import AdminQuiz from './pages/AdminQuiz';
 import db from './store/db';
 import './App.css';
 
@@ -73,8 +80,14 @@ export default function App() {
             <Route path="/bank" element={<Bank />} />
             <Route path="/compiler" element={<Compiler />} />
             <Route path="/notes" element={<Notes />} />
-            <Route path="/knowledge" element={<Knowledge />} />
-          </Routes>
+          <Route path="/knowledge" element={<Knowledge />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/knowledge" element={<AdminKnowledge />} />
+          <Route path="/admin/knowledge/:id" element={<AdminEditor />} />
+          <Route path="/admin/upload" element={<AdminUpload />} />
+          <Route path="/admin/annotate" element={<AdminAnnotate />} />
+          <Route path="/admin/quiz" element={<AdminQuiz />} />
+        </Routes>
         </div>
         <AIAssistant />
         <SelectionTooltip />
