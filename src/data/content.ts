@@ -1,9 +1,33 @@
 export interface Section {
+  id?: string;
   title: string;
   body: string;
   code?: string;
   tip?: string;
-  qa?: QA;
+  qa?: QACard;
+  level?: KnowledgeLevel;
+  tags?: string[];
+  relatedIds?: string[];
+}
+
+/** 知识点卡片（同 QA，更语义化） */
+export type QACard = QA;
+
+/** 难度等级 */
+export type KnowledgeLevel = 'beginner' | 'intermediate' | 'advanced';
+
+/** 刷题题目类型 */
+export type QuizType = 'choice' | 'fill' | 'short_answer';
+
+/** 刷题题目 */
+export interface QuizItem {
+  id: string;
+  knowledgeId: string;
+  type: QuizType;
+  question: string;
+  options?: string[];
+  correctAnswer: string;
+  explanation: string;
 }
 
 export interface QA {

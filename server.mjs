@@ -223,6 +223,107 @@ async function reindexAll(ragConfig) {
   return { chunkCount: chunkData.length, embedCount: embeddings ? embeddings.length : 0, status: ragConfig.status };
 }
 
+
+
+// ============================================================
+// Smart Index - LLM-powered intelligent chunking + QA generation
+// ============================================================
+
+async function smartIndex(text, subj, llmConfig) {
+  if (!llmConfig || !llmConfig.api_key) {
+    // Fallback: use traditional chunking
+    const chunks = chunkText(text);
+    return chunks.map((c, i) => ({
+      id: crypto.randomUUID(),
+      title: `节 ${i + 1}`,
+      body: c,
+      qa: null,
+      level: null,
+      tags: [subj || 'custom'],
+    }));
+  }
+
+  const SYSTEM_PROMPT_EN = `You are a technical education expert. The user will give you a full technical document. Your job is to:
+
+1. Split by knowledge boundary (NOT by word count) - each knowledge point should be a complete, independently understandable concept
+2. For each knowledge point generate:
+   - title: Short clear title
+   - body: Content preserving key information from the original
+   - qa.question: A practice question testing this knowledge point
+   - qa.answer: Standard answer (3-5 lines)
+   - qa.plain: Plain language explanation, start with "In simple terms" - so beginners can understand
+   - qa.analogy: Vivid analogy using everyday life scenarios, as specific and interesting as possible
+   - level: Difficulty - beginner/intermediate/advanced
+   - tags: Array of 2-4 keywords
+
+Output strict JSON:
+{ "sections": [{ "title": "...", "body": "...", "qa": { "question": "...", "answer": "...", "plain": "...", "analogy": "..." }, "level": "...", "tags": [...] }] }`;
+
+  const userContent = `Document content:\n\n${text.substring(0, 8000)}`;
+
+  try {
+    const res = await fetch(llmConfig.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${llmConfig.api_key}`,
+      },
+      body: JSON.stringify({
+        model: llmConfig.model || 'deepseek-chat',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT_EN },
+          { role: 'user', content: userContent },
+        ],
+        max_tokens: 8192,
+        temperature: 0.7,
+        response_format: { type: 'json_object' },
+      }),
+    });
+    if (!res.ok) {
+      let d = '';
+      try { const j = await res.json(); d = j.error?.message || ''; } catch {}
+      throw new Error(d || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || '{}';
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch {
+      throw new Error('Failed to parse LLM response');
+    }
+    const sections = (result.sections || []).map(s => ({
+      id: crypto.randomUUID(),
+      title: s.title || '',
+      body: s.body || '',
+      code: s.code || '',
+      tip: s.tip || '',
+      qa: s.qa ? {
+        question: s.qa.question || '',
+        answer: s.qa.answer || '',
+        plain: s.qa.plain || '',
+        analogy: s.qa.analogy || '',
+      } : null,
+      level: s.level || null,
+      tags: s.tags || [],
+      relatedIds: [],
+    }));
+    return sections;
+  } catch (err) {
+    // Fallback: use traditional chunking
+    const chunks = chunkText(text);
+    return chunks.map((c, i) => ({
+      id: crypto.randomUUID(),
+      title: `节 ${i + 1}`,
+      body: c,
+      qa: null,
+      level: null,
+      tags: [subj || 'custom'],
+    }));
+  }
+}
+
+
 // ============================================================
 // RAG Query
 // ============================================================
@@ -724,6 +825,135 @@ http.createServer(async (req, res) => {
       }
     })();
     return;
+  }
+
+
+
+  // POST /api/rag/smart-index - LLM-powered intelligent chunking
+  if (url === '/api/rag/smart-index' && method === 'POST') {
+    (async () => {
+      const body = await parseBody(req);
+      if (!body.text) return json(res, { ok: false, error: 'text required' }, 400);
+      const llmConfig = body.llm_config || null;
+      const sections = await smartIndex(body.text, body.subj || 'custom', llmConfig);
+      return json(res, { ok: true, sections });
+    })();
+    return;
+  }
+
+  // POST /api/rag/upgrade-upload-doc - Upload + Smart Index
+  if (url === '/api/rag/upgrade-upload-doc' && method === 'POST') {
+    (async () => {
+      const body = await parseBody(req);
+      if (!body.file_base64) return json(res, { ok: false, error: 'file_base64 required' }, 400);
+      const buffer = Buffer.from(body.file_base64, 'base64');
+      const filename = body.filename || 'document';
+      const parseResult = parseDocForRAG(buffer, filename);
+      if (!parseResult.ok) return json(res, parseResult);
+      const fullText = (parseResult.sections || []).map(s => s.title ? `# ${s.title}\n\n${s.body}` : s.body).join('\n\n');
+      const llmConfig = body.llm_config || null;
+      const enriched = await smartIndex(fullText, body.subj || 'custom', llmConfig);
+      const article = {
+        _id: body._id || crypto.randomUUID(),
+        title: parseResult.title || filename,
+        subj: body.subj || 'custom',
+        tags: body.tags || '文档',
+        source: '文件上传: ' + filename + ' (' + parseResult.fileType + ')',
+        sections: enriched.length > 0 ? enriched : (parseResult.sections || []),
+        type: 'doc',
+        status: 'indexed',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      const knowledge = loadKnowledge();
+      knowledge.push(article);
+      saveKnowledge(knowledge);
+      const ragCfg = loadRagConfig();
+      reindexAll(ragCfg).catch(() => {});
+      return json(res, { ok: true, sections: article.sections, title: article.title, fileType: parseResult.fileType, articleId: article._id });
+    })();
+    return;
+  }
+
+  // POST /api/rag/discover-links - Discover knowledge connections
+  if (url === '/api/rag/discover-links' && method === 'POST') {
+    (async () => {
+      const body = await parseBody(req);
+      const chunks = loadEmbeddings();
+      const targetId = body.chunk_id || null;
+      const threshold = body.threshold || 0.8;
+      const links = [];
+      for (let i = 0; i < chunks.length; i++) {
+        if (targetId && chunks[i].id !== targetId) continue;
+        if (!chunks[i].embedding) continue;
+        for (let j = 0; j < chunks.length; j++) {
+          if (i === j) continue;
+          if (!chunks[j].embedding) continue;
+          const sim = cosineSimilarity(chunks[i].embedding, chunks[j].embedding);
+          if (sim > threshold) {
+            links.push({
+              source_id: chunks[i].id,
+              target_id: chunks[j].id,
+              similarity: Math.round(sim * 100) / 100,
+            });
+          }
+        }
+      }
+      return json(res, { ok: true, links });
+    })();
+    return;
+  }
+
+  // GET /api/knowledge/by-level - Filter by subject + level
+  if (url.startsWith('/api/knowledge/by-level') && method === 'GET') {
+    const urlObj = new URL(req.url, 'http://localhost');
+    const subj = urlObj.searchParams.get('subj') || '';
+    const level = urlObj.searchParams.get('level') || '';
+    const knowledge = loadKnowledge();
+    const items = [];
+    for (const article of knowledge) {
+      for (const sec of article.sections || []) {
+        if (subj && article.subj !== subj) continue;
+        if (level && sec.level !== level) continue;
+        items.push({
+          article_id: article.id || article._id,
+          article_title: article.title,
+          chunk_id: sec.id || crypto.randomUUID(),
+          title: sec.title,
+          level: sec.level || null,
+          tags: sec.tags || [],
+          qa: sec.qa || null,
+        });
+      }
+    }
+    return json(res, { ok: true, items });
+  }
+
+
+  // GET /api/knowledge/:id/related - Get related knowledge points
+  const relatedMatch = url.match(/^\/api\/knowledge\/([^/]+)\/related$/);
+  if (relatedMatch && method === 'GET') {
+    const targetId = relatedMatch[1];
+    const chunks = loadEmbeddings();
+    const target = chunks.find(c => c.id === targetId || c.article_id === targetId);
+    if (!target || !target.embedding) return json(res, { ok: true, related: [] });
+    const related = [];
+    for (const c of chunks) {
+      if (c.id === target.id) continue;
+      if (!c.embedding) continue;
+      const sim = cosineSimilarity(target.embedding, c.embedding);
+      if (sim > 0.7) {
+        related.push({
+          chunk_id: c.id,
+          title: c.article_title + ' › ' + (c.content?.substring(0, 60) || ''),
+          subj: c.subj || 'custom',
+          level: c.level || null,
+          similarity: Math.round(sim * 100) / 100,
+        });
+      }
+    }
+    related.sort((a, b) => b.similarity - a.similarity);
+    return json(res, { ok: true, related: related.slice(0, 10) });
   }
 
   // ---- 404 ---- //

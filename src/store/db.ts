@@ -30,6 +30,8 @@ export interface KnowledgeEntry {
   createdAt: string;
   updatedAt: string;
   _device?: string;
+  type?: 'doc' | 'table' | 'paste';
+  status?: 'parsing' | 'indexed' | 'error';
 }
 
 /** 同步锁，防止并发请求 */
