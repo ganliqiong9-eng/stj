@@ -1,12 +1,14 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, BookOpen, Upload, Tags, FileQuestion, ArrowLeft, Database as DatabaseIcon } from 'lucide-react';
 
 const navItems = [
-  { path: '/admin', label: '仪表盘', icon: '📊' },
-  { path: '/admin/knowledge', label: '知识管理', icon: '📚' },
-  { path: '/admin/upload', label: '批量上传', icon: '📤' },
-  { path: '/admin/annotate', label: '数据标注', icon: '🏷️' },
-  { path: '/admin/quiz', label: '刷题管理', icon: '📝' },
+  { path: '/admin', label: '仪表盘', icon: LayoutDashboard },
+  { path: '/admin/knowledge', label: '知识管理', icon: BookOpen },
+  { path: '/admin/upload', label: '批量上传', icon: Upload },
+  { path: '/admin/annotate', label: '数据标注', icon: Tags },
+  { path: '/admin/quiz', label: '刷题管理', icon: FileQuestion },
+  { path: '/admin/database', label: '数据库', icon: DatabaseIcon },
 ];
 
 export default function AdminLayout({ children, title }: { children: ReactNode; title?: string }) {
@@ -37,7 +39,7 @@ export default function AdminLayout({ children, title }: { children: ReactNode; 
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 20px', border: 'none', borderLeft: active ? '3px solid #3370ff' : '3px solid transparent', background: active ? 'rgba(255,255,255,.08)' : 'transparent', color: active ? '#fff' : 'rgba(255,255,255,.6)', cursor: 'pointer', fontSize: 13, fontWeight: active ? 600 : 400, textAlign: 'left', fontFamily: 'var(--font)', transition: 'all .2s var(--ease-out)' }}
                 onMouseEnter={e => !active && (e.currentTarget.style.background = 'rgba(255,255,255,.04)')}
                 onMouseLeave={e => !active && (e.currentTarget.style.background = 'transparent')}>
-                <span style={{ fontSize: 16 }}>{item.icon}</span>
+                <item.icon size={18} strokeWidth={1.8} />
                 {item.label}
               </button>
             );
@@ -46,6 +48,10 @@ export default function AdminLayout({ children, title }: { children: ReactNode; 
         <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(255,255,255,.08)', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: ragStatus.includes('就绪') || ragStatus.includes('keyword') ? '#00b365' : '#ff7d00', flexShrink: 0 }} />
           <span style={{ color: 'rgba(255,255,255,.45)' }}>{ragStatus}</span>
+          <button onClick={() => nav('/')} style={{ marginLeft: 'auto', border: 'none', background: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'rgba(255,255,255,.35)', fontFamily: 'var(--font)', fontSize: 11 }}>
+            <ArrowLeft size={14} strokeWidth={1.5} />
+            <span>返回应用</span>
+          </button>
         </div>
       </div>
 

@@ -18,6 +18,7 @@ import AdminEditor from './pages/AdminEditor';
 import AdminUpload from './pages/AdminUpload';
 import AdminAnnotate from './pages/AdminAnnotate';
 import AdminQuiz from './pages/AdminQuiz';
+import AdminDatabase from './pages/AdminDatabase';
 import db from './store/db';
 import './App.css';
 
@@ -88,6 +89,7 @@ function AppContent() {
         <Route path="/admin/upload" element={<AdminUpload />} />
         <Route path="/admin/annotate" element={<AdminAnnotate />} />
           <Route path="/admin/quiz" element={<AdminQuiz />} />
+          <Route path="/admin/database" element={<AdminDatabase />} />
         </Routes>
       </div>
     );
