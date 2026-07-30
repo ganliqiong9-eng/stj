@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import db, { type KnowledgeEntry } from '../store/db';
 import { deleteKnowledge } from '../api';
 import { SUBJECT_OPTIONS, formatDate } from './KnowledgeUtils';
+import { ragQuery } from '../api';
 
-export default function KnowledgeList({ onView, onAdd, search, filterSubj }: { onView: (id: number) => void; onAdd: () => void; search?: string; filterSubj?: string }) {
+export default function KnowledgeList({ onView, onAdd, search, filterSubj, searchMode }: { onView: (id: number) => void; onAdd: () => void; search?: string; filterSubj?: string; searchMode?: string }) {
   const [entries, setEntries] = useState<KnowledgeEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -11,7 +12,19 @@ export default function KnowledgeList({ onView, onAdd, search, filterSubj }: { o
     setLoading(true);
     let items = await db.getAllKnowledge();
     // Apply search filter
-    if (search) {
+    if (search && searchMode === 'semantic') {
+      try {
+        const r = await ragQuery(search, 20);
+        if (r.results && r.results.length > 0) {
+          const ids = new Set(r.results.map((c: any) => c.article_id));
+          const scores = new Map(r.results.map((c: any) => [c.article_id, c.score]));
+          items = items.filter((k: any) => k._id && ids.has(k._id));
+          items.sort((a: any, b: any) => (scores.get(b._id!) || 0) - (scores.get(a._id!) || 0));
+        } else {
+          items = [];
+        }
+      } catch { items = []; }
+    } else if (search) {
       const q = search.toLowerCase();
       items = items.filter(k => k.title.toLowerCase().includes(q) || (k.tags && k.tags.toLowerCase().includes(q)));
     }
@@ -21,7 +34,7 @@ export default function KnowledgeList({ onView, onAdd, search, filterSubj }: { o
     }
     setEntries(items.reverse());
     setLoading(false);
-  }, [search, filterSubj]);
+  }, [search, filterSubj, searchMode]);
 
   useEffect(() => { load(); }, [load]);
 

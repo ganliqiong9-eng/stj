@@ -19,6 +19,7 @@ export default function Knowledge() {
   const [search, setSearch] = useState('');
   const [filterSubj, setFilterSubj] = useState('all');
   const [showSearch, setShowSearch] = useState(false);
+  const [searchMode, setSearchMode] = useState<'keyword' | 'semantic'>('keyword');
   const [refreshKey, setRefreshKey] = useState(0);
 
   const openDetail = async (id: number) => {
@@ -84,10 +85,17 @@ export default function Knowledge() {
       </div>
 
       {showSearch && (
-        <div style={{ padding: '4px 12px 2px' }}>
+        <div style={{ padding: '4px 12px 2px', display: 'flex', gap: 6 }}>
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="搜索知识..." autoFocus
-            style={{ width: '100%', border: '2px solid var(--border)', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', outline: 'none' }} />
+            style={{ flex: 1, border: '2px solid var(--border)', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', outline: 'none' }} />
+          <button onClick={() => setSearchMode(m => m === 'keyword' ? 'semantic' : 'keyword')}
+            style={{ padding: '6px 10px', border: '2px solid', borderRadius: 10, fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', whiteSpace: 'nowrap',
+              borderColor: searchMode === 'semantic' ? 'var(--primary)' : 'var(--border)',
+              background: searchMode === 'semantic' ? 'var(--primary)' : 'var(--surface)',
+              color: searchMode === 'semantic' ? '#fff' : 'var(--text-secondary)' }}>
+            {searchMode === 'keyword' ? '关键词' : '语义'}
+          </button>
         </div>
       )}
 
@@ -111,7 +119,7 @@ export default function Knowledge() {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 0', position: 'relative' }}>
-        <KnowledgeList key={refreshKey} onView={openDetail} onAdd={() => setViewMode('form')} search={search} filterSubj={filterSubj} />
+        <KnowledgeList key={refreshKey} onView={openDetail} onAdd={() => setViewMode('form')} search={search} filterSubj={filterSubj} searchMode={searchMode} />
         
         <button onClick={() => setShowUpload(true)}
           style={{ position: 'absolute', right: 8, bottom: 16, width: 50, height: 50, borderRadius: '50%', border: 'none', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 16px rgba(28,176,246,.4)', zIndex: 100 }}>
