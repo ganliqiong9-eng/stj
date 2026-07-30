@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import db from '../store/db';
+import db from '../store/db';
 
 export default function AdminDashboard() {
   const [knowledgeCount, setKnowledgeCount] = useState(0);
   const [bySubj, setBySubj] = useState<Record<string, number>>({});
   const [recent, setRecent] = useState<any[]>([]);
+  const [wrongCount, setWrongCount] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [qTotal, setQTotal] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -15,6 +19,9 @@ export default function AdminDashboard() {
       for (const k of all) { subj[k.subj] = (subj[k.subj] || 0) + 1; }
       setBySubj(subj);
       setRecent(all.reverse().slice(0, 5));
+      try { setWrongCount(await db.wrongAnswers.count()); } catch {}
+      try { setReviewCount(await db.getReviewCount()); } catch {}
+      try { setQTotal(await db.questions.count()); } catch {}
     })();
   }, []);
 
@@ -24,6 +31,9 @@ export default function AdminDashboard() {
         <StatCard label="知识点总量" value={knowledgeCount} color="#1cb0f6" />
         {Object.entries(bySubj).map(([k, v]) => <StatCard key={k} label={k} value={v} color="#58cc02" />)}
         <StatCard label="已索引" value={knowledgeCount} color="#7c3aed" />
+        <StatCard label="练习量" value={qTotal} color="#3370ff" />
+        <StatCard label="错题" value={wrongCount} color="#f53f3f" />
+        <StatCard label="待复习" value={reviewCount} color="#ff7d00" />
       </div>
       <div style={{ background: '#fff', borderRadius: 12, padding: 16, border: '1px solid #e0e0e0' }}>
         <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>最近上传</h3>
