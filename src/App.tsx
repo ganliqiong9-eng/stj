@@ -16,7 +16,6 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminKnowledge from './pages/AdminKnowledge';
 import AdminEditor from './pages/AdminEditor';
 import AdminUpload from './pages/AdminUpload';
-import AdminAnnotate from './pages/AdminAnnotate';
 import AdminQuiz from './pages/AdminQuiz';
 import AdminDatabase from './pages/AdminDatabase';
 import db from './store/db';
@@ -87,8 +86,7 @@ function AppContent() {
         <Route path="/admin/knowledge" element={<AdminKnowledge />} />
         <Route path="/admin/knowledge/:id" element={<AdminEditor />} />
         <Route path="/admin/upload" element={<AdminUpload />} />
-        <Route path="/admin/annotate" element={<AdminAnnotate />} />
-          <Route path="/admin/quiz" element={<AdminQuiz />} />
+        <Route path="/admin/quiz" element={<AdminQuiz />} />
           <Route path="/admin/database" element={<AdminDatabase />} />
         </Routes>
       </div>
