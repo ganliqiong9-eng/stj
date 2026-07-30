@@ -10,20 +10,20 @@ export default function MockExam() {
   const [phase, setPhase] = useState<'setup' | 'exam' | 'results'>('setup');
   const [subj, setSubj] = useState('');
   const [count, setCount] = useState(10);
-  const [timeLimit, set用时Limit] = useState(10);
+  const [timeLimit, setTimeLimit] = useState(10);
   const [quiz, setQuiz] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [timeLeft, set用时Left] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [key, setKey] = useState(0);
 
-  // 用时r
+  // Timer
   useEffect(() => {
     if (phase !== 'exam') return;
     const timer = setInterval(() => {
-      set用时Left(prev => { if (prev <= 1) { clearInterval(timer); return 0; } return prev - 1; });
+      setTimeLeft(prev => { if (prev <= 1) { clearInterval(timer); return 0; } return prev - 1; });
     }, 1000);
     return () => clearInterval(timer);
   }, [phase]);
@@ -42,7 +42,7 @@ export default function MockExam() {
       setQuiz(r.quiz);
       setAnswers({});
       setCurrentIdx(0);
-      set用时Left(timeLimit * 60);
+      setTimeLeft(timeLimit * 60);
       setPhase('exam');
       setKey(k => k + 1);
     } else {
@@ -51,7 +51,7 @@ export default function MockExam() {
     setLoading(false);
   };
 
-  const handle提交 = () => {
+  const handleSubmit = () => {
     // Store wrong answers
     for (const q of quiz) {
       if (answers[q.id]?.trim().toLowerCase() !== q.correctAnswer?.trim().toLowerCase()) {
@@ -72,7 +72,7 @@ export default function MockExam() {
   const pct = quiz.length > 0 ? Math.round((score / quiz.length) * 100) : 0;
   const passed = pct >= 60;
   const timeSpent = timeLimit * 60 - timeLeft;
-  const format用时 = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
   const choiceLabel = (i: number) => String.fromCharCode(65 + i);
 
@@ -84,7 +84,7 @@ export default function MockExam() {
         <h2 style={{ fontSize: 17, fontWeight: 700, flex: 1 }}>模拟考试</h2>
         {phase === 'exam' && (
           <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700, color: timeLeft < 60 ? 'var(--rose)' : 'var(--text)' }}>
-            <Clock size={16} /> {format用时(timeLeft)}
+            <Clock size={16} /> {formatTime(timeLeft)}
           </span>
         )}
       </div>
@@ -98,8 +98,8 @@ export default function MockExam() {
           <select value={count} onChange={e => setCount(Number(e.target.value))} style={{ border: '2px solid var(--border)', borderRadius: 10, padding: '9px 10px', fontSize: 12, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', outline: 'none' }}>
             <option value={5}>5 题</option><option value={10}>10 题</option><option value={20}>20 题</option><option value={30}>30 题</option>
           </select>
-          <select value={timeLimit} onChange={e => set用时Limit(Number(e.target.value))} style={{ border: '2px solid var(--border)', borderRadius: 10, padding: '9px 10px', fontSize: 12, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', outline: 'none' }}>
-            <option value={5}>5 min</option><option value={10}>10 min</option><option value={15}>15 min</option><option value={30}>30 min</option>
+          <select value={timeLimit} onChange={e => setTimeLimit(Number(e.target.value))} style={{ border: '2px solid var(--border)', borderRadius: 10, padding: '9px 10px', fontSize: 12, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', outline: 'none' }}>
+            <option value={5}>5 分钟</option><option value={10}>10 分钟</option><option value={15}>15 分钟</option><option value={30}>30 分钟</option>
           </select>
           <button onClick={handleStart} disabled={loading}
             style={{ padding: '14px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 15, fontWeight: 700, cursor: loading ? 'default' : 'pointer', fontFamily: 'var(--font)', background: loading ? 'var(--border)' : 'var(--primary)', color: '#fff' }}>
@@ -121,7 +121,7 @@ export default function MockExam() {
 
           <div key={key} style={{ flex: 1, background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 16, border: '2px solid var(--border-light)', animation: 'slideUp .25s ease-out', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: quiz[currentIdx]?.type === 'choice' ? '#e6f7ef' : '#e8f0ff', color: quiz[currentIdx]?.type === 'choice' ? '#00b365' : '#3370ff', alignSelf: 'flex-start', marginBottom: 6 }}>
-              {quiz[currentIdx]?.type === 'choice' ? '选择题' : quiz[currentIdx]?.type === 'fill' ? 'Fill' : '简答题'}
+              {quiz[currentIdx]?.type === 'choice' ? 'Choice' : quiz[currentIdx]?.type === 'fill' ? 'Fill' : 'Short Answer'}
             </div>
             <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.6, color: 'var(--text)', marginBottom: 10 }}>{quiz[currentIdx]?.question}</div>
 
@@ -148,21 +148,21 @@ export default function MockExam() {
           <div style={{ display: 'flex', gap: 8 }}>
             {currentIdx > 0 && (
               <button onClick={() => { setCurrentIdx(i => i - 1); setKey(k => k + 1); }} style={{ flex: 1, padding: '10px 0', border: '2px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                <ArrowLeft size={14} /> 上一题
+                <ArrowLeft size={14} /> Prev
               </button>
             )}
             {currentIdx < quiz.length - 1 ? (
               <button onClick={() => { setCurrentIdx(i => i + 1); setKey(k => k + 1); }} style={{ flex: currentIdx === 0 ? 1 : 2, padding: '10px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                下一题 <ArrowRight size={14} />
+                Next <ArrowRight size={14} />
               </button>
             ) : (
-              <button onClick={handle提交} style={{ flex: 1, padding: '10px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--primary)', color: '#fff' }}>提交</button>
+              <button onClick={handleSubmit} style={{ flex: 1, padding: '10px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--primary)', color: '#fff' }}>提交</button>
             )}
           </div>
         </div>
       )}
 
-      {/* 结果s */}
+      {/* Results */}
       {phase === 'results' && (
         <div style={{ flex: 1, padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
           <div style={{ textAlign: 'center', padding: '16px 0' }}>
@@ -170,13 +170,13 @@ export default function MockExam() {
             <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 4 }}>
               {score}/{quiz.length} {passed ? ' - 通过!' : ' - 未通过'}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>用时: {format用时(timeSpent)}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>用时: {formatTime(timeSpent)}</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => { setPhase('setup'); setQuiz([]); }} style={{ flex: 1, padding: '10px 0', border: '2px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)' }}>重试</button>
+            <button onClick={() => { setPhase('setup'); setQuiz([]); }} style={{ flex: 1, padding: '10px 0', border: '2px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)' }}>Retry</button>
             <button onClick={() => nav('/')} style={{ flex: 2, padding: '10px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--primary)', color: '#fff' }}>Home</button>
           </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginTop: 8 }}>回顾</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginTop: 8 }}>Review</div>
           {quiz.map((q, i) => {
             const correct = answers[q.id]?.trim().toLowerCase() === q.correctAnswer?.trim().toLowerCase();
             return (

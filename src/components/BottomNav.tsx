@@ -5,7 +5,7 @@ const navItems = [
   { path: '/', icon: House, label: '首页' },
   { path: '/quiz', icon: SquarePen, label: '刷题' },
   { path: '/knowledge', icon: BookMarked, label: '上传知识' },
-  { path: '/compiler', icon: Code, label: '编译器' },
+  { path: '/library', icon: BookOpen, label: '资料库' },
 ];
 
 export default function BottomNav() {
