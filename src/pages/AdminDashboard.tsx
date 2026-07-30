@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import db from '../store/db';
-import db from '../store/db';
 
 export default function AdminDashboard() {
   const [knowledgeCount, setKnowledgeCount] = useState(0);
