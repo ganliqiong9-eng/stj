@@ -1,8 +1,11 @@
 import { useState, useRef } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { uploadDocForRag, MAX_UPLOAD_SIZE } from '../api';
+import { useNavigate } from 'react-router-dom';
+import db from '../store/db';
 
 export default function AdminUpload() {
+  const nav = useNavigate();
   const [files, setFiles] = useState<{ file: File; status: 'waiting' | 'uploading' | 'done' | 'error'; msg?: string }[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -19,6 +22,20 @@ export default function AdminUpload() {
       setFiles(prev => prev.map((p, j) => j === i ? { ...p, status: 'uploading' as const } : p));
       try {
         const r = await uploadDocForRag(f.file, 'custom', '');
+        if (r.ok && r.sections) {
+          await db.addKnowledge({
+            _id: r.articleId || crypto.randomUUID(),
+            title: r.title || f.file.name,
+            subj: 'custom',
+            tags: '文档',
+            source: '文件上传: ' + f.file.name,
+            sections: r.sections,
+            type: 'doc' as const,
+            status: 'indexed' as const,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
         setFiles(prev => prev.map((p, j) => j === i ? { ...p, status: r.ok ? 'done' as const : 'error' as const, msg: r.msg } : p));
       } catch {
         setFiles(prev => prev.map((p, j) => j === i ? { ...p, status: 'error' as const, msg: '上传失败' } : p));
@@ -54,6 +71,11 @@ export default function AdminUpload() {
               </span>
             </div>
           ))}
+          {files.some(f => f.status === 'done') && (
+            <button onClick={() => nav('/admin/knowledge')} style={{ width: '100%', padding: '10px 0', marginTop: 4, border: '2px solid var(--primary)', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: '#fff', color: 'var(--primary)', marginBottom: 8 }}>
+              查看知识库 →
+            </button>
+          )}
           <button onClick={uploadAll} disabled={files.every(f => f.status !== 'waiting')}
             style={{ width: '100%', padding: '10px 0', marginTop: 8, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: files.every(f => f.status !== 'waiting') ? 'default' : 'pointer', fontFamily: 'var(--font)', background: files.every(f => f.status !== 'waiting') ? '#e0e0e0' : '#1cb0f6', color: '#fff' }}>
             {files.every(f => f.status !== 'waiting') ? '全部完成' : '开始上传全部'}
