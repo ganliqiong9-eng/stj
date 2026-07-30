@@ -350,6 +350,49 @@ export async function getCompilerSampleQueries(): Promise<{ sql: { title: string
   }
 }
 
+
+
+// ============================================================
+// Upgrade Upload Doc API (smart-index)
+// ============================================================
+
+export async function upgradeUploadDocForRag(file: File): Promise<UploadDocResult> {
+  const API_KEY = 'sbuddy_key';
+  const ENDPOINT_KEY = 'sbuddy_endpoint';
+  const MODEL_KEY = 'sbuddy_model';
+  function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
+  const KEY_ENC_PREFIX = 'enc:';
+  function decodeKey(stored: string): string {
+    if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
+    try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
+  }
+  try {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = ''; for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const base64 = btoa(binary);
+    const res = await fetch(`${API_BASE}/api/rag/upgrade-upload-doc`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        file_base64: base64,
+        filename: file.name,
+        subj: 'custom',
+        tags: '文档',
+        llm_config: {
+          endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
+          api_key: decodeKey(g(API_KEY, '')),
+          model: g(MODEL_KEY, 'deepseek-chat'),
+        },
+      }),
+    });
+    if (!res.ok) return { ok: false, msg: '上传失败' };
+    return await res.json();
+  } catch {
+    return { ok: false, msg: '网络错误: 无法连接服务器' };
+  }
+}
+
 // ============================================================
 // File Parser & Document Upload API
 // ============================================================

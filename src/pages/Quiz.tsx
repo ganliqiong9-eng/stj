@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import db from '../store/db';
 import { subjNames } from '../data/questions';
+import QuizView from '../components/QuizView';
+import { Sparkles } from 'lucide-react';
 import StatusBar from '../components/StatusBar';
 
 interface QItem {
@@ -14,6 +16,7 @@ export default function Quiz() {
   const [answered, setAnswered] = useState(false);
   const [qIdx, setQIdx] = useState(0);
   const [starFilter, setStarFilter] = useState(false);
+  const [aiMode, setAiMode] = useState(false);
   const [activeSubj, setActiveSubj] = useState<string>('all');
   const [allQuestions, setAllQuestions] = useState<QItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +50,15 @@ export default function Quiz() {
     return (
       <div className="page">
         <div style={{textAlign:'center', padding:40, color:'var(--text-tertiary)'}}>加载中...</div>
+      </div>
+    );
+  }
+
+  if (aiMode) {
+    return (
+      <div className="page">
+        <StatusBar />
+        <QuizView />
       </div>
     );
   }

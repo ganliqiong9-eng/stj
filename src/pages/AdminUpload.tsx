@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import AdminLayout from '../components/AdminLayout';
-import { uploadDocForRag, MAX_UPLOAD_SIZE } from '../api';
+import { upgradeUploadDocForRag, MAX_UPLOAD_SIZE } from '../api';
 import { useNavigate } from 'react-router-dom';
 import db from '../store/db';
 
@@ -21,7 +21,7 @@ export default function AdminUpload() {
       if (f.status !== 'waiting') continue;
       setFiles(prev => prev.map((p, j) => j === i ? { ...p, status: 'uploading' as const } : p));
       try {
-        const r = await uploadDocForRag(f.file, 'custom', '');
+        const r = await upgradeUploadDocForRag(f.file);
         if (r.ok && r.sections) {
           await db.addKnowledge({
             _id: r.articleId || crypto.randomUUID(),
