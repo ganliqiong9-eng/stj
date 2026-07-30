@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table2, Database, Edit3, Info, FolderOpen, Upload, RotateCcw, ChevronDown, ChevronRight, Save, X } from 'lucide-react';
-import { listCompilerTables, getCompilerTableData, getFolders, moveTableToFolder, type CompilerTable, type Row } from '../api';
+import { listCompilerTables, getCompilerTableData, getFolders, moveTableToFolder, getTableMeta, updateTableMeta, type CompilerTable, type Row } from '../api';
 import AdminLayout from '../components/AdminLayout';
 
 interface TableMeta {
@@ -9,14 +9,7 @@ interface TableMeta {
   columns?: Record<string, { description?: string }>;
 }
 
-const META_KEY = 'sbuddy_table_meta';
-
-function loadMeta(): Record<string, TableMeta> {
-  try { return JSON.parse(localStorage.getItem(META_KEY) || '{}'); } catch { return {}; }
-}
-function saveMeta(meta: Record<string, TableMeta>) {
-  localStorage.setItem(META_KEY, JSON.stringify(meta));
-}
+// Table metadata now stored server-side
 
 type ViewMode = 'list' | 'detail';
 
@@ -27,15 +20,24 @@ export default function AdminDatabase() {
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [tableData, setTableData] = useState<{ columns: string[]; rows: Row[] }>({ columns: [], rows: [] });
   const [tableMeta, setTableMeta] = useState<Record<string, TableMeta>>({});
+  const [loadingMeta, setLoadingMeta] = useState(true);
   const [editDesc, setEditDesc] = useState<{ table?: string; column?: string } | null>(null);
   const [editValue, setEditValue] = useState('');
 
   const load = async () => {
     setLoading(true);
+    setLoadingMeta(true);
     const [t, f] = await Promise.all([listCompilerTables(), getFolders()]);
     setTables(t);
     setFolders(f.folders || []);
-    setTableMeta(loadMeta());
+    // Load metadata from server
+    const meta: Record<string, TableMeta> = {};
+    for (const table of t) {
+      const r = await getTableMeta(table.name);
+      if (r.ok) meta[table.name] = r.meta;
+    }
+    setTableMeta(meta);
+    setLoadingMeta(false);
     setLoading(false);
   };
 
@@ -48,16 +50,18 @@ export default function AdminDatabase() {
     setTableData(data);
   };
 
-  const saveMeta = () => {
-    const meta = loadMeta();
-    if (editDesc?.table && !editDesc.column) {
-      meta[editDesc.table] = { ...meta[editDesc.table], description: editValue };
-    } else if (editDesc?.table && editDesc.column) {
-      const cols = { ...meta[editDesc.table]?.columns, [editDesc.column]: { description: editValue } };
-      meta[editDesc.table] = { ...meta[editDesc.table], columns: cols };
+  const saveMeta = async () => {
+    const tableName = editDesc?.table;
+    if (!tableName) return;
+    const current = tableMeta[tableName] || {};
+    if (!editDesc.column) {
+      current.description = editValue;
+    } else {
+      const cols = { ...current.columns, [editDesc.column]: { description: editValue } };
+      current.columns = cols;
     }
-    localStorage.setItem(META_KEY, JSON.stringify(meta));
-    setTableMeta(meta);
+    await updateTableMeta(tableName, current);
+    setTableMeta(prev => ({ ...prev, [tableName]: current }));
     setEditDesc(null);
   };
 

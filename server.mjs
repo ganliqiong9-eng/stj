@@ -15,6 +15,7 @@ const DATA_FILE = path.join(BASE, 'data.json');
 const KNOWLEDGE_FILE = path.join(BASE, 'knowledge.json');
 const EMBEDDINGS_FILE = path.join(BASE, 'embeddings.json');
 const RAG_CONFIG_FILE = path.join(BASE, 'rag_config.json');
+const TABLE_META_FILE = path.join(BASE, 'table_meta.json');
 
 // ============================================================
 // Storage helpers
@@ -1186,6 +1187,29 @@ Output strict JSON array:
   // GET /api/task-queue/status - Task queue monitoring
   if (url === '/api/task-queue/status' && method === 'GET') {
     return json(res, taskQueue.getStatus());
+  }
+
+
+
+  // GET /api/compiler/table/:name/meta - Get table metadata
+  const tableMetaMatch = url.match(/^\/api\/compiler\/table\/([^/]+)\/meta$/);
+  if (tableMetaMatch && method === 'GET') {
+    const name = decodeURIComponent(tableMetaMatch[1]);
+    const meta = readJSON(TABLE_META_FILE, {});
+    return json(res, { ok: true, meta: meta[name] || {} });
+  }
+
+  // POST /api/compiler/table/:name/meta - Update table metadata
+  if (tableMetaMatch && method === 'POST') {
+    (async () => {
+      const name = decodeURIComponent(tableMetaMatch[1]);
+      const body = await parseBody(req);
+      const meta = readJSON(TABLE_META_FILE, {});
+      meta[name] = { ...(meta[name] || {}), ...body.meta, updatedAt: new Date().toISOString() };
+      writeJSON(TABLE_META_FILE, meta);
+      return json(res, { ok: true });
+    })();
+    return;
   }
 
   // ---- 404 ---- //

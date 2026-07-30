@@ -528,6 +528,26 @@ export async function createTableFromExcel(
   }
 }
 
+
+
+export async function getTableMeta(tableName: string): Promise<{ ok: boolean; meta: Record<string, any> }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/compiler/table/${encodeURIComponent(tableName)}/meta`);
+    return await res.json();
+  } catch { return { ok: false, meta: {} }; }
+}
+
+export async function updateTableMeta(tableName: string, meta: Record<string, any>): Promise<{ ok: boolean }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/compiler/table/${encodeURIComponent(tableName)}/meta`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ meta }),
+    });
+    return await res.json();
+  } catch { return { ok: false }; }
+}
+
 // ============================================================
 // Folder API
 // ============================================================

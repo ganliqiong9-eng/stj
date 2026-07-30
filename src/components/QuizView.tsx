@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Play, ArrowLeft, ArrowRight, Check, X, RefreshCw, BookOpen } from 'lucide-react';
 import { generateQuiz } from '../api';
+import db from '../store/db';
 
 interface QuizItem {
   id: string;
@@ -80,11 +81,18 @@ export default function QuizView({ onBack }: { onBack?: () => void }) {
     }
   };
 
-  const storeWrong = (q: QuizItem, userAns: string) => {
+  const storeWrong = async (q: QuizItem, userAns: string) => {
     try {
-      const stored = JSON.parse(localStorage.getItem('wrong_quiz') || '[]');
-      stored.push({ ...q, userAnswer: userAns });
-      localStorage.setItem('wrong_quiz', JSON.stringify(stored));
+      await db.addWrongAnswer({
+        questionId: q.id,
+        question: q.question,
+        type: q.type,
+        userAnswer: userAns,
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation,
+        knowledge: (q as any).knowledge || null,
+        createdAt: new Date().toISOString(),
+      });
     } catch {}
   };
 

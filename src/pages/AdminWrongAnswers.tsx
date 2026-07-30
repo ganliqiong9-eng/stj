@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
 import { BookOpen, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
+import db from '../store/db';
 
 export default function AdminWrongAnswers() {
   const [wrongItems, setWrongItems] = useState<any[]>([]);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('wrong_quiz') || '[]');
-      setWrongItems(stored);
-    } catch { setWrongItems([]); }
+    (async () => {
+      const items = await db.getWrongAnswers();
+      setWrongItems(items);
+    })();
   }, []);
 
-  const clearAll = () => {
-    localStorage.removeItem('wrong_quiz');
+  const clearAll = async () => {
+    await db.clearWrongAnswers();
     setWrongItems([]);
   };
 
@@ -53,8 +54,8 @@ export default function AdminWrongAnswers() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {wrongItems.map((item, i) => {
-            const tl = typeLabel(item.type);
-            const k = item.knowledge;
+            const tl = typeLabel(item.type || 'choice');
+            const k = typeof item.knowledge === 'string' ? JSON.parse(item.knowledge) : item.knowledge;
             const isExpanded = expanded.has(i);
 
             return (
