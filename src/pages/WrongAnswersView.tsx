@@ -8,10 +8,14 @@ export default function WrongAnswersView() {
   const nav = useNavigate();
   const [items, setItems] = useState<any[]>([]);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [typeFilter, setTypeFilter] = useState('all');
 
   useEffect(() => {
     db.getWrongAnswers().then(setItems);
   }, []);
+
+  const byType = items.reduce((acc: Record<string, number>, i: any) => { const t = i.type || 'choice'; acc[t] = (acc[t] || 0) + 1; return acc; }, {});
+  const filtered = typeFilter === 'all' ? items : items.filter(i => (i.type || 'choice') === typeFilter);
 
   const clearAll = async () => {
     await db.clearWrongAnswers();
@@ -41,6 +45,18 @@ export default function WrongAnswersView() {
         )}
       </div>
       <div className="scroll">
+        {items.length > 0 && (
+          <div style={{display:'flex', gap:4, marginBottom:6, overflowX:'auto', padding:'0 4px'}}>
+            <span onClick={() => setTypeFilter('all')} style={{padding:'3px 10px', borderRadius:12, fontSize:10, fontWeight:600, cursor:'pointer', fontFamily:'var(--font)', whiteSpace:'nowrap', background: typeFilter==='all' ? 'var(--primary)' : 'var(--surface)', color: typeFilter==='all' ? '#fff' : 'var(--text-secondary)', border:'2px solid', borderColor: typeFilter==='all' ? 'var(--primary)' : 'var(--border)'}}>
+              All ({items.length})
+            </span>
+            {Object.entries(byType).map(([t, c]) => (
+              <span key={t} onClick={() => setTypeFilter(t)} style={{padding:'3px 10px', borderRadius:12, fontSize:10, fontWeight:600, cursor:'pointer', fontFamily:'var(--font)', whiteSpace:'nowrap', background: typeFilter===t ? 'var(--primary)' : 'var(--surface)', color: typeFilter===t ? '#fff' : 'var(--text-secondary)', border:'2px solid', borderColor: typeFilter===t ? 'var(--primary)' : 'var(--border)'}}>
+                {t} ({c})
+              </span>
+            ))}
+          </div>
+        )}
         {items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-tertiary)' }}>
             <BookOpen size={40} strokeWidth={1} style={{ marginBottom: 10, opacity: 0.4 }} />
@@ -50,7 +66,7 @@ export default function WrongAnswersView() {
         ) : (
           <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 6, paddingLeft: 4 }}>共 {items.length} 道错题</div>
         )}
-        {items.map((item, i) => {
+        {filtered.map((item, i) => {
           const isExpanded = expanded.has(i);
           const k = typeof item.knowledge === 'string' ? JSON.parse(item.knowledge || 'null') : item.knowledge;
           return (
