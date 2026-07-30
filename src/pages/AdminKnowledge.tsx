@@ -25,6 +25,8 @@ export default function AdminKnowledge() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterSubj, setFilterSubj] = useState('all');
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [quizGenerating, setQuizGenerating] = useState(false);
+  const [quizResult, setQuizResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -44,6 +46,28 @@ export default function AdminKnowledge() {
     if (search && !e.title.toLowerCase().includes(search.toLowerCase()) && !(e.tags && e.tags.toLowerCase().includes(search.toLowerCase()))) return false;
     return true;
   });
+
+  const handleGenerateQuiz = async () => {
+    setQuizGenerating(true);
+    setQuizResult(null);
+    const r = await generateQuiz({ count: 10, types: ['choice', 'fill', 'short_answer'] });
+    if (r.ok && r.quiz.length > 0) {
+      try {
+        await db.questions.bulkAdd(r.quiz.map(q => ({ ...q, subj: 'custom', star: false })));
+        setQuizResult({ ok: true, msg: `生成 ${r.quiz.length} 题` });
+      } catch (e) {
+        // If some questions already exist, try adding one by one
+        let count = 0;
+        for (const q of r.quiz) {
+          try { await db.questions.add({ ...q, subj: 'custom', star: false }); count++; } catch {}
+        }
+        setQuizResult({ ok: true, msg: `新增 ${count} 题` });
+      }
+    } else {
+      setQuizResult({ ok: false, msg: r.error || '生成失败，请检查 API Key 配置' });
+    }
+    setQuizGenerating(false);
+  };
 
   const handleDelete = async (id: number) => {
     const entry = entries.find(e => e.id === id);
