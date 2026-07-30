@@ -93,6 +93,14 @@ export default function QuizView({ onBack }: { onBack?: () => void }) {
         knowledge: (q as any).knowledge || null,
         createdAt: new Date().toISOString(),
       });
+      await db.addReviewSchedule({
+        questionId: q.id,
+        question: q.question,
+        type: q.type,
+        userAnswer: userAns,
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation || '',
+      });
     } catch {}
   };
 
