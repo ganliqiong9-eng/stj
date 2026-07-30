@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { KnowledgeEntry } from '../store/db';
 import { SUBJECT_OPTIONS, formatDate } from './KnowledgeUtils';
+import { getRelatedKnowledge } from '../api';
 
 export default function KnowledgeDetail({ entry, onBack }: { entry: KnowledgeEntry; onBack: () => void }) {
   const [copied, setCopied] = useState<string | null>(null);
   const copyCode = async (text: string, id: string) => {
     try { await navigator.clipboard.writeText(text); setCopied(id); setTimeout(() => setCopied(null), 1500); } catch {}
   };
+  const [related, setRelated] = useState<any[]>([]);
+  const [showRelated, setShowRelated] = useState(false);
+
+  useEffect(() => {
+    if (entry._id) {
+      getRelatedKnowledge(entry._id).then(r => { if (r.ok) setRelated(r.related || []); }).catch(() => {});
+    }
+  }, [entry._id]);
+
   const subjLabel = (s: string) => SUBJECT_OPTIONS.find(o => o.value === s)?.label || s;
 
   return (
@@ -68,6 +78,20 @@ export default function KnowledgeDetail({ entry, onBack }: { entry: KnowledgeEnt
             来源：{entry.source}
           </div>
         )}
+      {related.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <button onClick={() => setShowRelated(!showRelated)}
+            style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, padding: '6px 0', color: 'var(--primary)', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font)', width: '100%', textAlign: 'left' }}>
+            相关知识 ({related.length}) {showRelated ? '▲' : '▼'}
+          </button>
+          {showRelated && related.slice(0, 5).map((r, i) => (
+            <div key={i} style={{ background: 'var(--primary-light)', borderRadius: 'var(--radius-sm)', padding: '8px 10px', marginBottom: 4, fontSize: 11, lineHeight: 1.4 }}>
+              <div style={{ fontWeight: 600, color: 'var(--text)' }}>{r.title}</div>
+              <div style={{ fontSize: 9, color: 'var(--primary-dark)', marginTop: 2, fontWeight: 700 }}>相似度 {Math.round(r.similarity * 100)}%</div>
+            </div>
+          ))}
+        </div>
+      )}
       </div>
     </div>
   );
