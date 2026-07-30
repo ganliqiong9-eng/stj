@@ -792,6 +792,26 @@ http.createServer(async (req, res) => {
       if (!body.table_name || !body.folder_id) return json(res, { error: 'table_name and folder_id required' }, 400);
       return json(res, moveTableToFolder(body.table_name, body.folder_id));
     }
+
+    // GET/POST /api/compiler/table/:name/meta - Table metadata
+    const metaMatch = url.match(/^\/api\/compiler\/table\/([^/]+)\/meta$/);
+    if (metaMatch && method === 'GET') {
+      const name = decodeURIComponent(metaMatch[1]);
+      const meta = readJSON(TABLE_META_FILE, {});
+      return json(res, { ok: true, meta: meta[name] || {} });
+    }
+    if (metaMatch && method === 'POST') {
+      (async () => {
+        const name = decodeURIComponent(metaMatch[1]);
+        const body = await parseBody(req);
+        const meta = readJSON(TABLE_META_FILE, {});
+        meta[name] = { ...(meta[name] || {}), ...body.meta, updatedAt: new Date().toISOString() };
+        writeJSON(TABLE_META_FILE, meta);
+        return json(res, { ok: true });
+      })();
+      return;
+    }
+
     return json(res, { error: "Not found" }, 404);
   }
 
@@ -1190,27 +1210,6 @@ Output strict JSON array:
   }
 
 
-
-  // GET /api/compiler/table/:name/meta - Get table metadata
-  const tableMetaMatch = url.match(/^\/api\/compiler\/table\/([^/]+)\/meta$/);
-  if (tableMetaMatch && method === 'GET') {
-    const name = decodeURIComponent(tableMetaMatch[1]);
-    const meta = readJSON(TABLE_META_FILE, {});
-    return json(res, { ok: true, meta: meta[name] || {} });
-  }
-
-  // POST /api/compiler/table/:name/meta - Update table metadata
-  if (tableMetaMatch && method === 'POST') {
-    (async () => {
-      const name = decodeURIComponent(tableMetaMatch[1]);
-      const body = await parseBody(req);
-      const meta = readJSON(TABLE_META_FILE, {});
-      meta[name] = { ...(meta[name] || {}), ...body.meta, updatedAt: new Date().toISOString() };
-      writeJSON(TABLE_META_FILE, meta);
-      return json(res, { ok: true });
-    })();
-    return;
-  }
 
   // ---- 404 ---- //
   // Root URL — return friendly info for browser access
