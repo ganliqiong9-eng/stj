@@ -40,6 +40,8 @@ const KNOWLEDGE_FILE = path.join(BASE, 'knowledge.json');
 const EMBEDDINGS_FILE = path.join(BASE, 'embeddings.json');
 const RAG_CONFIG_FILE = path.join(BASE, 'rag_config.json');
 const TABLE_META_FILE = path.join(BASE, 'table_meta.json');
+const KNOWLEDGE_POINTS_FILE = path.join(BASE, 'knowledge_points.json');
+const QUESTIONS_FILE = path.join(BASE, 'questions.json');
 
 // ============================================================
 // Storage helpers
@@ -133,6 +135,33 @@ const taskQueue = {
   }
 };
 
+
+
+
+// ============================================================
+// SM-2 Spaced Repetition Algorithm
+// ============================================================
+function sm2Schedule(quality, prevEase, prevInterval, prevReps) {
+  let ease = prevEase || 2.5;
+  let interval = prevInterval || 0;
+  let reps = prevReps || 0;
+
+  if (quality < 3) {
+    reps = 0;
+    interval = 1;
+  } else {
+    if (reps === 0) interval = 1;
+    else if (reps === 1) interval = 3;
+    else interval = Math.round(interval * ease);
+    reps++;
+  }
+
+  ease = Math.max(1.3, ease + 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  const next = new Date();
+  next.setDate(next.getDate() + interval);
+
+  return { easeFactor: ease, interval, repetitions: reps, nextReviewDate: next.toISOString().slice(0, 10) };
+}
 
 // ============================================================
 // Chunking logic
@@ -1243,6 +1272,203 @@ Output strict JSON array:
   }
 
 
+
+
+
+  // POST /api/knowledge/upload-and-extract - Upload file + AI extract knowledge points
+  if (url === '/api/knowledge/upload-and-extract' && method === 'POST') {
+    (async () => {
+      const body = await parseBody(req);
+      if (!body.file_base64) return json(res, { ok: false, error: 'file_base64 required' }, 400);
+      const buffer = Buffer.from(body.file_base64, 'base64');
+      const filename = body.filename || 'document';
+      const parseResult = parseDocForRAG(buffer, filename);
+      if (!parseResult.ok) return json(res, parseResult);
+
+      const fullText = (parseResult.sections || []).map(s => s.title ? `# ${s.title}\n\n${s.body}` : s.body).join('\n\n');
+      const llmConfig = body.llm_config || null;
+
+      let knowledgePoints = [];
+      if (llmConfig && llmConfig.api_key) {
+        try {
+          const prompt = `You are a certification exam expert. Extract knowledge points from the document content below.
+
+For each knowledge point output:
+- title: clear name
+- content: key content summary (2-3 sentences)
+- importance: 1-5
+- difficulty: 1-5
+- tags: 2-4 keywords
+- mnemonic: a memorable mnemonic or analogy
+
+Output JSON: { "points": [{ "title": "...", "content": "...", "importance": 3, "difficulty": 2, "tags": [...], "mnemonic": "..." }] }`;
+
+          const res = await fetch(llmConfig.endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
+            body: JSON.stringify({
+              model: llmConfig.model || 'deepseek-chat',
+              messages: [{ role: 'system', content: prompt }, { role: 'user', content: fullText.substring(0, 8000) }],
+              max_tokens: 8192, temperature: 0.7, response_format: { type: 'json_object' },
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const text = data.choices?.[0]?.message?.content || '{}';
+            try { const p = JSON.parse(text); knowledgePoints = p.points || p; if (!Array.isArray(knowledgePoints)) knowledgePoints = [knowledgePoints]; } catch {}
+          }
+        } catch {}
+      }
+
+      knowledgePoints = knowledgePoints.map(p => ({
+        id: crypto.randomUUID(),
+        certType: body.certType || 'general',
+        subject: body.subject || parseResult.title || '',
+        title: p.title || '',
+        content: p.content || '',
+        importance: p.importance || 3,
+        difficulty: p.difficulty || 3,
+        tags: p.tags || [],
+        mnemonic: p.mnemonic || '',
+        sourceDocId: body._id || '',
+        relatedIds: [],
+        createdAt: new Date().toISOString(),
+      }));
+
+      const existing = readJSON(KNOWLEDGE_POINTS_FILE, []);
+      existing.push(...knowledgePoints);
+      writeJSON(KNOWLEDGE_POINTS_FILE, existing);
+
+      const article = {
+        _id: crypto.randomUUID(),
+        title: parseResult.title || filename,
+        subj: body.subj || 'custom',
+        tags: body.tags || '\u6587\u6863',
+        source: '\u6587\u4ef6\u4e0a\u4f20: ' + filename,
+        sections: parseResult.sections || [],
+        type: 'doc', status: 'indexed',
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      };
+      const knowledge = loadKnowledge();
+      knowledge.push(article);
+      saveKnowledge(knowledge);
+      const ragCfg = loadRagConfig();
+      reindexAll(ragCfg).catch(() => {});
+
+      return json(res, { ok: true, points: knowledgePoints, title: article.title });
+    })();
+    return;
+  }
+
+  // GET /api/knowledge/points - Query knowledge points
+  if (url === '/api/knowledge/points' && method === 'GET') {
+    const urlObj = new URL(req.url, 'http://localhost');
+    const cert = urlObj.searchParams.get('cert') || '';
+    const subj = urlObj.searchParams.get('subj') || '';
+    const limit = parseInt(urlObj.searchParams.get('limit') || '50');
+    const offset = parseInt(urlObj.searchParams.get('offset') || '0');
+    let points = readJSON(KNOWLEDGE_POINTS_FILE, []);
+    if (cert) points = points.filter(p => p.certType === cert);
+    if (subj) points = points.filter(p => p.subject === subj);
+    const total = points.length;
+    points = points.slice(offset, offset + limit);
+    return json(res, { ok: true, items: points, total });
+  }
+
+  // POST /api/questions/generate - Generate questions from knowledge points
+  if (url === '/api/questions/generate' && method === 'POST') {
+    (async () => {
+      const body = await parseBody(req);
+      const certType = body.certType || 'general';
+      const pointIds = body.pointIds || [];
+      const count = body.count || 5;
+      const llmConfig = body.llm_config || {};
+      if (!llmConfig.api_key) return json(res, { ok: false, questions: [], error: 'LLM not configured' });
+
+      let points = readJSON(KNOWLEDGE_POINTS_FILE, []);
+      if (pointIds.length > 0) points = points.filter(p => pointIds.includes(p.id));
+      else if (certType !== 'general') points = points.filter(p => p.certType === certType);
+
+      if (points.length === 0) return json(res, { ok: false, questions: [], error: 'No knowledge points found' });
+
+      const selectedPoints = points.slice(0, Math.min(count, points.length));
+      const prompt = `You are a quiz generation expert. Generate exam questions from the following knowledge points.
+
+For each knowledge point, generate 1-2 questions mixing types: single_choice, true_false, fill_in, short_answer.
+
+Use real-life scenarios from logistics/supply chain for the question context.
+Include a mnemonic/tip in the explanation.
+
+Output JSON: { "questions": [{ "type": "single_choice|true_false|fill_in|short_answer", "question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A", "explanation": "...\nMemonic: ..." }] }`;
+
+      const pointsText = selectedPoints.map(p => `[${p.title}]\nContent: ${p.content}\nDifficulty: ${p.difficulty}\nTags: ${(p.tags || []).join(', ')}`).join('\n\n---\n\n');
+
+      try {
+        const res = await fetch(llmConfig.endpoint, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
+          body: JSON.stringify({
+            model: llmConfig.model || 'deepseek-chat',
+            messages: [{ role: 'system', content: prompt }, { role: 'user', content: `Generate ${count} questions from:\n\n${pointsText}` }],
+            max_tokens: 4096, temperature: 0.7, response_format: { type: 'json_object' },
+          }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content || '{}';
+        let questions = [];
+        try { const p = JSON.parse(text); questions = p.questions || p; if (!Array.isArray(questions)) questions = [questions]; } catch {}
+
+        questions = questions.slice(0, count).map((q, i) => ({
+          id: crypto.randomUUID(),
+          knowledgePointId: selectedPoints[i % selectedPoints.length]?.id || '',
+          certType,
+          type: q.type || 'single_choice',
+          difficulty: selectedPoints[i % selectedPoints.length]?.difficulty || 3,
+          question: q.question || '',
+          options: q.options || [],
+          correctAnswer: q.correctAnswer || '',
+          explanation: q.explanation || '',
+          mnemonic: '',
+          source: 'auto-generated',
+          createdAt: new Date().toISOString(),
+        }));
+
+        const existing = readJSON(QUESTIONS_FILE, []);
+        existing.push(...questions);
+        writeJSON(QUESTIONS_FILE, existing);
+
+        return json(res, { ok: true, questions });
+      } catch (err) {
+        return json(res, { ok: false, questions: [], error: err.message });
+      }
+    })();
+    return;
+  }
+
+  // GET /api/questions/bank - Query question bank
+  if (url === '/api/questions/bank' && method === 'GET') {
+    const urlObj = new URL(req.url, 'http://localhost');
+    const cert = urlObj.searchParams.get('cert') || '';
+    const limit = parseInt(urlObj.searchParams.get('limit') || '50');
+    const offset = parseInt(urlObj.searchParams.get('offset') || '0');
+    let questions = readJSON(QUESTIONS_FILE, []);
+    if (cert) questions = questions.filter(q => q.certType === cert);
+    const total = questions.length;
+    questions = questions.slice(offset, offset + limit);
+    return json(res, { ok: true, items: questions, total });
+  }
+
+  // POST /api/review/submit - SM-2 review submission
+  if (url === '/api/review/submit' && method === 'POST') {
+    (async () => {
+      const body = await parseBody(req);
+      const { questionId, quality } = body;
+      if (!questionId || quality === undefined) return json(res, { ok: false, error: 'questionId and quality required' }, 400);
+      // Store review result in knowledge_points or questions - use a simple reviews file
+      return json(res, { ok: true, schedule: sm2Schedule(quality, body.ease || 2.5, body.interval || 0, body.reps || 0) });
+    })();
+    return;
+  }
 
   // ---- 404 ---- //
   // Root URL — return friendly info for browser access

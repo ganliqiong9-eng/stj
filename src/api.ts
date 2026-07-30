@@ -222,6 +222,85 @@ export async function generateQuiz(params: {
   } catch { return { ok: false, quiz: [], error: 'Network error' }; }
 }
 
+
+
+// ============================================================
+// Certification / Knowledge Point API
+// ============================================================
+
+export async function uploadAndExtractKnowledge(file: File, certType?: string): Promise<{ ok: boolean; points?: any[]; title?: string; error?: string }> {
+  const API_KEY = 'sbuddy_key';
+  const ENDPOINT_KEY = 'sbuddy_endpoint';
+  const MODEL_KEY = 'sbuddy_model';
+  function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
+  const KEY_ENC_PREFIX = 'enc:';
+  function decodeKey(stored: string): string {
+    if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
+    try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
+  }
+  try {
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let bin = ''; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    const b64 = btoa(bin);
+    const res = await fetch(`${API_BASE}/api/knowledge/upload-and-extract`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        file_base64: b64, filename: file.name, certType: certType || 'general',
+        llm_config: { endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'), api_key: decodeKey(g(API_KEY, '')), model: g(MODEL_KEY, 'deepseek-chat') },
+      }),
+    });
+    return await res.json();
+  } catch { return { ok: false, error: 'Network error' }; }
+}
+
+export async function getKnowledgePoints(params?: { cert?: string; subj?: string; limit?: number; offset?: number }): Promise<{ ok: boolean; items: any[]; total: number }> {
+  try {
+    const p = new URLSearchParams();
+    if (params?.cert) p.set('cert', params.cert);
+    if (params?.subj) p.set('subj', params.subj);
+    if (params?.limit) p.set('limit', String(params.limit));
+    if (params?.offset) p.set('offset', String(params.offset));
+    const res = await fetch(`${API_BASE}/api/knowledge/points?${p}`);
+    return await res.json();
+  } catch { return { ok: false, items: [], total: 0 }; }
+}
+
+export async function generateQuestions(params: { certType?: string; pointIds?: string[]; count?: number }): Promise<{ ok: boolean; questions: any[]; error?: string }> {
+  const API_KEY = 'sbuddy_key';
+  const ENDPOINT_KEY = 'sbuddy_endpoint';
+  const MODEL_KEY = 'sbuddy_model';
+  function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
+  const KEY_ENC_PREFIX = 'enc:';
+  function decodeKey(stored: string): string {
+    if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
+    try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/questions/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...params,
+        llm_config: { endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'), api_key: decodeKey(g(API_KEY, '')), model: g(MODEL_KEY, 'deepseek-chat') },
+      }),
+    });
+    return await res.json();
+  } catch { return { ok: false, questions: [], error: 'Network error' }; }
+}
+
+export async function getQuestionBank(params?: { cert?: string; limit?: number; offset?: number }): Promise<{ ok: boolean; items: any[]; total: number }> {
+  try {
+    const p = new URLSearchParams();
+    if (params?.cert) p.set('cert', params.cert);
+    if (params?.limit) p.set('limit', String(params.limit));
+    if (params?.offset) p.set('offset', String(params.offset));
+    const res = await fetch(`${API_BASE}/api/questions/bank?${p}`);
+    return await res.json();
+  } catch { return { ok: false, items: [], total: 0 }; }
+}
+
 // ============================================================
 // Knowledge Relations API
 // ============================================================

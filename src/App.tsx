@@ -24,6 +24,7 @@ import AskAI from './pages/AskAI';
 import ReviewView from './pages/ReviewView';
 import TutorView from './pages/TutorView';
 import LearningReport from './pages/LearningReport';
+import Library from './pages/Library';
 import AdminWrongAnswers from './pages/AdminWrongAnswers';
 import db from './store/db';
 import './App.css';
@@ -116,6 +117,7 @@ function AppContent() {
           <Route path="/review" element={<ReviewView />} />
           <Route path="/tutor" element={<TutorView />} />
           <Route path="/report" element={<LearningReport />} />
+          <Route path="/library" element={<Library />} />
           <Route path="/bank" element={<Bank />} />
           <Route path="/compiler" element={<Compiler />} />
           <Route path="/notes" element={<Notes />} />
