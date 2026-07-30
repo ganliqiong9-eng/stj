@@ -29,7 +29,7 @@ export default function DocUploadView({ onBack, onDone }: { onBack: () => void; 
     setDocTitle(f.name.replace(/\.\w+$/, ''));
     setPhase('parsing');
     setProgress({ step: '上传文件中...', percent: 20 });
-    const r = await uploadDocForRag(f, 'custom', '');
+    const r = await upgradeUploadDocForRag(f);
     if (!r.ok) { setErrMsg(r.msg); setPhase('select'); return; }
     const parsed = r.sections || [];
     setProgress({ step: '生成知识点卡片...', percent: 70 });
