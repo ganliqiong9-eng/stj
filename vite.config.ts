@@ -1,8 +1,43 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     react(),
+    ...(command === 'build' ? [VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['icons/*.svg'],
+      manifest: {
+        name: 'STJ 学习助手',
+        short_name: 'STJ',
+        description: '个人知识管理 + 刷题学习工具',
+        theme_color: '#3370ff',
+        background_color: '#f7f8fa',
+        display: 'standalone',
+        orientation: 'portrait',
+        start_url: '/',
+        icons: [
+          { src: '/icons/icon-192.svg', sizes: '192x192', type: 'image/svg+xml' },
+          { src: '/icons/icon-512.svg', sizes: '512x512', type: 'image/svg+xml' },
+        ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        navigateFallback: '/',
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: { cacheName: 'google-fonts', expiration: { maxEntries: 10, maxAgeSeconds: 86400 } }
+          },
+          {
+            urlPattern: /^http:\/\/localhost:8086\/api\/.*/i,
+            handler: 'NetworkFirst',
+            options: { cacheName: 'api-cache', networkTimeoutSeconds: 3, expiration: { maxEntries: 50, maxAgeSeconds: 300 } }
+          }
+        ]
+      }
+    })] : []),
   ],
-})
+}))
