@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Download, BookOpen, TrendingUp, Award, BarChart3 } from 'lucide-react';
 import db from '../store/db';
 import StatusBar from '../components/StatusBar';
+import StudyCalendar from '../components/StudyCalendar';
 
 export default function LearningReport() {
   const nav = useNavigate();

@@ -25,6 +25,7 @@ import ReviewView from './pages/ReviewView';
 import TutorView from './pages/TutorView';
 import LearningReport from './pages/LearningReport';
 import Library from './pages/Library';
+import MockExam from './pages/MockExam';
 import AdminWrongAnswers from './pages/AdminWrongAnswers';
 import db from './store/db';
 import './App.css';
@@ -118,6 +119,7 @@ function AppContent() {
           <Route path="/tutor" element={<TutorView />} />
           <Route path="/report" element={<LearningReport />} />
           <Route path="/library" element={<Library />} />
+          <Route path="/mock-exam" element={<MockExam />} />
           <Route path="/bank" element={<Bank />} />
           <Route path="/compiler" element={<Compiler />} />
           <Route path="/notes" element={<Notes />} />
