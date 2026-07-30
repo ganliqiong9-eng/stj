@@ -64,6 +64,51 @@ function parseBody(req) {
   });
 }
 
+
+
+// ============================================================
+// Async Task Queue (M4 performance protection)
+// ============================================================
+const taskQueue = {
+  queue: [],
+  running: 0,
+  maxConcurrent: 1,
+  history: [],
+
+  add(type, payload, handler) {
+    return new Promise((resolve) => {
+      this.queue.push({ type, payload, handler, resolve, createdAt: Date.now() });
+      this.processNext();
+    });
+  },
+
+  async processNext() {
+    if (this.running >= this.maxConcurrent || this.queue.length === 0) return;
+    this.running++;
+    const task = this.queue.shift();
+    try {
+      const result = await task.handler(task.payload);
+      this.history.push({ type: task.type, status: 'done', createdAt: task.createdAt, finishedAt: Date.now() });
+      task.resolve({ ok: true, result });
+    } catch (err) {
+      this.history.push({ type: task.type, status: 'error', error: err.message, createdAt: task.createdAt, finishedAt: Date.now() });
+      task.resolve({ ok: false, error: err.message });
+    }
+    this.running--;
+    this.processNext();
+  },
+
+  getStatus() {
+    return {
+      running: this.running,
+      queued: this.queue.length,
+      maxConcurrent: this.maxConcurrent,
+      recentHistory: this.history.slice(-10),
+    };
+  }
+};
+
+
 // ============================================================
 // Chunking logic
 // ============================================================
@@ -1045,6 +1090,92 @@ Output strict JSON array:
       }
     })();
     return;
+  }
+
+
+
+  // GET /api/knowledge/stats - Knowledge base statistics
+  if (url === '/api/knowledge/stats' && method === 'GET') {
+    const knowledge = loadKnowledge();
+    const chunks = loadEmbeddings();
+    let bySubj = {};
+    let byStatus = {};
+    let totalSections = 0;
+    let totalQaCards = 0;
+    for (const article of knowledge) {
+      bySubj[article.subj] = (bySubj[article.subj] || 0) + 1;
+      const st = article.status || 'indexed';
+      byStatus[st] = (byStatus[st] || 0) + 1;
+      totalSections += (article.sections || []).length;
+      totalQaCards += (article.sections || []).filter(s => s.qa).length;
+    }
+    return json(res, {
+      ok: true,
+      total: knowledge.length,
+      totalChunks: chunks.length,
+      totalSections,
+      totalQaCards,
+      bySubj,
+      byStatus,
+    });
+  }
+
+  // POST /api/knowledge/reprocess - Reprocess a knowledge entry
+  if (url === '/api/knowledge/reprocess' && method === 'POST') {
+    (async () => {
+      const body = await parseBody(req);
+      const id = body.id;
+      if (!id) return json(res, { ok: false, error: 'id required' }, 400);
+
+      const knowledge = loadKnowledge();
+      const article = knowledge.find(a => a.id === id || a._id === id || String(a.id) === String(id));
+      if (!article) return json(res, { ok: false, error: 'Not found' }, 404);
+
+      const llmConfig = body.llm_config || null;
+      const sections = article.sections || [];
+
+      // Regenerate QA cards for sections without them
+      const sectionsToEnrich = sections.filter(s => !s.qa);
+      if (sectionsToEnrich.length > 0 && llmConfig && llmConfig.api_key) {
+        const result = await taskQueue.add('reprocess', { sections: sectionsToEnrich, llmConfig }, async (payload) => {
+          const { sections, llmConfig } = payload;
+          const res = await fetch(llmConfig.endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
+            body: JSON.stringify({
+              model: llmConfig.model || 'deepseek-chat',
+              messages: [
+                { role: 'system', content: 'Generate a QA knowledge card (question, answer, plain language explanation, analogy) for each given section. Output JSON array: [{ question, answer, plain, analogy }]' },
+                { role: 'user', content: JSON.stringify(sections.map(s => ({ title: s.title, body: s.body }))) },
+              ],
+              max_tokens: 4096,
+              temperature: 0.7,
+              response_format: { type: 'json_object' },
+            }),
+          });
+          const data = await res.json();
+          const text = data.choices?.[0]?.message?.content || '{}';
+          let cards;
+          try { const p = JSON.parse(text); cards = p.cards || p; } catch { cards = []; }
+          return { sections, cards };
+        });
+      }
+
+      // Update status
+      article.status = 'indexed';
+      article.updatedAt = new Date().toISOString();
+      saveKnowledge(knowledge);
+
+      const ragCfg = loadRagConfig();
+      await reindexAll(ragCfg);
+      return json(res, { ok: true, article });
+    })();
+    return;
+  }
+
+  // GET /api/task-queue/status - Task queue monitoring
+  if (url === '/api/task-queue/status' && method === 'GET') {
+    return json(res, taskQueue.getStatus());
   }
 
   // ---- 404 ---- //
