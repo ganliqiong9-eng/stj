@@ -9,7 +9,7 @@ export default function StudyCalendar() {
 
   return (
     <div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>Study Calendar (30 days)</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>学习日历（30天）</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
         {['S','M','T','W','T','F','S'].map(d => <div key={d} style={{ fontSize: 8, color: 'var(--text-tertiary)', textAlign: 'center', padding: '2px 0' }}>{d}</div>)}
         {new Array(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 29).getDay()).fill(null).map((_, i) => <div key={`e${i}`} />)}
@@ -19,7 +19,7 @@ export default function StudyCalendar() {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 4, textAlign: 'center' }}>{days.filter(d => d.startsWith(today.toISOString().slice(0, 7))).length} days this month</div>
+      <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 4, textAlign: 'center' }}>{days.filter(d => d.startsWith(today.toISOString().slice(0, 7))).length} 天学习</div>
     </div>
   );
 }

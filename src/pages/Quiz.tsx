@@ -74,7 +74,8 @@ export default function Quiz() {
             display:'flex', alignItems:'center', justifyContent:'center',
             cursor:'pointer', boxShadow:'var(--shadow-sm)', fontSize:18, flexShrink:0
           }}>‹</button>
-          <h2 style={{fontSize:17, fontWeight:700}}>练习</h2>
+          <h2 style={{fontSize:17, fontWeight:700, flex:1}}>练习</h2>
+          <button onClick={() => setAiMode(true)} style={{display:'flex',alignItems:'center',gap:3,padding:'5px 10px',border:'2px solid var(--primary)',borderRadius:8,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'var(--font)',background:'var(--primary)',color:'#fff',whiteSpace:'nowrap'}}>✨ AI 出题</button>
         </div>
         <div style={{textAlign:'center', padding:40, color:'var(--text-tertiary)'}}>
           <div style={{fontSize:40, marginBottom:10}}>📭</div>
@@ -128,6 +129,7 @@ export default function Quiz() {
               }}>{label}</span>
             );
           })}
+          <button onClick={() => setAiMode(true)} style={{padding:'5px 12px',border:'2px solid var(--primary)',borderRadius:8,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'var(--font)',background:'var(--primary)',color:'#fff',whiteSpace:'nowrap',flexShrink:0}}>✨ AI</button>
           <span onClick={() => { setStarFilter(!starFilter); setQIdx(0); setSelected(null); setAnswered(false); }} style={{
             padding:'6px 16px', borderRadius:20, border:'2px solid var(--orange)',
             background: starFilter ? 'var(--orange)' : 'var(--surface)',

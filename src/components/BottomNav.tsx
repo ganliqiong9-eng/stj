@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { House, SquarePen, BookMarked, Code } from 'lucide-react';
+import { House, SquarePen, BookMarked, BookOpen } from 'lucide-react';
 
 const navItems = [
   { path: '/', icon: House, label: '首页' },

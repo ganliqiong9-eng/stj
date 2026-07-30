@@ -342,20 +342,20 @@ async function smartIndex(text, subj, llmConfig) {
     }));
   }
 
-  const SYSTEM_PROMPT_EN = `You are a technical education expert. The user will give you a full technical document. Your job is to:
+  const SYSTEM_PROMPT_EN = `你是一个技术教育专家，善长把专业概念用生活化的比喻讲清楚。用户会给你一篇技术文档的全文，你的任务是：
 
-1. Split by knowledge boundary (NOT by word count) - each knowledge point should be a complete, independently understandable concept
-2. For each knowledge point generate:
-   - title: Short clear title
-   - body: Content preserving key information from the original
-   - qa.question: A practice question testing this knowledge point
-   - qa.answer: Standard answer (3-5 lines)
-   - qa.plain: Plain language explanation, start with "In simple terms" - so beginners can understand
-   - qa.analogy: Vivid analogy using everyday life scenarios, as specific and interesting as possible
-   - level: Difficulty - beginner/intermediate/advanced
-   - tags: Array of 2-4 keywords
+1. 按知识点边界智能切分（不要按字数硬切），每个知识点应该是一个完整的、可独立理解的概念
+2. 为每个知识点生成：
+   - title: 简短明确的标题
+   - body: 保留原文关键信息的内容
+   - qa.question: 一道考察这个知识点的实战题目
+   - qa.answer: 标准答案（3-5行）
+   - qa.plain: 大白话解析，用“说白了”“就是说”开头，零基础也能听懂
+   - qa.analogy: 生动比喻，用相亲/做饭/购物/物流场景类比技术概念，越具体越有趣越好
+   - level: 难度 beginner/intermediate/advanced
+   - tags: 2-4个关键词标签
 
-Output strict JSON:
+严格输出JSON：
 { "sections": [{ "title": "...", "body": "...", "qa": { "question": "...", "answer": "...", "plain": "...", "analogy": "..." }, "level": "...", "tags": [...] }] }`;
 
   const userContent = `Document content:\n\n${text.substring(0, 8000)}`;
@@ -1291,17 +1291,17 @@ Output strict JSON array:
       let knowledgePoints = [];
       if (llmConfig && llmConfig.api_key) {
         try {
-          const prompt = `You are a certification exam expert. Extract knowledge points from the document content below.
+          const prompt = `你是一个考证辅导专家，善长把专业概念用生活化的比喻讲清楚。
+从用户上传的资料中提取知识点。
+每个知识点：
+- title: 简明标题
+- content: 核心内容摘要（2-3句）
+- importance: 重要程度1-5
+- difficulty: 难度1-5
+- tags: 2-4个关键词
+- mnemonic: 一句话记忆口诀或生动比喻（优先用相亲/做饭/购物/物流场景）
 
-For each knowledge point output:
-- title: clear name
-- content: key content summary (2-3 sentences)
-- importance: 1-5
-- difficulty: 1-5
-- tags: 2-4 keywords
-- mnemonic: a memorable mnemonic or analogy
-
-Output JSON: { "points": [{ "title": "...", "content": "...", "importance": 3, "difficulty": 2, "tags": [...], "mnemonic": "..." }] }`;
+输出 JSON: { "points": [{ "title": "...", "content": "...", "importance": 3, "difficulty": 2, "tags": [...], "mnemonic": "..." }] }`;
 
           const res = await fetch(llmConfig.endpoint, {
             method: 'POST',
@@ -1392,14 +1392,16 @@ Output JSON: { "points": [{ "title": "...", "content": "...", "importance": 3, "
       if (points.length === 0) return json(res, { ok: false, questions: [], error: 'No knowledge points found' });
 
       const selectedPoints = points.slice(0, Math.min(count, points.length));
-      const prompt = `You are a quiz generation expert. Generate exam questions from the following knowledge points.
+      const prompt = `你是一个出题专家，善长把专业知识融入到生活场景中出题。
+基于以下知识点生成考试题目。
 
-For each knowledge point, generate 1-2 questions mixing types: single_choice, true_false, fill_in, short_answer.
+要求：
+- 题目场景化：把知识点放到相亲/做饭/购物/物流/职场场景中
+- 语气轻松，像朋友聊天
+- 每个题目附带记忆口诀或趣味提示
+- 题型混合：单选/判断/填空/简答
 
-Use real-life scenarios from logistics/supply chain for the question context.
-Include a mnemonic/tip in the explanation.
-
-Output JSON: { "questions": [{ "type": "single_choice|true_false|fill_in|short_answer", "question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A", "explanation": "...\nMemonic: ..." }] }`;
+输出JSON：{ "questions": [{ "type": "single_choice|true_false|fill_in|short_answer", "question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A", "explanation": "...\n记忆口诀: ..." }] }`;
 
       const pointsText = selectedPoints.map(p => `[${p.title}]\nContent: ${p.content}\nDifficulty: ${p.difficulty}\nTags: ${(p.tags || []).join(', ')}`).join('\n\n---\n\n');
 
