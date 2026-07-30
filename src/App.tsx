@@ -19,6 +19,7 @@ import AdminUpload from './pages/AdminUpload';
 import AdminQuiz from './pages/AdminQuiz';
 import AdminDatabase from './pages/AdminDatabase';
 import AdminRag from './pages/AdminRag';
+import AdminWrongAnswers from './pages/AdminWrongAnswers';
 import db from './store/db';
 import './App.css';
 
@@ -90,6 +91,7 @@ function AppContent() {
         <Route path="/admin/quiz" element={<AdminQuiz />} />
           <Route path="/admin/database" element={<AdminDatabase />} />
           <Route path="/admin/rag" element={<AdminRag />} />
+          <Route path="/admin/wrong-answers" element={<AdminWrongAnswers />} />
         </Routes>
       </div>
     );

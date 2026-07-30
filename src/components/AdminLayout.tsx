@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Upload, ArrowLeft, Database as DatabaseIcon, Search } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Upload, ArrowLeft, Database as DatabaseIcon, Search, AlertTriangle } from 'lucide-react';
 
 const navItems = [
   { path: '/admin', label: '仪表盘', icon: LayoutDashboard },
@@ -8,6 +8,7 @@ const navItems = [
   { path: '/admin/upload', label: '批量上传', icon: Upload },
   { path: '/admin/database', label: '数据库', icon: DatabaseIcon },
   { path: '/admin/rag', label: 'RAG 问答', icon: Search },
+  { path: '/admin/wrong-answers', label: '错题回顾', icon: AlertTriangle },
 ];
 
 export default function AdminLayout({ children, title }: { children: ReactNode; title?: string }) {

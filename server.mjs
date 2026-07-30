@@ -1075,15 +1075,25 @@ Output strict JSON array:
         let quiz = [];
         try { const p = JSON.parse(text); quiz = p.quiz || p; if (!Array.isArray(quiz)) quiz = [quiz]; } catch { quiz = []; }
         // Attach knowledgeId to each quiz item
-        quiz = quiz.slice(0, count).map((q, i) => ({
-          id: crypto.randomUUID(),
-          knowledgeId: relevantSections[i % relevantSections.length]?.title || '',
-          type: q.type || 'choice',
-          question: q.question || '',
-          options: q.options || [],
-          correctAnswer: q.correctAnswer || '',
-          explanation: q.explanation || '',
-        }));
+        quiz = quiz.slice(0, count).map((q, i) => {
+          const section = relevantSections[i % relevantSections.length];
+          return {
+            id: crypto.randomUUID(),
+            knowledgeId: section?.title || '',
+            knowledge: section ? {
+              title: section.title,
+              body: (section.body || '').substring(0, 800),
+              level: section.level || 'beginner',
+              tags: section.tags || [],
+              qa: section.qa || null,
+            } : null,
+            type: q.type || 'choice',
+            question: q.question || '',
+            options: q.options || [],
+            correctAnswer: q.correctAnswer || '',
+            explanation: q.explanation || '',
+          };
+        });
         return json(res, { ok: true, quiz });
       } catch (err) {
         return json(res, { ok: false, quiz: [], error: err.message });
