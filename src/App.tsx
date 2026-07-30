@@ -22,6 +22,7 @@ import AdminRag from './pages/AdminRag';
 import WrongAnswersView from './pages/WrongAnswersView';
 import AskAI from './pages/AskAI';
 import ReviewView from './pages/ReviewView';
+import TutorView from './pages/TutorView';
 import AdminWrongAnswers from './pages/AdminWrongAnswers';
 import db from './store/db';
 import './App.css';
@@ -112,6 +113,7 @@ function AppContent() {
           <Route path="/wrong-answers" element={<WrongAnswersView />} />
           <Route path="/ask-ai" element={<AskAI />} />
           <Route path="/review" element={<ReviewView />} />
+          <Route path="/tutor" element={<TutorView />} />
           <Route path="/bank" element={<Bank />} />
           <Route path="/compiler" element={<Compiler />} />
           <Route path="/notes" element={<Notes />} />
