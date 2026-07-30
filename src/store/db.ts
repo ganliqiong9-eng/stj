@@ -34,6 +34,33 @@ export interface KnowledgeEntry {
   status?: 'parsing' | 'indexed' | 'error';
 }
 
+export interface WrongAnswer {
+  id?: number;
+  questionId: string;
+  question: string;
+  type: string;
+  userAnswer: string;
+  correctAnswer: string;
+  explanation: string;
+  knowledge: any;
+  createdAt: string;
+}
+
+export interface ReviewSchedule {
+  id?: number;
+  questionId: string;
+  question: string;
+  type: string;
+  userAnswer: string;
+  correctAnswer: string;
+  explanation: string;
+  nextReviewDate: string;
+  interval: number;
+  reviewed: boolean;
+  createdAt: string;
+  lastReviewedAt?: string;
+}
+
 /** 同步锁，防止并发请求 */
 let _syncLock = false;
 /** 末次同步时间戳 */
@@ -45,6 +72,8 @@ class StudyDB extends Dexie {
   notes!: Table<StoredNote, number>;
   progress!: Table<StoredProgress, string>;
   knowledge!: Table<KnowledgeEntry, number>;
+  wrongAnswers!: Table<WrongAnswer, number>;
+  reviewSchedule!: Table<ReviewSchedule, number>;
 
   constructor() {
     super('StudyBuddy');
@@ -53,6 +82,21 @@ class StudyDB extends Dexie {
       notes: '++id, courseId',
       progress: 'chapterId',
       knowledge: '++id, subj'
+    });
+    this.version(2).stores({
+      questions: 'id, subj, star',
+      notes: '++id, courseId',
+      progress: 'chapterId',
+      knowledge: '++id, subj',
+      wrongAnswers: '++id, createdAt'
+    });
+    this.version(3).stores({
+      questions: 'id, subj, star',
+      notes: '++id, courseId',
+      progress: 'chapterId',
+      knowledge: '++id, subj',
+      wrongAnswers: '++id, createdAt',
+      reviewSchedule: '++id, nextReviewDate, reviewed'
     });
   }
 
@@ -162,6 +206,105 @@ class StudyDB extends Dexie {
 
   async getAllKnowledge() {
     return this.knowledge.toArray();
+  }
+
+  // === Wrong Answers ===
+  async addWrongAnswer(wa: Omit<WrongAnswer, 'id'>) {
+    return this.wrongAnswers.add(wa as WrongAnswer);
+  }
+
+  async getWrongAnswers(): Promise<WrongAnswer[]> {
+    return this.wrongAnswers.orderBy('createdAt').reverse().toArray();
+  }
+
+  async clearWrongAnswers() {
+    return this.wrongAnswers.clear();
+  }
+
+  async migrateLegacyWrongQuiz() {
+    try {
+      const stored = localStorage.getItem('wrong_quiz');
+      if (stored) {
+        const legacy = JSON.parse(stored);
+        if (Array.isArray(legacy) && legacy.length > 0) {
+          const existing = await this.wrongAnswers.count();
+          if (existing === 0) {
+            for (const item of legacy) {
+              await this.wrongAnswers.add({
+                questionId: item.id || 'legacy',
+                question: item.question || '',
+                type: item.type || 'choice',
+                userAnswer: item.userAnswer || '',
+                correctAnswer: item.correctAnswer || '',
+                explanation: item.explanation || '',
+                knowledge: item.knowledge || null,
+                createdAt: new Date().toISOString(),
+              });
+            }
+          }
+        }
+        localStorage.removeItem('wrong_quiz');
+      }
+    } catch {}
+  }
+
+  async initWrongAnswers() {
+    await this.migrateLegacyWrongQuiz();
+  }
+
+  // === Review Schedule (SM-2) ===
+  async addReviewSchedule(data: { questionId: string; question: string; type: string; userAnswer: string; correctAnswer: string; explanation: string }) {
+    const existing = await this.reviewSchedule.where('questionId').equals(data.questionId).first();
+    const next = new Date();
+    next.setDate(next.getDate() + 1);
+    if (existing) {
+      await this.reviewSchedule.update(existing.id!, {
+        userAnswer: data.userAnswer,
+        correctAnswer: data.correctAnswer,
+        explanation: data.explanation,
+        interval: 1,
+        nextReviewDate: next.toISOString().slice(0, 10),
+        reviewed: false,
+        lastReviewedAt: new Date().toISOString(),
+      });
+    } else {
+      await this.reviewSchedule.add({
+        questionId: data.questionId,
+        question: data.question,
+        type: data.type,
+        userAnswer: data.userAnswer,
+        correctAnswer: data.correctAnswer,
+        explanation: data.explanation,
+        nextReviewDate: next.toISOString().slice(0, 10),
+        interval: 1,
+        reviewed: false,
+        createdAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  async getDueReviews(): Promise<ReviewSchedule[]> {
+    const today = new Date().toISOString().slice(0, 10);
+    return this.reviewSchedule.where('nextReviewDate').belowOrEqual(today).filter(r => !r.reviewed).toArray();
+  }
+
+  async completeReview(id: number, knew: boolean) {
+    const entry = await this.reviewSchedule.get(id);
+    if (!entry) return;
+    const interval = knew ? Math.min(entry.interval * 2, 30) : 1;
+    const next = new Date();
+    next.setDate(next.getDate() + interval);
+    await this.reviewSchedule.update(id, {
+      interval,
+      nextReviewDate: next.toISOString().slice(0, 10),
+      reviewed: knew,
+      lastReviewedAt: new Date().toISOString(),
+    });
+  }
+
+  async getReviewCount(): Promise<number> {
+    const today = new Date().toISOString().slice(0, 10);
+    return this.reviewSchedule.where('nextReviewDate').belowOrEqual(today).filter(r => !r.reviewed).count();
   }
 
   // === Sync methods ===
