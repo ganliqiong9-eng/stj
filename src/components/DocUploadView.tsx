@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { FileText, Loader, Upload, Check } from 'lucide-react';
-import { uploadDocForRag, generateQACards, addKnowledge, MAX_UPLOAD_SIZE } from '../api';
+import { upgradeUploadDocForRag, generateQACards, addKnowledge, MAX_UPLOAD_SIZE } from '../api';
 import type { Section, QA } from '../data/content';
 import { SUBJECT_OPTIONS } from './KnowledgeUtils';
 import KnowledgeCard from './KnowledgeCard';

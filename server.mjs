@@ -10,6 +10,30 @@ import { parseDocForRAG, analyzeExcelFields, createTableFromExcel, getFolders, m
 // Configuration
 // ============================================================
 const PORT = 8086;
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const MAX_CHUNKS_PER_DOC = 50;
+
+let _uploadMutex = false;
+const _llmCallTimes = [];
+const MAX_LLM_PER_MINUTE = 10;
+const MAX_LLM_PER_HOUR = 60;
+
+function checkLlmRateLimit() {
+  const now = Date.now();
+  const recentMin = _llmCallTimes.filter(t => t > now - 60000).length;
+  if (recentMin >= MAX_LLM_PER_MINUTE) return false;
+  if (_llmCallTimes.length >= MAX_LLM_PER_HOUR) return false;
+  _llmCallTimes.push(now);
+  return true;
+}
+
+let _rejectNewTasks = false;
+setInterval(() => {
+  const mem = process.memoryUsage();
+  const rssMB = Math.round(mem.rss / 1024 / 1024);
+  if (rssMB > 1024) _rejectNewTasks = true;
+  if (rssMB < 512) _rejectNewTasks = false;
+}, 30000);
 const BASE = path.dirname(new URL(import.meta.url).pathname);
 const DATA_FILE = path.join(BASE, 'data.json');
 const KNOWLEDGE_FILE = path.join(BASE, 'knowledge.json');
@@ -338,7 +362,7 @@ Output strict JSON:
     } catch {
       throw new Error('Failed to parse LLM response');
     }
-    const sections = (result.sections || []).map(s => ({
+    const sections = (result.sections || []).slice(0, MAX_CHUNKS_PER_DOC).map(s => ({
       id: crypto.randomUUID(),
       title: s.title || '',
       body: s.body || '',
@@ -899,6 +923,7 @@ http.createServer(async (req, res) => {
   if (url === '/api/rag/smart-index' && method === 'POST') {
     (async () => {
       const body = await parseBody(req);
+      if (!checkLlmRateLimit()) return json(res, { ok: false, sections: [], error: 'rate limit' }, 429);
       if (!body.text) return json(res, { ok: false, error: 'text required' }, 400);
       const llmConfig = body.llm_config || null;
       const sections = await smartIndex(body.text, body.subj || 'custom', llmConfig);
@@ -910,8 +935,13 @@ http.createServer(async (req, res) => {
   // POST /api/rag/upgrade-upload-doc - Upload + Smart Index
   if (url === '/api/rag/upgrade-upload-doc' && method === 'POST') {
     (async () => {
+      if (_rejectNewTasks) return json(res, { ok: false, error: 'system busy' }, 503);
+      if (_uploadMutex) return json(res, { ok: false, error: 'upload busy' }, 429);
       const body = await parseBody(req);
       if (!body.file_base64) return json(res, { ok: false, error: 'file_base64 required' }, 400);
+      const bufLen = body.file_base64 ? Math.round(Buffer.from(body.file_base64, 'base64').length / 1024 / 1024 * 10) / 10 : 0;
+      if (bufLen > 20) return json(res, { ok: false, error: 'file too large (max 20MB)' }, 413);
+      _uploadMutex = true;
       const buffer = Buffer.from(body.file_base64, 'base64');
       const filename = body.filename || 'document';
       const parseResult = parseDocForRAG(buffer, filename);
@@ -936,6 +966,7 @@ http.createServer(async (req, res) => {
       saveKnowledge(knowledge);
       const ragCfg = loadRagConfig();
       reindexAll(ragCfg).catch(() => {});
+      _uploadMutex = false;
       return json(res, { ok: true, sections: article.sections, title: article.title, fileType: parseResult.fileType, articleId: article._id });
     })();
     return;
@@ -1027,6 +1058,8 @@ http.createServer(async (req, res) => {
   // POST /api/rag/generate-quiz - Generate quiz questions from knowledge base
   if (url === '/api/rag/generate-quiz' && method === 'POST') {
     (async () => {
+      if (_rejectNewTasks) return json(res, { ok: false, quiz: [], error: 'system busy' }, 503);
+      if (!checkLlmRateLimit()) return json(res, { ok: false, quiz: [], error: 'rate limit' }, 429);
       const body = await parseBody(req);
       const subj = body.subj || '';
       const level = body.level || '';
