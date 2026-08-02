@@ -25,6 +25,7 @@ export default function Home() {
   const [completedCount, setCompletedCount] = useState(0);
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [synced, setSynced] = useState(false);
   const [syncConflict, setSyncConflict] = useState(false);
@@ -39,6 +40,8 @@ export default function Home() {
     setXp(xpVal);
     const streakVal = await db.getStreak();
     setStreak(streakVal);
+    const review = await db.getReviewCount();
+    setReviewCount(review);
   }, []);
 
   useEffect(() => { refreshStats(); }, [refreshStats]);
@@ -116,7 +119,7 @@ export default function Home() {
           </div>
           <h3 style={{fontSize:17, fontWeight:700, marginBottom:2}}>JOIN 多表连接</h3>
           <div style={{fontSize:13, color:'var(--text-secondary)', marginBottom:8}}>SQL · 5 小节 · 第 2 节</div>
-          <div style={{display:'flex', alignItems:'center', gap:10}}>
+        <div style={{display:'flex', alignItems:'center', gap:10}}>
             <div style={{flex:1, height:10, background:'var(--border)', borderRadius:5, overflow:'hidden'}}>
               <div style={{height:'100%', borderRadius:5, background:'linear-gradient(90deg,var(--primary),var(--green))', width: totalCount > 0 ? `${Math.round(completedCount / totalCount * 100)}%` : '0%'}} />
             </div>
@@ -129,6 +132,25 @@ export default function Home() {
             position:'absolute', right:14, top:'50%', transform:'translateY(-50%)',
           boxShadow:'0 4px 12px rgba(124,58,237,.3)', cursor:'pointer'
         }}>▸</div>
+        </div>
+
+        {/* 今日待复习 */}
+        <div className="card" style={{ padding: 14, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', border: '2px solid var(--border)' }}
+          onClick={() => nav('/review')}>
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+            background: reviewCount > 0 ? 'var(--rose)' : 'var(--green)',
+            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16
+          }}>{reviewCount}</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
+              {reviewCount > 0 ? '今日待复习' : '今日复习完成'}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>
+              {reviewCount > 0 ? `${reviewCount} 个知识点按 SM-2 间隔安排` : '暂无到期复习，继续保持'}
+            </div>
+          </div>
+          <span style={{ fontSize: 20, color: 'var(--text-tertiary)' }}>›</span>
         </div>
 
         {/* 科目网格 */}

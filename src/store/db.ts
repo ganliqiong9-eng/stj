@@ -59,6 +59,7 @@ export interface ReviewSchedule {
   reviewed: boolean;
   createdAt: string;
   lastReviewedAt?: string;
+  mastered?: boolean;
 }
 
 /** 同步锁，防止并发请求 */
@@ -265,6 +266,7 @@ class StudyDB extends Dexie {
         interval: 1,
         nextReviewDate: next.toISOString().slice(0, 10),
         reviewed: false,
+        mastered: false,
         lastReviewedAt: new Date().toISOString(),
       });
     } else {
@@ -278,6 +280,7 @@ class StudyDB extends Dexie {
         nextReviewDate: next.toISOString().slice(0, 10),
         interval: 1,
         reviewed: false,
+        mastered: false,
         createdAt: new Date().toISOString(),
       });
     }
@@ -291,13 +294,17 @@ class StudyDB extends Dexie {
   async completeReview(id: number, knew: boolean) {
     const entry = await this.reviewSchedule.get(id);
     if (!entry) return;
-    const interval = knew ? Math.min(entry.interval * 2, 30) : 1;
+    // SM-2 间隔递增：1 → 3 → 7 → 15 → 30 天
+    const INTERVALS = [1, 3, 7, 15, 30];
+    const idx = INTERVALS.indexOf(entry.interval);
+    const interval = knew ? (idx >= 0 && idx < INTERVALS.length - 1 ? INTERVALS[idx + 1] : 30) : 1;
     const next = new Date();
     next.setDate(next.getDate() + interval);
     await this.reviewSchedule.update(id, {
       interval,
       nextReviewDate: next.toISOString().slice(0, 10),
       reviewed: knew,
+      mastered: knew && interval >= 30,
       lastReviewedAt: new Date().toISOString(),
     });
   }
@@ -305,6 +312,24 @@ class StudyDB extends Dexie {
   async getReviewCount(): Promise<number> {
     const today = new Date().toISOString().slice(0, 10);
     return this.reviewSchedule.where('nextReviewDate').belowOrEqual(today).filter(r => !r.reviewed).count();
+  }
+
+  // === Quiz history (本周刷题统计 / 趋势) ===
+  async logQuizResult(correct: number, total: number) {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+      history.push({ date: today, correct, total });
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 90);
+      localStorage.setItem('quiz_history', JSON.stringify(
+        (history as any[]).filter((h: any) => h.date >= cutoff.toISOString().slice(0, 10))
+      ));
+    } catch {}
+  }
+
+  async getQuizHistory(): Promise<{ date: string; correct: number; total: number }[]> {
+    try { return JSON.parse(localStorage.getItem('quiz_history') || '[]'); } catch { return []; }
   }
 
   // === Sync methods ===
