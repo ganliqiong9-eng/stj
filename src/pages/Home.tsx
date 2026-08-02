@@ -153,6 +153,20 @@ export default function Home() {
           <span style={{ fontSize: 20, color: 'var(--text-tertiary)' }}>›</span>
         </div>
 
+        {/* 今日学习计划 */}
+        <div className="card" style={{ padding: 14, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', border: '2px solid var(--border)' }}
+          onClick={() => nav('/plan')}>
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+            background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16
+          }}>📋</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>今日学习计划</div>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>复习 / 错题 / 新学 / 刷题，按计划推进</div>
+          </div>
+          <span style={{ fontSize: 20, color: 'var(--text-tertiary)' }}>›</span>
+        </div>
+
         {/* 科目网格 */}
         <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14}}>
           {subjectList.map(s => {

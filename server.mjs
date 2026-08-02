@@ -759,6 +759,14 @@ http.createServer(async (req, res) => {
     return json(res, result);
   }
 
+  // POST /api/rag/semantic-search - 语义搜索（返回相关片段，不带 LLM 回答）
+  if (url === '/api/rag/semantic-search' && method === 'POST') {
+    const body = await parseBody(req);
+    if (!body.query) return json(res, { error: 'query required' }, 400);
+    const result = await ragQuery(body.query, body.top_k || 20, null);
+    return json(res, { ok: true, results: result.results || [], status: result.status });
+  }
+
   // POST /api/rag/upload-doc - Upload and parse document for RAG
   if (url === '/api/rag/upload-doc' && method === 'POST') {
     const body = await parseBody(req);
@@ -1092,6 +1100,7 @@ http.createServer(async (req, res) => {
       const body = await parseBody(req);
       const subj = body.subj || '';
       const level = body.level || '';
+      const knowledgeId = body.knowledgeId || '';
       const count = body.count || 10;
       const types = body.types || ['choice', 'fill', 'short_answer'];
       const llmConfig = body.llm_config || {};
@@ -1101,6 +1110,7 @@ http.createServer(async (req, res) => {
       const knowledge = loadKnowledge();
       let relevantSections = [];
       for (const article of knowledge) {
+        if (knowledgeId && article._id !== knowledgeId && article.id !== knowledgeId) continue;
         if (subj && article.subj !== subj) continue;
         for (const sec of article.sections || []) {
           if (level && sec.level !== level) continue;
@@ -1117,14 +1127,16 @@ http.createServer(async (req, res) => {
         return json(res, { ok: false, quiz: [], error: 'No matching knowledge found' });
       }
 
-      const SYS_PROMPT = `You are a quiz generation expert. Based on the following knowledge points, generate exam questions.
+      const SYS_PROMPT = `你是一名出题专家，擅长把专业概念用生活化比喻讲清楚。基于下面的知识要点生成考试题目。
 
-Requirements:
-- Choice questions: 4 options, 1 correct answer
-- Fill-in-the-blank: blank out a keyword
-- Short answer: requires explaining concepts or writing code
+要求：
+- 选择题：4 个选项，1 个正确答案
+- 填空题：挖掉一个关键词
+- 简答题：需要解释概念或写代码
+- 每道题尽量融入生活化比喻（相亲、做饭、购物、物流等场景），帮助记忆
+- explanation 用大白话写清楚，最好带一句贴切的比喻
 
-Output strict JSON array:
+严格输出 JSON 数组：
 [{
   "type": "choice|fill|short_answer",
   "question": "...",
@@ -1185,7 +1197,88 @@ Output strict JSON array:
     return;
   }
 
+  // POST /api/ai/tutor-session - 对话式刷题（多轮递进）
+  if (url === '/api/ai/tutor-session' && method === 'POST') {
+    (async () => {
+      if (_rejectNewTasks) return json(res, { ok: false, error: 'system busy' }, 503);
+      if (!checkLlmRateLimit()) return json(res, { ok: false, error: 'rate limit' }, 429);
+      const body = await parseBody(req);
+      const llmConfig = body.llm_config || {};
+      if (!llmConfig.api_key) return json(res, { ok: false, error: 'LLM not configured' });
+      const messages = Array.isArray(body.messages) ? body.messages : [];
+      const subj = body.subj || '';
 
+      const knowledge = loadKnowledge();
+      let relevantSections = [];
+      for (const article of knowledge) {
+        if (subj && article.subj !== subj) continue;
+        for (const sec of article.sections || []) {
+          relevantSections.push({ title: sec.title, body: sec.body, tags: sec.tags || [] });
+        }
+      }
+      const knowledgeText = relevantSections.slice(0, 12).map(s =>
+        `Title: ${s.title || 'Untitled'}\nContent: ${(s.body || '').substring(0, 300)}\nTags: ${(s.tags || []).join(', ')}`
+      ).join('\n\n---\n\n');
+
+      const SYS_PROMPT = `你是“大白话刷题教练”，擅长把专业概念用生活化比喻讲清楚（相亲、做饭、购物、物流等场景）。
+
+规则：
+1. 每轮出 5 道题，题型可混合选择题、填空题、简答题
+2. 第一轮直接出题，开头用一句话打招呼
+3. 之后每一轮：先根据用户上一轮的回答分析薄弱点（analysis 字段），再针对薄弱点出 5 道新题
+4. 选择题 4 个选项，correctAnswer 填选项字母
+5. explanation 用大白话写清楚，最好带一句贴切比喻
+
+严格输出 JSON：
+{
+  "analysis": "对上一轮的回答分析（第一轮可留空）",
+  "quiz": [{
+    "type": "choice|fill|short_answer",
+    "question": "...",
+    "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
+    "correctAnswer": "A",
+    "explanation": "..."
+  }]
+}
+
+知识库内容：
+${knowledgeText || '（暂无知识库内容，请用通用常识出题）'}`;
+
+      try {
+        const res2 = await fetch(llmConfig.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
+          body: JSON.stringify({
+            model: llmConfig.model || 'deepseek-chat',
+            messages: [
+              { role: 'system', content: SYS_PROMPT },
+              ...messages.slice(-10),
+            ],
+            max_tokens: 4096,
+            temperature: 0.7,
+            response_format: { type: 'json_object' },
+          }),
+        });
+        if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
+        const data = await res2.json();
+        const text = data.choices?.[0]?.message?.content || '{}';
+        let parsed = {};
+        try { parsed = JSON.parse(text); } catch { parsed = {}; }
+        const quiz = Array.isArray(parsed.quiz) ? parsed.quiz.slice(0, 5).map((q) => ({
+          id: crypto.randomUUID(),
+          type: q.type || 'choice',
+          question: q.question || '',
+          options: q.options || [],
+          correctAnswer: q.correctAnswer || '',
+          explanation: q.explanation || '',
+        })) : [];
+        return json(res, { ok: true, analysis: parsed.analysis || '', quiz });
+      } catch (err) {
+        return json(res, { ok: false, error: err.message });
+      }
+    })();
+    return;
+  }
 
   // GET /api/knowledge/stats - Knowledge base statistics
   if (url === '/api/knowledge/stats' && method === 'GET') {

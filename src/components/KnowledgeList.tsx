@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import db, { type KnowledgeEntry } from '../store/db';
 import { deleteKnowledge } from '../api';
 import { SUBJECT_OPTIONS, formatDate } from './KnowledgeUtils';
-import { ragQuery } from '../api';
+import { semanticSearch } from '../api';
 
 export default function KnowledgeList({ onView, onAdd, search, filterSubj, searchMode }: { onView: (id: number) => void; onAdd: () => void; search?: string; filterSubj?: string; searchMode?: string }) {
   const [entries, setEntries] = useState<KnowledgeEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [semanticHits, setSemanticHits] = useState<Map<string, { content: string; score: number }>>(new Map());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -14,14 +15,23 @@ export default function KnowledgeList({ onView, onAdd, search, filterSubj, searc
     // Apply search filter
     if (search && searchMode === 'semantic') {
       try {
-        const r = await ragQuery(search, 20);
+        const r = await semanticSearch(search, 20);
         if (r.results && r.results.length > 0) {
           const ids = new Set(r.results.map((c: any) => c.article_id));
-          const scores = new Map(r.results.map((c: any) => [c.article_id, c.score]));
+          const scores = new Map<string, number>();
+          const hits = new Map<string, { content: string; score: number }>();
+          r.results.forEach((c: any) => {
+            if (!hits.has(c.article_id) || (c.score || 0) > (hits.get(c.article_id)?.score || 0)) {
+              hits.set(c.article_id, { content: c.content || '', score: c.score || 0 });
+            }
+            scores.set(c.article_id, c.score || 0);
+          });
+          setSemanticHits(hits);
           items = items.filter((k: any) => k._id && ids.has(k._id));
           items.sort((a: any, b: any) => (scores.get(b._id!) || 0) - (scores.get(a._id!) || 0));
         } else {
           items = [];
+          setSemanticHits(new Map());
         }
       } catch { items = []; }
     } else if (search) {
@@ -47,6 +57,17 @@ export default function KnowledgeList({ onView, onAdd, search, filterSubj, searc
   };
 
   const subjLabel = (s: string) => SUBJECT_OPTIONS.find(o => o.value === s)?.label || s;
+
+  const highlight = (text: string, q: string) => {
+    if (!q || !text) return text;
+    try {
+      const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      const parts = text.split(re);
+      return parts.map((p, i) => p.toLowerCase() === q.toLowerCase()
+        ? <span key={i} style={{ background: 'var(--warning-light)', borderRadius: 3, padding: '0 1px', fontWeight: 700 }}>{p}</span>
+        : <span key={i}>{p}</span>);
+    } catch { return text; }
+  };
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -97,6 +118,14 @@ export default function KnowledgeList({ onView, onAdd, search, filterSubj, searc
                 <span>{k.sections.length} 节</span>
                 <span>{formatDate(k.createdAt)}</span>
               </div>
+              {searchMode === 'semantic' && search && k._id && semanticHits.get(k._id) && (
+                <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5, padding: '6px 8px', borderRadius: 6, background: 'var(--primary-light)' }}>
+                  {highlight((semanticHits.get(k._id)?.content || '').substring(0, 120), search)}
+                  <span style={{ color: 'var(--primary-dark)', fontWeight: 700, marginLeft: 6 }}>
+                    {Math.round((semanticHits.get(k._id)?.score || 0) * 100)}%
+                  </span>
+                </div>
+              )}
             </div>
           ))
         )}

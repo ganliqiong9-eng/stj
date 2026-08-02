@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { KnowledgeEntry } from '../store/db';
 import { SUBJECT_OPTIONS, formatDate } from './KnowledgeUtils';
 import { getRelatedKnowledge } from '../api';
 
 export default function KnowledgeDetail({ entry, onBack }: { entry: KnowledgeEntry; onBack: () => void }) {
+  const nav = useNavigate();
   const [copied, setCopied] = useState<string | null>(null);
   const copyCode = async (text: string, id: string) => {
     try { await navigator.clipboard.writeText(text); setCopied(id); setTimeout(() => setCopied(null), 1500); } catch {}
@@ -45,6 +47,11 @@ export default function KnowledgeDetail({ entry, onBack }: { entry: KnowledgeEnt
           }}>{t.trim()}</span>
         ))}
         <span style={{ fontSize: 10, color: 'var(--text-tertiary)', alignSelf: 'center' }}>{formatDate(entry.createdAt)}</span>
+        <button onClick={() => nav(`/quiz?knowledgeId=${entry._id || ''}`)} style={{
+          marginLeft: 'auto', padding: '6px 12px', border: 'none', borderRadius: 8,
+          background: 'var(--primary)', color: '#fff', fontSize: 11, fontWeight: 700,
+          cursor: 'pointer', fontFamily: 'var(--font)', whiteSpace: 'nowrap'
+        }}>用这个知识点出题</button>
       </div>
       <div className="content-scroll">
         {entry.sections.map((sec, i) => (

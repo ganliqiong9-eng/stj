@@ -31,7 +31,7 @@ const SUBJECTS = [
   { key: 'dma', label: 'DAMA' },
 ];
 
-export default function QuizView({ onBack }: { onBack?: () => void }) {
+export default function QuizView({ onBack, knowledgeId }: { onBack?: () => void; knowledgeId?: string }) {
   const [phase, setPhase] = useState<Phase>('setup');
   const [subj, setSubj] = useState('');
   const [level, setLevel] = useState('');
@@ -56,7 +56,7 @@ export default function QuizView({ onBack }: { onBack?: () => void }) {
   const handleGenerate = async () => {
     setLoading(true);
     setError('');
-    const r = await generateQuiz({ subj: subj || undefined, level: level || undefined, count, types: ['choice', 'fill', 'short_answer'] });
+    const r = await generateQuiz({ subj: subj || undefined, level: level || undefined, count, types: ['choice', 'fill', 'short_answer'], knowledgeId });
     if (r.ok && r.quiz.length > 0) {
       setQuiz(r.quiz);
       setAnswers({});
@@ -144,6 +144,11 @@ export default function QuizView({ onBack }: { onBack?: () => void }) {
       <div style={{ flex: 1, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700 }}>刷题模式</h2>
         <div style={{ fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>选择范围和难度，AI 从知识库生成题目。</div>
+        {knowledgeId && (
+          <div style={{ fontSize: 11, color: 'var(--primary)', fontWeight: 700, padding: '6px 10px', borderRadius: 8, background: 'var(--primary-light)' }}>
+            已锁定当前知识文档出题
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 8 }}>
           <select value={subj} onChange={e => setSubj(e.target.value)} style={{ flex: 1, border: '2px solid var(--border)', borderRadius: 10, padding: '11px 10px', fontSize: 14, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', outline: 'none' }}>
             {SUBJECTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}

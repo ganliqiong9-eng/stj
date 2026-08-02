@@ -94,6 +94,51 @@ export async function ragQuery(query: string, topK = 5): Promise<RagQueryResult>
   } catch { return { results: [], answer: null, status: 'error' }; }
 }
 
+export async function semanticSearch(query: string, topK = 20): Promise<{ ok: boolean; results: RagChunk[]; status?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/rag/semantic-search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, top_k: topK }),
+    });
+    if (!res.ok) return { ok: false, results: [] };
+    return await res.json();
+  } catch { return { ok: false, results: [] }; }
+}
+
+export async function tutorSession(
+  messages: { role: string; content: string }[],
+  subj?: string,
+): Promise<{ ok: boolean; analysis?: string; quiz?: any[]; error?: string }> {
+  const API_KEY = 'sbuddy_key';
+  const ENDPOINT_KEY = 'sbuddy_endpoint';
+  const MODEL_KEY = 'sbuddy_model';
+  function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
+  const KEY_ENC_PREFIX = 'enc:';
+  function decodeKey(stored: string): string {
+    if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
+    try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
+  }
+  const rawKey = g(API_KEY, '');
+  if (!rawKey) return { ok: false, error: 'API Key not configured' };
+  try {
+    const res = await fetch(`${API_BASE}/api/ai/tutor-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages,
+        subj: subj || undefined,
+        llm_config: {
+          endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
+          api_key: decodeKey(rawKey),
+          model: g(MODEL_KEY, 'deepseek-chat'),
+        },
+      }),
+    });
+    return await res.json();
+  } catch { return { ok: false, error: 'Network error' }; }
+}
+
 export async function getRagStatus(): Promise<RagStatus | null> {
   try {
     const res = await fetch(`${API_BASE}/api/rag/status`);
@@ -193,6 +238,7 @@ export async function generateQuiz(params: {
   level?: string;
   count?: number;
   types?: string[];
+  knowledgeId?: string;
 }): Promise<{ ok: boolean; quiz: any[]; error?: string }> {
   const API_KEY = 'sbuddy_key';
   const ENDPOINT_KEY = 'sbuddy_endpoint';

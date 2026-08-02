@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import BottomNav from './components/BottomNav';
 import AIAssistant from './components/AIAssistant';
@@ -27,6 +27,8 @@ import TutorView from './pages/TutorView';
 import LearningReport from './pages/LearningReport';
 import Library from './pages/Library';
 import MockExam from './pages/MockExam';
+import AITutorChat from './pages/AITutorChat';
+import StudyPlan from './pages/StudyPlan';
 import AdminWrongAnswers from './pages/AdminWrongAnswers';
 import db from './store/db';
 import './App.css';
@@ -45,6 +47,8 @@ function applyTheme(theme: string) {
 // 移动端刷题页：QuizView 三阶段完整流程 + 返回入口
 function MobileQuiz() {
   const nav = useNavigate();
+  const [params] = useSearchParams();
+  const knowledgeId = params.get('knowledgeId') || '';
   return (
     <div className="page">
       <StatusBar />
@@ -56,8 +60,13 @@ function MobileQuiz() {
           cursor: 'pointer', boxShadow: 'var(--shadow-sm)', fontSize: 18, flexShrink: 0
         }}>‹</button>
         <h2 style={{ fontSize: 17, fontWeight: 700, flex: 1 }}>刷题</h2>
+        <button onClick={() => nav('/ai-quiz')} style={{
+          padding: '5px 10px', border: '2px solid var(--primary)', borderRadius: 8,
+          fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)',
+          background: 'var(--surface)', color: 'var(--primary)', whiteSpace: 'nowrap'
+        }}>对话式</button>
       </div>
-      <QuizView onBack={() => nav('/')} />
+      <QuizView onBack={() => nav('/')} knowledgeId={knowledgeId} />
     </div>
   );
 }
@@ -141,6 +150,8 @@ function AppContent() {
           <Route path="/report" element={<LearningReport />} />
           <Route path="/library" element={<Library />} />
           <Route path="/mock-exam" element={<MockExam />} />
+          <Route path="/ai-quiz" element={<AITutorChat />} />
+          <Route path="/plan" element={<StudyPlan />} />
           <Route path="/bank" element={<Bank />} />
           <Route path="/compiler" element={<Compiler />} />
           <Route path="/notes" element={<Notes />} />
