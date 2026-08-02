@@ -225,7 +225,7 @@ async function embedTexts(texts, config) {
     return null;
   }
   try {
-    const res = await fetch(config.embedding_endpoint, {
+    const resp = await fetch(config.embedding_endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -236,8 +236,8 @@ async function embedTexts(texts, config) {
         input: texts,
       }),
     });
-    if (!res.ok) return null;
-    const data = await res.json();
+    if (!resp.ok) return null;
+    const data = await resp.json();
     if (!data.data || !Array.isArray(data.data)) return null;
     return data.data.sort((a, b) => a.index - b.index).map(d => d.embedding);
   } catch {
@@ -361,7 +361,7 @@ async function smartIndex(text, subj, llmConfig) {
   const userContent = `Document content:\n\n${text.substring(0, 8000)}`;
 
   try {
-    const res = await fetch(llmConfig.endpoint, {
+    const resp = await fetch(llmConfig.endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -378,12 +378,12 @@ async function smartIndex(text, subj, llmConfig) {
         response_format: { type: 'json_object' },
       }),
     });
-    if (!res.ok) {
+    if (!resp.ok) {
       let d = '';
-      try { const j = await res.json(); d = j.error?.message || ''; } catch {}
-      throw new Error(d || `HTTP ${res.status}`);
+      try { const j = await resp.json(); d = j.error?.message || ''; } catch {}
+      throw new Error(d || `HTTP ${resp.status}`);
     }
-    const data = await res.json();
+    const data = await resp.json();
     const text = data.choices?.[0]?.message?.content || '{}';
     let result;
     try {
@@ -487,7 +487,7 @@ async function ragQuery(query, topK = 5, llmConfig) {
   if (llmConfig && llmConfig.api_key && results.length > 0) {
     const context = results.map(r => `[${r.article_title}]\n${r.content}`).join('\n\n---\n\n');
     try {
-      const res = await fetch(llmConfig.endpoint, {
+      const resp = await fetch(llmConfig.endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -506,7 +506,7 @@ async function ragQuery(query, topK = 5, llmConfig) {
           temperature: 0.7,
         }),
       });
-      const data = await res.json();
+      const data = await resp.json();
       answer = data.choices?.[0]?.message?.content || null;
     } catch {
       answer = null;
@@ -908,7 +908,7 @@ http.createServer(async (req, res) => {
 
       // Call LLM
       try {
-        const res = await fetch(llmConfig.endpoint, {
+        const resp = await fetch(llmConfig.endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -926,13 +926,13 @@ http.createServer(async (req, res) => {
           }),
         });
 
-        if (!res.ok) {
+        if (!resp.ok) {
           let d = '';
-          try { const j = await res.json(); d = j.error?.message || ''; } catch {}
-          throw new Error(d || `HTTP ${res.status}`);
+          try { const j = await resp.json(); d = j.error?.message || ''; } catch {}
+          throw new Error(d || `HTTP ${resp.status}`);
         }
 
-        const data = await res.json();
+        const data = await resp.json();
         const text = data.choices?.[0]?.message?.content || '[]';
         let cards;
         try {
@@ -1150,7 +1150,7 @@ http.createServer(async (req, res) => {
       ).join('\n\n---\n\n');
 
       try {
-        const res = await fetch(llmConfig.endpoint, {
+        const resp = await fetch(llmConfig.endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
           body: JSON.stringify({
@@ -1164,8 +1164,8 @@ http.createServer(async (req, res) => {
             response_format: { type: 'json_object' },
           }),
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
         const text = data.choices?.[0]?.message?.content || '[]';
         let quiz = [];
         try { const p = JSON.parse(text); quiz = p.quiz || p; if (!Array.isArray(quiz)) quiz = [quiz]; } catch { quiz = []; }
@@ -1325,7 +1325,7 @@ ${knowledgeText || '（暂无知识库内容，请用通用常识出题）'}`;
       if (sectionsToEnrich.length > 0 && llmConfig && llmConfig.api_key) {
         const result = await taskQueue.add('reprocess', { sections: sectionsToEnrich, llmConfig }, async (payload) => {
           const { sections, llmConfig } = payload;
-          const res = await fetch(llmConfig.endpoint, {
+          const resp = await fetch(llmConfig.endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
             body: JSON.stringify({
@@ -1339,7 +1339,7 @@ ${knowledgeText || '（暂无知识库内容，请用通用常识出题）'}`;
               response_format: { type: 'json_object' },
             }),
           });
-          const data = await res.json();
+          const data = await resp.json();
           const text = data.choices?.[0]?.message?.content || '{}';
           let cards;
           try { const p = JSON.parse(text); cards = p.cards || p; } catch { cards = []; }
@@ -1396,7 +1396,7 @@ ${knowledgeText || '（暂无知识库内容，请用通用常识出题）'}`;
 
 输出 JSON: { "points": [{ "title": "...", "content": "...", "importance": 3, "difficulty": 2, "tags": [...], "mnemonic": "..." }] }`;
 
-          const res = await fetch(llmConfig.endpoint, {
+          const resp = await fetch(llmConfig.endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
             body: JSON.stringify({
@@ -1405,8 +1405,8 @@ ${knowledgeText || '（暂无知识库内容，请用通用常识出题）'}`;
               max_tokens: 8192, temperature: 0.7, response_format: { type: 'json_object' },
             }),
           });
-          if (res.ok) {
-            const data = await res.json();
+          if (resp.ok) {
+            const data = await resp.json();
             const text = data.choices?.[0]?.message?.content || '{}';
             try { const p = JSON.parse(text); knowledgePoints = p.points || p; if (!Array.isArray(knowledgePoints)) knowledgePoints = [knowledgePoints]; } catch {}
           }
@@ -1499,7 +1499,7 @@ ${knowledgeText || '（暂无知识库内容，请用通用常识出题）'}`;
       const pointsText = selectedPoints.map(p => `[${p.title}]\nContent: ${p.content}\nDifficulty: ${p.difficulty}\nTags: ${(p.tags || []).join(', ')}`).join('\n\n---\n\n');
 
       try {
-        const res = await fetch(llmConfig.endpoint, {
+        const resp = await fetch(llmConfig.endpoint, {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
           body: JSON.stringify({
             model: llmConfig.model || 'deepseek-chat',
@@ -1507,8 +1507,8 @@ ${knowledgeText || '（暂无知识库内容，请用通用常识出题）'}`;
             max_tokens: 4096, temperature: 0.7, response_format: { type: 'json_object' },
           }),
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
         const text = data.choices?.[0]?.message?.content || '{}';
         let questions = [];
         try { const p = JSON.parse(text); questions = p.questions || p; if (!Array.isArray(questions)) questions = [questions]; } catch {}
