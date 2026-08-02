@@ -164,7 +164,16 @@ export default function QuizView({ onBack, knowledgeId }: { onBack?: () => void;
           style={{ width: '100%', padding: '14px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 15, fontWeight: 700, cursor: loading ? 'default' : 'pointer', fontFamily: 'var(--font)', background: loading ? 'var(--border)' : 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           {loading ? 'AI 出题中...' : <><Play size={18} /> 开始刷题</>}
         </button>
-        {error && <div style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', fontSize: 11, background: 'var(--rose-light)', color: 'var(--rose)' }}>{error}</div>}
+        {error && (
+          <div style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', fontSize: 11, background: 'var(--rose-light)', color: 'var(--rose)', lineHeight: 1.6 }}>
+            {error}
+            {(error.includes('API Key') || error.includes('LLM not configured')) && (
+              <div style={{ marginTop: 4, fontWeight: 600 }}>
+                请点右下角 AI 助手悬浮球，在输入框上方填写 API Key 后保存。
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }

@@ -119,8 +119,8 @@ export async function tutorSession(
     if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
     try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
   }
-  const rawKey = g(API_KEY, '');
-  if (!rawKey) return { ok: false, error: 'API Key not configured' };
+  const key = decodeKey(g(API_KEY, ''));
+  if (!key) return { ok: false, error: 'API Key not configured' };
   try {
     const res = await fetch(`${API_BASE}/api/ai/tutor-session`, {
       method: 'POST',
@@ -130,7 +130,7 @@ export async function tutorSession(
         subj: subj || undefined,
         llm_config: {
           endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
-          api_key: decodeKey(rawKey),
+          api_key: key,
           model: g(MODEL_KEY, 'deepseek-chat'),
         },
       }),
@@ -204,8 +204,8 @@ export async function generateQACards(sections: { title: string; body: string; c
     if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
     try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
   }
-  const rawKey = g(API_KEY_READ, '');
-  if (!rawKey) return { ok: false, cards: sections.map(() => null), error: '请先在 AI 助手中配置 API Key' };
+  const key = decodeKey(g(API_KEY_READ, ''));
+  if (!key) return { ok: false, cards: sections.map(() => null), error: '请先在 AI 助手中配置 API Key' };
   
   try {
     const res = await fetch(`${API_BASE}/api/generate-cards`, {
@@ -215,7 +215,7 @@ export async function generateQACards(sections: { title: string; body: string; c
         sections,
         llm_config: {
           endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
-          api_key: decodeKey(rawKey),
+          api_key: key,
           model: g(MODEL_KEY, 'deepseek-chat'),
         },
       }),
@@ -249,8 +249,8 @@ export async function generateQuiz(params: {
     if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
     try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
   }
-  const rawKey = g(API_KEY, '');
-  if (!rawKey) return { ok: false, quiz: [], error: 'API Key not configured' };
+  const key = decodeKey(g(API_KEY, ''));
+  if (!key) return { ok: false, quiz: [], error: 'API Key not configured' };
   try {
     const res = await fetch(`${API_BASE}/api/rag/generate-quiz`, {
       method: 'POST',
@@ -259,7 +259,7 @@ export async function generateQuiz(params: {
         ...params,
         llm_config: {
           endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
-          api_key: decodeKey(rawKey),
+          api_key: key,
           model: g(MODEL_KEY, 'deepseek-chat'),
         },
       }),

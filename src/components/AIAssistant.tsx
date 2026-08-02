@@ -25,7 +25,7 @@ function decodeKey(stored: string): string {
   try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
 }
 function getKey(): string { return decodeKey(g(API_KEY, '')); }
-function setKey(v: string) { s(API_KEY, encodeKey(v)); }
+function setKey(v: string) { s(API_KEY, v.trim() ? encodeKey(v) : ''); }
 
 async function callAPI(msgs: Message[], ragContext?: string): Promise<string> {
   const key = getKey(); if (!key) throw new Error('NO_KEY');
