@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, ArrowLeft, ArrowRight, Check, X, RefreshCw, BookOpen } from 'lucide-react';
 import { generateQuiz } from '../api';
 import db from '../store/db';
@@ -43,6 +43,15 @@ export default function QuizView({ onBack }: { onBack?: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [key, setKey] = useState(0); // for card animation
+  const [loggedSummary, setLoggedSummary] = useState(false);
+
+  useEffect(() => {
+    if (phase === 'summary' && !loggedSummary && quiz.length > 0) {
+      setLoggedSummary(true);
+      db.logQuizResult(calcScore(), quiz.length);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, loggedSummary, quiz]);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -54,6 +63,7 @@ export default function QuizView({ onBack }: { onBack?: () => void }) {
       setAnsweredSet({});
       setCurrentIdx(0);
       setKey(k => k + 1);
+      setLoggedSummary(false);
       setPhase('quiz');
       localStorage.setItem('last_quiz', JSON.stringify(r.quiz));
     } else {
@@ -135,13 +145,13 @@ export default function QuizView({ onBack }: { onBack?: () => void }) {
         <h2 style={{ fontSize: 18, fontWeight: 700 }}>刷题模式</h2>
         <div style={{ fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>选择范围和难度，AI 从知识库生成题目。</div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <select value={subj} onChange={e => setSubj(e.target.value)} style={{ flex: 1, border: '2px solid var(--border)', borderRadius: 10, padding: '9px 10px', fontSize: 12, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', outline: 'none' }}>
+          <select value={subj} onChange={e => setSubj(e.target.value)} style={{ flex: 1, border: '2px solid var(--border)', borderRadius: 10, padding: '11px 10px', fontSize: 14, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', outline: 'none' }}>
             {SUBJECTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
           </select>
-          <select value={level} onChange={e => setLevel(e.target.value)} style={{ flex: 1, border: '2px solid var(--border)', borderRadius: 10, padding: '9px 10px', fontSize: 12, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', outline: 'none' }}>
+          <select value={level} onChange={e => setLevel(e.target.value)} style={{ flex: 1, border: '2px solid var(--border)', borderRadius: 10, padding: '11px 10px', fontSize: 14, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', outline: 'none' }}>
             {LEVELS.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
           </select>
-          <select value={count} onChange={e => setCount(Number(e.target.value))} style={{ width: 70, border: '2px solid var(--border)', borderRadius: 10, padding: '9px 10px', fontSize: 12, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', outline: 'none' }}>
+          <select value={count} onChange={e => setCount(Number(e.target.value))} style={{ width: 76, border: '2px solid var(--border)', borderRadius: 10, padding: '11px 10px', fontSize: 14, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', outline: 'none' }}>
             <option value={3}>3题</option><option value={5}>5题</option><option value={10}>10题</option>
           </select>
         </div>
@@ -168,12 +178,12 @@ export default function QuizView({ onBack }: { onBack?: () => void }) {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => { setPhase('setup'); setQuiz([]); }}
-            style={{ flex: 1, padding: '10px 0', border: '2px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+            style={{ flex: 1, padding: '12px 0', border: '2px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
             <RefreshCw size={14} /> 再来一套
           </button>
           {wrongQuiz.length > 0 && (
-            <button onClick={() => { setQuiz(wrongQuiz); setAnswers({}); setAnsweredSet({}); setCurrentIdx(0); setKey(k => k+1); setPhase('quiz'); }}
-              style={{ flex: 1, padding: '10px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--primary)', color: '#fff' }}>
+            <button onClick={() => { setQuiz(wrongQuiz); setAnswers({}); setAnsweredSet({}); setCurrentIdx(0); setKey(k => k+1); setLoggedSummary(false); setPhase('quiz'); }}
+              style={{ flex: 1, padding: '12px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--primary)', color: '#fff' }}>
               重做错题 ({wrongQuiz.length})
             </button>
           )}
@@ -250,10 +260,10 @@ export default function QuizView({ onBack }: { onBack?: () => void }) {
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <textarea value={answers[q.id] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))} disabled={isAnswered}
               placeholder={q.type === 'fill' ? '输入答案...' : '输入你的回答...'} rows={q.type === 'fill' ? 3 : 5}
-              style={{ width: '100%', borderRadius: 'var(--radius-sm)', border: '2px solid', borderColor: isAnswered ? 'var(--green)' : 'var(--border)', padding: '10px 12px', fontSize: 13, fontFamily: 'var(--font)', background: isAnswered ? 'var(--success-light)' : 'var(--surface)', color: 'var(--text)', outline: 'none', resize: 'none', lineHeight: 1.6 }} />
+              style={{ width: '100%', borderRadius: 'var(--radius-sm)', border: '2px solid', borderColor: isAnswered ? 'var(--green)' : 'var(--border)', padding: '10px 12px', fontSize: 14, fontFamily: 'var(--font)', background: isAnswered ? 'var(--success-light)' : 'var(--surface)', color: 'var(--text)', outline: 'none', resize: 'none', lineHeight: 1.6 }} />
             {!isAnswered && (
               <button onClick={() => handleTextAnswer(q)} disabled={!answers[q.id]?.trim()}
-                style={{ marginTop: 8, padding: '10px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 700, cursor: (!answers[q.id]?.trim()) ? 'default' : 'pointer', fontFamily: 'var(--font)', background: answers[q.id]?.trim() ? 'var(--primary)' : 'var(--border)', color: '#fff' }}>
+                style={{ marginTop: 8, padding: '12px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 700, cursor: (!answers[q.id]?.trim()) ? 'default' : 'pointer', fontFamily: 'var(--font)', background: answers[q.id]?.trim() ? 'var(--primary)' : 'var(--border)', color: '#fff' }}>
                 确认
               </button>
             )}

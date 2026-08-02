@@ -1,11 +1,11 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { House, SquarePen, BookMarked, BookOpen } from 'lucide-react';
+import { House, SquarePen, BookOpen, BarChart3 } from 'lucide-react';
 
 const navItems = [
   { path: '/', icon: House, label: '首页' },
   { path: '/quiz', icon: SquarePen, label: '刷题' },
-  { path: '/knowledge', icon: BookMarked, label: '上传知识' },
   { path: '/library', icon: BookOpen, label: '资料库' },
+  { path: '/report', icon: BarChart3, label: '学习报告' },
 ];
 
 export default function BottomNav() {

@@ -1,13 +1,14 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import BottomNav from './components/BottomNav';
 import AIAssistant from './components/AIAssistant';
 import SelectionTooltip from './components/SelectionTooltip';
 import AdminLayout from './components/AdminLayout';
 import Home from './pages/Home';
+import StatusBar from './components/StatusBar';
+import QuizView from './components/QuizView';
 import SubjectDetail from './pages/SubjectDetail';
 import Learn from './pages/Learn';
-import Quiz from './pages/Quiz';
 import Bank from './pages/Bank';
 import Compiler from './pages/Compiler';
 import Notes from './pages/Notes';
@@ -39,6 +40,26 @@ function getPreferredTheme(): string {
 }
 function applyTheme(theme: string) {
   document.documentElement.setAttribute('data-theme', theme);
+}
+
+// 移动端刷题页：QuizView 三阶段完整流程 + 返回入口
+function MobileQuiz() {
+  const nav = useNavigate();
+  return (
+    <div className="page">
+      <StatusBar />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px 2px' }}>
+        <button onClick={() => nav('/')} style={{
+          width: 32, height: 32, borderRadius: 8, border: 'none',
+          background: 'var(--surface)', color: 'var(--text-secondary)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', boxShadow: 'var(--shadow-sm)', fontSize: 18, flexShrink: 0
+        }}>‹</button>
+        <h2 style={{ fontSize: 17, fontWeight: 700, flex: 1 }}>刷题</h2>
+      </div>
+      <QuizView onBack={() => nav('/')} />
+    </div>
+  );
 }
 // Expose toggle for AI Assistant / other components
 (window as any).__toggleTheme = () => {
@@ -112,7 +133,7 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/subject/:id" element={<SubjectDetail />} />
           <Route path="/learn/:chapterId" element={<Learn />} />
-          <Route path="/quiz" element={<Quiz />} />
+          <Route path="/quiz" element={<MobileQuiz />} />
           <Route path="/wrong-answers" element={<WrongAnswersView />} />
           <Route path="/ask-ai" element={<AskAI />} />
           <Route path="/review" element={<ReviewView />} />

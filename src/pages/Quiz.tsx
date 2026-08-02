@@ -58,7 +58,16 @@ export default function Quiz() {
     return (
       <div className="page">
         <StatusBar />
-        <QuizView />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px 2px' }}>
+          <button onClick={() => setAiMode(false)} style={{
+            width: 32, height: 32, borderRadius: 8, border: 'none',
+            background: 'var(--surface)', color: 'var(--text-secondary)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', boxShadow: 'var(--shadow-sm)', fontSize: 18, flexShrink: 0
+          }}>‹</button>
+          <h2 style={{ fontSize: 17, fontWeight: 700, flex: 1 }}>AI 出题</h2>
+        </div>
+        <QuizView onBack={() => setAiMode(false)} />
       </div>
     );
   }

@@ -11,7 +11,7 @@ export default function StudyCalendar() {
     <div>
       <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>学习日历（30天）</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
-        {['S','M','T','W','T','F','S'].map(d => <div key={d} style={{ fontSize: 8, color: 'var(--text-tertiary)', textAlign: 'center', padding: '2px 0' }}>{d}</div>)}
+        {['日','一','二','三','四','五','六'].map(d => <div key={d} style={{ fontSize: 8, color: 'var(--text-tertiary)', textAlign: 'center', padding: '2px 0' }}>{d}</div>)}
         {new Array(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 29).getDay()).fill(null).map((_, i) => <div key={`e${i}`} />)}
         {cells.map(c => (
           <div key={c.date} style={{ aspectRatio: '1', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: c.studied ? 700 : 400, background: c.studied ? 'var(--green)' : 'var(--border-light)', color: c.studied ? '#fff' : 'var(--text-tertiary)' }}>
