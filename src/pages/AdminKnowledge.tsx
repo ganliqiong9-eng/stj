@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, FileText, Database, FileSpreadsheet, Clipboard, Trash2, RefreshCw, ChevronDown, ChevronRight, Search } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
+import Toast, { type ToastData } from '../components/Toast';
 import db, { type KnowledgeEntry } from '../store/db';
 import { formatDate } from '../components/KnowledgeUtils';
+import { deleteKnowledge } from '../api';
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
   indexed: { label: '已入库', color: '#00b365', bg: '#e6f7ef' },
@@ -27,6 +29,8 @@ export default function AdminKnowledge() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [quizGenerating, setQuizGenerating] = useState(false);
   const [quizResult, setQuizResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [toast, setToast] = useState<ToastData | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -72,11 +76,19 @@ export default function AdminKnowledge() {
   const handleDelete = async (id: number) => {
     const entry = entries.find(e => e.id === id);
     if (!entry || !window.confirm('确认删除「' + entry.title + '」？')) return;
-    await db.deleteKnowledge(id);
-    if (entry._id) {
-      try { await fetch(`${API_BASE}/api/knowledge/${encodeURIComponent(entry._id)}`, { method: 'DELETE' }); } catch {}
+    setDeleting(true);
+    try {
+      await db.deleteKnowledge(id);
+      const serverOk = entry._id ? await deleteKnowledge(entry._id) : true;
+      setToast(serverOk
+        ? { msg: '删除成功', type: 'success' }
+        : { msg: '本机已删除，服务器副本删除失败', type: 'error' });
+    } catch {
+      setToast({ msg: '删除失败，请重试', type: 'error' });
+    } finally {
+      setDeleting(false);
+      load();
     }
-    load();
   };
 
   const qaCount = (entry: KnowledgeEntry) => entry.sections.filter(s => s.qa).length;
@@ -157,7 +169,7 @@ export default function AdminKnowledge() {
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button onClick={e => { e.stopPropagation(); handleDelete(entry.id!); }}
                       style={{ border: 'none', background: 'none', color: '#f53f3f', cursor: 'pointer', padding: 4, borderRadius: 4 }}
-                      title="删除"><Trash2 size={14} /></button>
+                      title="删除" disabled={deleting}><Trash2 size={14} /></button>
                   </div>
                   {isExpanded ? <ChevronDown size={16} color="#999" /> : <ChevronRight size={16} color="#999" />}
                 </div>
@@ -187,6 +199,7 @@ export default function AdminKnowledge() {
           })}
         </div>
       )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </AdminLayout>
   );
 }

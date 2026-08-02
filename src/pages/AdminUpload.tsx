@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import AdminLayout from '../components/AdminLayout';
+import Toast, { type ToastData } from '../components/Toast';
+import { X } from 'lucide-react';
 import { upgradeUploadDocForRag, MAX_UPLOAD_SIZE } from '../api';
 import { useNavigate } from 'react-router-dom';
 import db from '../store/db';
@@ -8,14 +10,27 @@ export default function AdminUpload() {
   const nav = useNavigate();
   const [files, setFiles] = useState<{ file: File; status: 'waiting' | 'uploading' | 'done' | 'error'; msg?: string }[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [toast, setToast] = useState<ToastData | null>(null);
 
   const addFiles = (fs: FileList | null) => {
     if (!fs) return;
-    const newFiles = Array.from(fs).filter(f => /\.(docx|pdf|md|txt|html|xlsx|xls|csv)$/i.test(f.name)).map(f => ({ file: f, status: 'waiting' as const }));
+    const all = Array.from(fs);
+    const supported = all.filter(f => /\.(docx|pdf|md|txt|html|xlsx|xls|csv)$/i.test(f.name));
+    const skipped = all.length - supported.length;
+    if (skipped > 0) setToast({ msg: `已忽略 ${skipped} 个不支持的文件`, type: 'info' });
+    const newFiles = supported.map(f => ({ file: f, status: 'waiting' as const }));
     setFiles(prev => [...prev, ...newFiles]);
   };
 
+  const removeFile = (i: number) => {
+    const name = files[i]?.file.name;
+    setFiles(prev => prev.filter((_, j) => j !== i));
+    if (name) setToast({ msg: `已移除 ${name}`, type: 'info' });
+  };
+
   const uploadAll = async () => {
+    let done = 0;
+    let failed = 0;
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       if (f.status !== 'waiting') continue;
@@ -36,10 +51,18 @@ export default function AdminUpload() {
             updatedAt: new Date().toISOString(),
           });
         }
+        if (r.ok) done++; else failed++;
         setFiles(prev => prev.map((p, j) => j === i ? { ...p, status: r.ok ? 'done' as const : 'error' as const, msg: r.msg } : p));
       } catch {
+        failed++;
         setFiles(prev => prev.map((p, j) => j === i ? { ...p, status: 'error' as const, msg: '上传失败' } : p));
       }
+    }
+    if (done > 0 || failed > 0) {
+      setToast({
+        msg: failed > 0 ? `上传完成：成功 ${done} 个，失败 ${failed} 个` : `全部上传成功（${done} 个）`,
+        type: failed > 0 ? 'error' : 'success',
+      });
     }
   };
 
@@ -69,6 +92,12 @@ export default function AdminUpload() {
               <span style={{ color: f.status === 'done' ? '#58cc02' : f.status === 'error' ? '#e63946' : '#999', fontSize: 11 }}>
                 {f.status === 'waiting' ? `等待中 (${(f.file.size / 1024).toFixed(0)} KB)` : f.status === 'uploading' ? '解析中...' : f.status === 'done' ? '完成' : f.msg || '失败'}
               </span>
+              <button onClick={() => removeFile(i)} title="移除"
+                style={{ border: 'none', background: 'none', color: '#999', cursor: 'pointer', padding: 4, borderRadius: 6, display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.color = '#e63946'}
+                onMouseLeave={e => e.currentTarget.style.color = '#999'}>
+                <X size={14} />
+              </button>
             </div>
           ))}
           {files.some(f => f.status === 'done') && (
@@ -82,6 +111,7 @@ export default function AdminUpload() {
           </button>
         </div>
       )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </AdminLayout>
   );
 }

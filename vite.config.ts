@@ -40,4 +40,22 @@ export default defineConfig(({ command }) => ({
       }
     })] : []),
   ],
+  server: {
+    watch: {
+      // 后端运行时会写这些数据文件，避免 Vite 监听它们触发整页刷新
+      ignored: [
+        '**/data.json',
+        '**/knowledge.json',
+        '**/embeddings.json',
+        '**/rag_config.json',
+        '**/table_meta.json',
+        '**/knowledge_points.json',
+        '**/questions.json',
+        '**/table_folders.json',
+        '**/compiler.db',
+        '**/.tmp_rag_*',
+        '**/.tmp_sql_*',
+      ],
+    },
+  },
 }))
