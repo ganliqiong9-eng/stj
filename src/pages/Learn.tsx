@@ -29,8 +29,9 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-export default function Learn() {
-  const { chapterId } = useParams<{ chapterId: string }>();
+export default function Learn({ chapterId: chapterIdProp }: { chapterId?: string } = {}) {
+  const params = useParams<{ chapterId: string }>();
+  const chapterId = chapterIdProp || params.chapterId;
   const nav = useNavigate();
   const content = chapterId ? (courseContent[chapterId] || fallbackContent) : fallbackContent;
   const [isDone, setIsDone] = useState(false);

@@ -4,7 +4,7 @@ import { House, SquarePen, BookOpen, BarChart3 } from 'lucide-react';
 const navItems = [
   { path: '/', icon: House, label: '首页' },
   { path: '/quiz', icon: SquarePen, label: '刷题' },
-  { path: '/library', icon: BookOpen, label: '资料库' },
+  { path: '/learn', icon: BookOpen, label: '学习' },
   { path: '/report', icon: BarChart3, label: '学习报告' },
 ];
 
@@ -16,8 +16,8 @@ export default function BottomNav() {
       position:'fixed', bottom:0, left:0, right:0,
       background:'var(--bottom-nav-bg)', backdropFilter:'blur(20px)',
       WebkitBackdropFilter:'blur(20px)',
-      display:'flex', padding:'2px 0 calc(env(safe-area-inset-bottom,6px))',
-      borderTop:'2px solid var(--border)',
+      display:'flex', padding:'4px 0 calc(env(safe-area-inset-bottom,4px) + 2px)',
+      borderTop:'1px solid var(--border)',
       zIndex:50
     }}>
       {navItems.map(item => {

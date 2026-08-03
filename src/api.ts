@@ -10,8 +10,6 @@ function getApiBase(): string {
   return `http://${window.location.hostname}:8086`;
 }
 
-import type { QA } from './data/content';
-
 export const API_BASE = getApiBase();
 
 export interface RagChunk {
@@ -268,6 +266,173 @@ export async function generateQuiz(params: {
   } catch { return { ok: false, quiz: [], error: 'Network error' }; }
 }
 
+export async function deepExplain(params: {
+  question: string;
+  correctAnswer: string;
+  explanation?: string;
+  type?: string;
+  knowledgeTitle?: string;
+  knowledgeBody?: string;
+}): Promise<{ ok: boolean; content?: string; error?: string }> {
+  const API_KEY = 'sbuddy_key';
+  const ENDPOINT_KEY = 'sbuddy_endpoint';
+  const MODEL_KEY = 'sbuddy_model';
+  function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
+  const KEY_ENC_PREFIX = 'enc:';
+  function decodeKey(stored: string): string {
+    if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
+    try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
+  }
+  const key = decodeKey(g(API_KEY, ''));
+  if (!key) return { ok: false, error: 'API Key not configured' };
+  try {
+    const res = await fetch(`${API_BASE}/api/quiz/deep-explain`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...params,
+        llm_config: {
+          endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
+          api_key: key,
+          model: g(MODEL_KEY, 'deepseek-chat'),
+        },
+      }),
+    });
+    return await res.json();
+  } catch { return { ok: false, error: 'Network error' }; }
+}
+
+// ============================================================
+// Learning Paths API
+// ============================================================
+
+function getLLMConfig() {
+  const API_KEY = 'sbuddy_key';
+  const ENDPOINT_KEY = 'sbuddy_endpoint';
+  const MODEL_KEY = 'sbuddy_model';
+  function g(k: string, d: string): string { try { return localStorage.getItem(k) || d; } catch { return d; } }
+  const KEY_ENC_PREFIX = 'enc:';
+  function decodeKey(stored: string): string {
+    if (!stored.startsWith(KEY_ENC_PREFIX)) return stored;
+    try { return decodeURIComponent(atob(stored.slice(KEY_ENC_PREFIX.length))); } catch { return stored; }
+  }
+  return {
+    endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
+    api_key: decodeKey(g(API_KEY, '')),
+    model: g(MODEL_KEY, 'deepseek-chat'),
+  };
+}
+
+export interface LearningPathSummary {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  progress: { completed: number; total: number; percent: number };
+}
+
+export interface LearningKnowledgePoint {
+  id: string;
+  order: number;
+  title: string;
+  contentGenerated: boolean;
+  content: { definition?: string; explanation?: string; example?: string; analogy?: string } | null;
+  progress: { status: string; quizScore: number | null; quizCount: number; lastStudiedAt: string | null };
+}
+
+export interface LearningChapter {
+  id: string;
+  order: number;
+  title: string;
+  description: string;
+  knowledgePoints: LearningKnowledgePoint[];
+  progress: { completed: number; total: number; percent: number };
+}
+
+export interface LearningPathDetail {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  progress: { completed: number; total: number; percent: number };
+  chapters: LearningChapter[];
+}
+
+export async function listLearningPaths(): Promise<{ ok: boolean; paths: LearningPathSummary[]; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/learning-paths`);
+    return await res.json();
+  } catch { return { ok: false, paths: [], error: 'Network error' }; }
+}
+
+export async function getLearningPath(id: string): Promise<{ ok: boolean; path?: LearningPathDetail; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/learning-paths/${encodeURIComponent(id)}`);
+    return await res.json();
+  } catch { return { ok: false, error: 'Network error' }; }
+}
+
+export async function updateLearningProgress(payload: {
+  pathId: string;
+  chapterId: string;
+  knowledgePointId: string;
+  status: string;
+  quizScore?: number;
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/learning-progress`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return await res.json();
+  } catch { return { ok: false, error: 'Network error' }; }
+}
+
+export async function generateLearningContent(knowledgePointId: string): Promise<{
+  ok: boolean;
+  definition?: string;
+  explanation?: string;
+  example?: string;
+  analogy?: string;
+  cached?: boolean;
+  error?: string;
+}> {
+  const cfg = getLLMConfig();
+  if (!cfg.api_key) return { ok: false, error: 'API Key not configured' };
+  try {
+    const res = await fetch(`${API_BASE}/api/learning-paths/generate-content`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ knowledgePointId, llm_config: cfg }),
+    });
+    return await res.json();
+  } catch { return { ok: false, error: 'Network error' }; }
+}
+
+export async function generateQuizByKnowledge(
+  knowledgePointId: string,
+  count = 5,
+  types: string[] = ['choice', 'fill', 'short_answer'],
+): Promise<{ ok: boolean; quiz: any[]; hasRagContext?: boolean; error?: string }> {
+  const cfg = getLLMConfig();
+  if (!cfg.api_key) return { ok: false, quiz: [], error: 'API Key not configured' };
+  try {
+    const res = await fetch(`${API_BASE}/api/quiz/by-knowledge`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ knowledgePointId, count, types, llm_config: cfg }),
+    });
+    return await res.json();
+  } catch { return { ok: false, quiz: [], error: 'Network error' }; }
+}
+
+export async function syncLearningPaths(): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/learning-paths/sync`, { method: 'POST' });
+    return await res.json();
+  } catch { return { ok: false, error: 'Network error' }; }
+}
 
 
 // ============================================================

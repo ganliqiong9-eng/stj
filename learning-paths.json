@@ -1,0 +1,94 @@
+{
+  "paths": [
+    {
+      "id": "dama-dmbok",
+      "name": "DAMA 数据管理知识体系",
+      "description": "基于 DMBOK2 的完整数据管理知识框架，覆盖 11 个知识领域",
+      "icon": "🗄️",
+      "chapters": [
+        {
+          "id": "dama-ch1",
+          "order": 1,
+          "title": "数据治理",
+          "description": "数据管理的组织架构、策略制定和执行框架",
+          "knowledgePoints": [
+            { "id": "dama-kp1-1", "order": 1, "title": "数据治理的定义与目标" },
+            { "id": "dama-kp1-2", "order": 2, "title": "数据治理组织架构" },
+            { "id": "dama-kp1-3", "order": 3, "title": "数据治理成熟度模型" }
+          ]
+        },
+        {
+          "id": "dama-ch2",
+          "order": 2,
+          "title": "数据质量",
+          "description": "评估和提升数据质量的维度、方法和技术",
+          "knowledgePoints": [
+            { "id": "dama-kp2-1", "order": 1, "title": "数据质量六大维度" },
+            { "id": "dama-kp2-2", "order": 2, "title": "数据质量评估方法" },
+            { "id": "dama-kp2-3", "order": 3, "title": "数据质量改进流程" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "python-basics",
+      "name": "Python 从零到实战",
+      "description": "面向数据从业者的 Python 学习路径，从基础语法到数据分析实战",
+      "icon": "🐍",
+      "chapters": [
+        {
+          "id": "py-ch1",
+          "order": 1,
+          "title": "Python 基础语法",
+          "description": "变量、数据类型、运算符、输入输出",
+          "knowledgePoints": [
+            { "id": "py-kp1-1", "order": 1, "title": "变量与赋值" },
+            { "id": "py-kp1-2", "order": 2, "title": "数据类型" },
+            { "id": "py-kp1-3", "order": 3, "title": "运算符与表达式" }
+          ]
+        },
+        {
+          "id": "py-ch2",
+          "order": 2,
+          "title": "控制流",
+          "description": "条件判断、循环、异常处理",
+          "knowledgePoints": [
+            { "id": "py-kp2-1", "order": 1, "title": "条件判断 if-elif-else" },
+            { "id": "py-kp2-2", "order": 2, "title": "for 循环与 while 循环" },
+            { "id": "py-kp2-3", "order": 3, "title": "异常处理 try-except" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sql-fundamentals",
+      "name": "SQL 数据查询从入门到精通",
+      "description": "掌握 SQL 查询核心技能，从基础 SELECT 到复杂分析函数",
+      "icon": "🗃️",
+      "chapters": [
+        {
+          "id": "sql-ch1",
+          "order": 1,
+          "title": "基础查询",
+          "description": "SELECT、WHERE、ORDER BY、LIMIT",
+          "knowledgePoints": [
+            { "id": "sql-kp1-1", "order": 1, "title": "SELECT 基础语法" },
+            { "id": "sql-kp1-2", "order": 2, "title": "WHERE 条件过滤" },
+            { "id": "sql-kp1-3", "order": 3, "title": "ORDER BY 与 LIMIT" }
+          ]
+        },
+        {
+          "id": "sql-ch2",
+          "order": 2,
+          "title": "聚合与分组",
+          "description": "COUNT/SUM/AVG/MAX/MIN、GROUP BY、HAVING",
+          "knowledgePoints": [
+            { "id": "sql-kp2-1", "order": 1, "title": "聚合函数" },
+            { "id": "sql-kp2-2", "order": 2, "title": "GROUP BY 分组" },
+            { "id": "sql-kp2-3", "order": 3, "title": "HAVING 过滤分组" }
+          ]
+        }
+      ]
+    }
+  ]
+}

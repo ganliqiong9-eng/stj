@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { HelpCircle, Lightbulb, MessageCircle, Target } from 'lucide-react';
 import type { QACard, KnowledgeLevel } from '../data/content';
 
 interface KnowledgeCardProps {

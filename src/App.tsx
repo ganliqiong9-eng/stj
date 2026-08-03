@@ -3,12 +3,14 @@ import { useEffect } from 'react';
 import BottomNav from './components/BottomNav';
 import AIAssistant from './components/AIAssistant';
 import SelectionTooltip from './components/SelectionTooltip';
-import AdminLayout from './components/AdminLayout';
 import Home from './pages/Home';
 import StatusBar from './components/StatusBar';
 import QuizView from './components/QuizView';
 import SubjectDetail from './pages/SubjectDetail';
-import Learn from './pages/Learn';
+import LearnHome from './pages/LearnHome';
+import PathDetail from './pages/PathDetail';
+import ChapterDetail from './pages/ChapterDetail';
+import KnowledgePointDetail from './pages/KnowledgePointDetail';
 import Bank from './pages/Bank';
 import Compiler from './pages/Compiler';
 import Notes from './pages/Notes';
@@ -141,7 +143,10 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/subject/:id" element={<SubjectDetail />} />
-          <Route path="/learn/:chapterId" element={<Learn />} />
+          <Route path="/learn" element={<LearnHome />} />
+          <Route path="/learn/:pathId" element={<PathDetail />} />
+          <Route path="/learn/:pathId/chapter/:chapterId" element={<ChapterDetail />} />
+          <Route path="/learn/:pathId/chapter/:chapterId/kp/:kpId" element={<KnowledgePointDetail />} />
           <Route path="/quiz" element={<MobileQuiz />} />
           <Route path="/wrong-answers" element={<WrongAnswersView />} />
           <Route path="/ask-ai" element={<AskAI />} />

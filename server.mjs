@@ -42,6 +42,9 @@ const RAG_CONFIG_FILE = path.join(BASE, 'rag_config.json');
 const TABLE_META_FILE = path.join(BASE, 'table_meta.json');
 const KNOWLEDGE_POINTS_FILE = path.join(BASE, 'knowledge_points.json');
 const QUESTIONS_FILE = path.join(BASE, 'questions.json');
+const LEARNING_PATHS_FILE = path.join(BASE, 'learning-paths.json');
+const LEARNING_PROGRESS_FILE = path.join(BASE, 'learning_progress.json');
+const LEARNING_CONTENT_FILE = path.join(BASE, 'learning_content.json');
 
 // ============================================================
 // Storage helpers
@@ -258,6 +261,68 @@ function cosineSimilarity(a, b) {
   }
   const mag = Math.sqrt(na) * Math.sqrt(nb);
   return mag === 0 ? 0 : dot / mag;
+}
+
+// ============================================================
+// Learning paths helpers
+// ============================================================
+function loadLearningPaths() { return readJSON(LEARNING_PATHS_FILE, { paths: [] }); }
+function loadLearningProgress() { return readJSON(LEARNING_PROGRESS_FILE, {}); }
+function saveLearningProgress(data) { writeJSON(LEARNING_PROGRESS_FILE, data); }
+function loadLearningContent() { return readJSON(LEARNING_CONTENT_FILE, {}); }
+function saveLearningContent(data) { writeJSON(LEARNING_CONTENT_FILE, data); }
+
+function findKnowledgePointConfig(cfg, knowledgePointId) {
+  for (const p of cfg.paths || []) {
+    for (const ch of p.chapters || []) {
+      const kp = (ch.knowledgePoints || []).find(k => k.id === knowledgePointId);
+      if (kp) return { path: p, chapter: ch, kp };
+    }
+  }
+  return null;
+}
+
+function collectKnowledgePointIds(cfg) {
+  const ids = [];
+  for (const p of cfg.paths || []) {
+    for (const ch of p.chapters || []) {
+      for (const kp of ch.knowledgePoints || []) ids.push(kp.id);
+    }
+  }
+  return ids;
+}
+
+function chapterProgress(ch, progress) {
+  const kps = ch.knowledgePoints || [];
+  const completed = kps.filter(kp => progress[kp.id]?.status === 'completed').length;
+  return { completed, total: kps.length, percent: kps.length > 0 ? Math.round((completed / kps.length) * 100) : 0 };
+}
+
+function pathProgress(p, progress) {
+  let total = 0, completed = 0;
+  for (const ch of p.chapters || []) {
+    total += (ch.knowledgePoints || []).length;
+    completed += (ch.knowledgePoints || []).filter(kp => progress[kp.id]?.status === 'completed').length;
+  }
+  return { completed, total, percent: total > 0 ? Math.round((completed / total) * 100) : 0 };
+}
+
+function extractJsonObject(text) {
+  if (!text) return null;
+  let s = String(text).trim();
+  const fence = s.indexOf('```');
+  if (fence >= 0) s = s.slice(fence + 3).replace(/^[^\n]*\n/, '').replace(/```[\s\S]*$/, '').trim();
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start >= 0 && end > start) {
+    try { return JSON.parse(s.slice(start, end + 1)); } catch {}
+  }
+  const arrStart = s.indexOf('[');
+  const arrEnd = s.lastIndexOf(']');
+  if (arrStart >= 0 && arrEnd > arrStart) {
+    try { return JSON.parse(s.slice(arrStart, arrEnd + 1)); } catch {}
+  }
+  return null;
 }
 
 // ============================================================
@@ -1190,6 +1255,400 @@ http.createServer(async (req, res) => {
           };
         });
         return json(res, { ok: true, quiz });
+      } catch (err) {
+        return json(res, { ok: false, quiz: [], error: err.message });
+      }
+    })();
+    return;
+  }
+
+  // POST /api/quiz/deep-explain - 生成多维度深入解析
+  if (url === '/api/quiz/deep-explain' && method === 'POST') {
+    (async () => {
+      if (_rejectNewTasks) return json(res, { ok: false, error: 'system busy' }, 503);
+      if (!checkLlmRateLimit()) return json(res, { ok: false, error: 'rate limit' }, 429);
+      const body = await parseBody(req);
+      const { question, correctAnswer, explanation, type, knowledgeTitle, knowledgeBody } = body;
+      if (!question || !correctAnswer) {
+        return json(res, { ok: false, error: '缺少题目或答案信息' }, 400);
+      }
+      const llmConfig = body.llm_config || {};
+      if (!llmConfig.api_key) return json(res, { ok: false, error: 'LLM not configured' }, 500);
+
+      const prompt = `你是一位耐心的数据管理/IT 领域导师。请对以下题目进行多维度深入解析，帮助用户真正理解这个知识点。
+
+题目：${question}
+题目类型：${type || '未知'}
+正确答案：${correctAnswer}
+基础解析：${explanation || '无'}
+${knowledgeTitle ? `相关知识：${knowledgeTitle}` : ''}
+${knowledgeBody ? `知识内容摘要：${String(knowledgeBody).substring(0, 300)}` : ''}
+
+请按以下 5 个维度组织解析（每个维度用 emoji 标题 + 2-3 句话，简洁明了）：
+
+📖 概念定义
+用一句话精准定义这个概念/知识点。
+
+🎯 生活类比
+用一个日常生活场景来类比解释（如相亲、做饭、职场、物流等），让非技术人员也能秒懂。
+
+💼 实际应用
+在工作场景中，这个知识点怎么用到？举一个具体例子。
+
+⚠️ 易混淆点
+列出 1-2 个容易和这个概念搞混的点，说明区别。
+
+💡 记忆技巧
+给一个好记的口诀、联想或记忆方法。
+
+注意：
+- 用大白话，避免堆砌术语
+- 每段 2-3 句话即可，不要长篇大论
+- 类比要生动有趣，像朋友聊天一样
+- 如果是编程题，实际应用部分给一个简短的代码示例`;
+
+      try {
+        const resp = await fetch(llmConfig.endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${llmConfig.api_key}`,
+          },
+          body: JSON.stringify({
+            model: llmConfig.model || 'deepseek-chat',
+            messages: [
+              { role: 'system', content: '你是一位生动有趣的IT/数据管理导师，擅长用大白话和生活类比解释复杂概念。' },
+              { role: 'user', content: prompt },
+            ],
+            temperature: 0.7,
+            max_tokens: 800,
+          }),
+        });
+        if (!resp.ok) {
+          const errText = await resp.text();
+          console.error('[deep-explain] LLM error:', resp.status, errText);
+          return json(res, { ok: false, error: 'AI 服务返回错误' }, 502);
+        }
+        const data = await resp.json();
+        const content = data.choices?.[0]?.message?.content || '';
+        if (!content) return json(res, { ok: false, error: 'AI 返回内容为空' }, 500);
+        return json(res, { ok: true, content });
+      } catch (err) {
+        console.error('[deep-explain] Error:', err);
+        return json(res, { ok: false, error: err.message }, 500);
+      }
+    })();
+    return;
+  }
+
+  // ============================================================
+  // Learning paths API
+  // ============================================================
+
+  // POST /api/learning-paths/sync - 从 JSON 配置文件同步骨架
+  if (url === '/api/learning-paths/sync' && method === 'POST') {
+    try {
+      const cfg = JSON.parse(fs.readFileSync(LEARNING_PATHS_FILE, 'utf-8'));
+      const validIds = collectKnowledgePointIds(cfg);
+      const progress = loadLearningProgress();
+      for (const id of Object.keys(progress)) {
+        if (!validIds.includes(id)) delete progress[id];
+      }
+      saveLearningProgress(progress);
+      return json(res, { ok: true, message: '同步完成' });
+    } catch (err) {
+      return json(res, { ok: false, error: 'learning-paths.json 格式错误: ' + err.message }, 400);
+    }
+  }
+
+  // GET /api/learning-paths - 获取所有学习路径（含进度）
+  if (url === '/api/learning-paths' && method === 'GET') {
+    const cfg = loadLearningPaths();
+    const progress = loadLearningProgress();
+    const paths = (cfg.paths || []).map(p => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      icon: p.icon,
+      progress: pathProgress(p, progress),
+    }));
+    return json(res, { ok: true, paths });
+  }
+
+  // GET /api/learning-paths/:id - 获取单个学习路径详情
+  const learningPathMatch = url.match(/^\/api\/learning-paths\/([^/]+)$/);
+  if (learningPathMatch && method === 'GET') {
+    const cfg = loadLearningPaths();
+    const progress = loadLearningProgress();
+    const content = loadLearningContent();
+    const p = (cfg.paths || []).find(x => x.id === learningPathMatch[1]);
+    if (!p) return json(res, { ok: false, error: '路径不存在' }, 404);
+    const chapters = (p.chapters || []).map(ch => ({
+      id: ch.id,
+      order: ch.order,
+      title: ch.title,
+      description: ch.description,
+      knowledgePoints: (ch.knowledgePoints || []).map(kp => ({
+        id: kp.id,
+        order: kp.order,
+        title: kp.title,
+        contentGenerated: !!(content[kp.id]?.definition),
+        content: content[kp.id] || null,
+        progress: {
+          status: progress[kp.id]?.status || 'not_started',
+          quizScore: progress[kp.id]?.quizScore ?? null,
+          quizCount: progress[kp.id]?.quizCount || 0,
+          lastStudiedAt: progress[kp.id]?.lastStudiedAt || null,
+        },
+      })),
+      progress: chapterProgress(ch, progress),
+    }));
+    return json(res, {
+      ok: true,
+      path: {
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        icon: p.icon,
+        progress: pathProgress(p, progress),
+        chapters,
+      },
+    });
+  }
+
+  // POST /api/learning-progress - 记录学习进度
+  if (url === '/api/learning-progress' && method === 'POST') {
+    const body = await parseBody(req);
+    const { pathId, chapterId, knowledgePointId, status, quizScore } = body;
+    if (!knowledgePointId || !pathId || !chapterId || !status) {
+      return json(res, { ok: false, error: '缺少必要参数' }, 400);
+    }
+    const progress = loadLearningProgress();
+    const prev = progress[knowledgePointId] || { quizCount: 0 };
+    const record = {
+      pathId,
+      chapterId,
+      knowledgePointId,
+      status,
+      quizScore: typeof quizScore === 'number' ? quizScore : (prev.quizScore ?? null),
+      quizCount: typeof quizScore === 'number' ? (prev.quizCount || 0) + 1 : (prev.quizCount || 0),
+      lastStudiedAt: typeof quizScore === 'number' ? new Date().toISOString() : (prev.lastStudiedAt || null),
+      updatedAt: new Date().toISOString(),
+    };
+    progress[knowledgePointId] = record;
+    saveLearningProgress(progress);
+    return json(res, { ok: true, progress: record });
+  }
+
+  // GET /api/learning-progress/:pathId - 获取某路径的学习进度
+  const learningProgressMatch = url.match(/^\/api\/learning-progress\/([^/]+)$/);
+  if (learningProgressMatch && method === 'GET') {
+    const progress = loadLearningProgress();
+    const list = Object.values(progress).filter(p => p.pathId === learningProgressMatch[1]);
+    return json(res, { ok: true, progress: list });
+  }
+
+  // POST /api/learning-paths/generate-content - 为指定知识点生成学习内容
+  if (url === '/api/learning-paths/generate-content' && method === 'POST') {
+    (async () => {
+      if (_rejectNewTasks) return json(res, { ok: false, error: 'system busy' }, 503);
+      if (!checkLlmRateLimit()) return json(res, { ok: false, error: 'rate limit' }, 429);
+      const body = await parseBody(req);
+      const knowledgePointId = body.knowledgePointId;
+      if (!knowledgePointId) return json(res, { ok: false, error: '缺少知识点 ID' }, 400);
+      const cfg = loadLearningPaths();
+      const found = findKnowledgePointConfig(cfg, knowledgePointId);
+      if (!found) return json(res, { ok: false, error: '知识点不存在' }, 404);
+
+      const contentCache = loadLearningContent();
+      const cached = contentCache[knowledgePointId];
+      if (cached && cached.definition) {
+        return json(res, { ok: true, ...cached, cached: true });
+      }
+
+      const llmConfig = body.llm_config || {};
+      if (!llmConfig.api_key) return json(res, { ok: false, error: 'LLM not configured' }, 500);
+      const { kp } = found;
+      const prompt = `你是一个专业的知识讲解专家，擅长用大白话和生动类比解释专业概念。
+
+请围绕「${kp.title}」这个知识点，生成以下四部分内容：
+
+1. 📖 定义（definition）：用一句话精准定义，不超过50字
+2. 📚 详细解释（explanation）：用3-5句话详细解释，通俗易懂
+3. 💼 实际例子（example）：给出1-2个真实工作场景的例子
+4. 🎯 生活类比（analogy）：用生活化的比喻（如相亲、做饭、快递、职场等场景）帮助理解
+
+【风格要求】
+- 大白话，不要学术腔
+- 类比要生动有趣、贴近生活
+- 例子要贴合实际工作场景（尤其是数据/物流/IT 领域）
+
+【输出格式】
+返回 JSON：
+{
+  "definition": "...",
+  "explanation": "...",
+  "example": "...",
+  "analogy": "..."
+}`;
+
+      try {
+        const resp = await fetch(llmConfig.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
+          body: JSON.stringify({
+            model: llmConfig.model || 'deepseek-chat',
+            messages: [
+              { role: 'system', content: '你是一个专业的知识讲解专家，输出必须是合法 JSON。' },
+              { role: 'user', content: prompt },
+            ],
+            temperature: 0.7,
+            max_tokens: 1200,
+            response_format: { type: 'json_object' },
+          }),
+        });
+        if (!resp.ok) {
+          const errText = await resp.text();
+          console.error('[learning-content] LLM error:', resp.status, errText);
+          return json(res, { ok: false, error: 'AI 服务返回错误' }, 502);
+        }
+        const data = await resp.json();
+        const text = data.choices?.[0]?.message?.content || '';
+        const parsed = extractJsonObject(text);
+        if (!parsed) return json(res, { ok: false, error: 'AI 返回内容格式错误' }, 500);
+        const item = {
+          definition: String(parsed.definition || '').trim(),
+          explanation: String(parsed.explanation || '').trim(),
+          example: String(parsed.example || '').trim(),
+          analogy: String(parsed.analogy || '').trim(),
+          generatedAt: new Date().toISOString(),
+        };
+        if (!item.definition) return json(res, { ok: false, error: 'AI 返回内容为空' }, 500);
+        contentCache[knowledgePointId] = item;
+        saveLearningContent(contentCache);
+        return json(res, { ok: true, ...item, cached: false });
+      } catch (err) {
+        console.error('[learning-content] Error:', err);
+        return json(res, { ok: false, error: err.message }, 500);
+      }
+    })();
+    return;
+  }
+
+  // POST /api/quiz/by-knowledge - 基于知识点出题（RAG 优先）
+  if (url === '/api/quiz/by-knowledge' && method === 'POST') {
+    (async () => {
+      if (_rejectNewTasks) return json(res, { ok: false, quiz: [], error: 'system busy' }, 503);
+      if (!checkLlmRateLimit()) return json(res, { ok: false, quiz: [], error: 'rate limit' }, 429);
+      const body = await parseBody(req);
+      const knowledgePointId = body.knowledgePointId;
+      const count = body.count || 5;
+      const types = body.types || ['choice', 'fill', 'short_answer'];
+      const cfg = loadLearningPaths();
+      const found = findKnowledgePointConfig(cfg, knowledgePointId);
+      if (!found) return json(res, { ok: false, quiz: [], error: '知识点不存在' }, 404);
+      const llmConfig = body.llm_config || {};
+      if (!llmConfig.api_key) return json(res, { ok: false, quiz: [], error: 'LLM not configured' });
+      const { kp } = found;
+      const content = loadLearningContent();
+      const kpContent = content[knowledgePointId] || {};
+
+      let ragResults = [];
+      try {
+        const r = await ragQuery(kp.title, 5, null);
+        ragResults = r.results || [];
+      } catch (err) {
+        console.warn('[by-knowledge] RAG search failed, fallback to pure AI:', err.message);
+      }
+      const hasRagContext = ragResults.length > 0;
+      const knowledgeText = hasRagContext
+        ? ragResults.map(r => `标题：${r.article_title || ''}\n内容：${(r.content || '').substring(0, 500)}`).join('\n---\n')
+        : [kpContent.definition, kpContent.explanation, kpContent.example, kpContent.analogy].filter(Boolean).join('\n');
+      const prompt = hasRagContext
+        ? `你是一个专业考试出题专家。请基于以下参考资料，围绕「${kp.title}」这个知识点出题。
+
+【参考资料】（来自用户知识库）
+${knowledgeText}
+
+【要求】
+- 生成 ${count} 道题目
+- 题型：${types.join('、')}
+- 题目必须基于参考资料的内容，不要凭空编造
+- 每道题附带正确答案和简要解析
+- 选择题要有 4 个选项（A/B/C/D），其中 1 个正确答案
+- 填空题用 ___ 标记答案位置
+- 难度分布：简单40% + 中等40% + 较难20%
+
+【输出格式】
+返回 JSON 数组，每题格式：
+[
+  {
+    "type": "choice|fill|short_answer",
+    "question": "题目内容",
+    "options": ["A. xxx", "B. xxx", "C. xxx", "D. xxx"],
+    "correctAnswer": "正确答案",
+    "explanation": "解析",
+    "difficulty": "easy|medium|hard"
+  }
+]`
+        : `你是一个专业考试出题专家。请围绕「${kp.title}」这个知识点出题。
+
+【知识点背景】
+${knowledgeText || '（暂无背景资料，请用通用专业知识出题）'}
+
+【要求】
+- 生成 ${count} 道题目
+- 题型：${types.join('、')}
+- 每道题附带正确答案和简要解析
+- 选择题要有 4 个选项（A/B/C/D），其中 1 个正确答案
+- 填空题用 ___ 标记答案位置
+- 难度分布：简单40% + 中等40% + 较难20%
+
+【输出格式】
+返回 JSON 数组，每题格式：
+[
+  {
+    "type": "choice|fill|short_answer",
+    "question": "题目内容",
+    "options": ["A. xxx", "B. xxx", "C. xxx", "D. xxx"],
+    "correctAnswer": "正确答案",
+    "explanation": "解析",
+    "difficulty": "easy|medium|hard"
+  }
+]`;
+
+      try {
+        const resp = await fetch(llmConfig.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${llmConfig.api_key}` },
+          body: JSON.stringify({
+            model: llmConfig.model || 'deepseek-chat',
+            messages: [
+              { role: 'system', content: '你是一个专业考试出题专家，输出必须是合法 JSON。' },
+              { role: 'user', content: prompt },
+            ],
+            max_tokens: 4096,
+            temperature: 0.7,
+            response_format: { type: 'json_object' },
+          }),
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        const text = data.choices?.[0]?.message?.content || '[]';
+        let raw = [];
+        try { const parsed = JSON.parse(text); raw = parsed.quiz || parsed; if (!Array.isArray(raw)) raw = [raw]; } catch { raw = []; }
+        const quiz = raw.slice(0, count).map(q => ({
+          id: crypto.randomUUID(),
+          knowledgeId: knowledgePointId,
+          type: q.type || 'choice',
+          question: q.question || '',
+          options: q.options || [],
+          correctAnswer: q.correctAnswer || q.answer || '',
+          explanation: q.explanation || '',
+          difficulty: q.difficulty || 'medium',
+          knowledge: { title: kp.title, body: knowledgeText.substring(0, 800), level: 'beginner', tags: [] },
+        }));
+        return json(res, { ok: true, quiz, hasRagContext });
       } catch (err) {
         return json(res, { ok: false, quiz: [], error: err.message });
       }

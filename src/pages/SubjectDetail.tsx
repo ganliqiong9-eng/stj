@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { subjectData, type Chapter } from '../data/chapters';
+import { subjectData } from '../data/chapters';
 import db from '../store/db';
 import StatusBar from '../components/StatusBar';
 
@@ -19,6 +19,7 @@ export default function SubjectDetail() {
   const [chapterStatus, setChapterStatus] = useState<Record<string, 'done' | 'active' | 'pending'>>({});
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
+  const sd = id ? subjectData[id] : null;
   useEffect(() => {
     if (!sd) return;
     (async () => {
@@ -39,7 +40,6 @@ export default function SubjectDetail() {
     })();
   }, [sd]);
 
-  const sd = id ? subjectData[id] : null;
   if (!sd) return <div className="page"><div style={{padding:40, textAlign:'center', color:'var(--text-tertiary)'}}>科目未找到</div></div>;
 
   return (

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, BookOpen, TrendingUp, Award, BarChart3 } from 'lucide-react';
+import { Download } from 'lucide-react';
 import db from '../store/db';
 import StatusBar from '../components/StatusBar';
+import PageHeader from '../components/PageHeader';
 import StudyCalendar from '../components/StudyCalendar';
 
 export default function LearningReport() {
@@ -122,25 +123,37 @@ export default function LearningReport() {
   return (
     <div className="page">
       <StatusBar />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px 2px' }}>
-        <button onClick={() => nav('/')} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'var(--surface)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', fontSize: 18, flexShrink: 0 }}>&#x2039;</button>
-        <h2 style={{ fontSize: 17, fontWeight: 700, flex: 1 }}>学习报告</h2>
+      <PageHeader title="学习报告" onBack={() => nav('/')} right={
         <button onClick={exportMd} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', border: '2px solid var(--primary)', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--primary)', color: '#fff' }}>
           <Download size={14} /> 导出
         </button>
-      </div>
+      } />
       <div className="scroll">
         {/* Stats cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 12 }}>
-          <StatCard icon={<TrendingUp size={16} />} label="连续学习" value={`${streak} 天`} color="#3370ff" />
-          <StatCard icon={<BookOpen size={16} />} label="本周新增知识点" value={`${weekChunks} 个`} color="#00b365" />
-          <StatCard icon={<BarChart3 size={16} />} label="本周刷题数" value={`${weekQuestions} 题`} color="#7c3aed" />
-          <StatCard icon={<Award size={16} />} label="本周正确率" value={weekQuestions > 0 ? `${weekRate}%` : '-'} color={weekQuestions > 0 && weekRate >= 80 ? '#00b365' : weekQuestions > 0 && weekRate >= 60 ? '#ff7d00' : '#f53f3f'} />
+        <div className="stat-row">
+          <div className="stat-item">
+            <div className="value" style={{ color: '#3370ff' }}>{streak} 天</div>
+            <div className="label">连续学习</div>
+          </div>
+          <div className="stat-item">
+            <div className="value" style={{ color: '#00b365' }}>{weekChunks} 个</div>
+            <div className="label">本周新增知识点</div>
+          </div>
+        </div>
+        <div className="stat-row">
+          <div className="stat-item">
+            <div className="value" style={{ color: '#7c3aed' }}>{weekQuestions} 题</div>
+            <div className="label">本周刷题数</div>
+          </div>
+          <div className="stat-item">
+            <div className="value" style={{ color: weekQuestions > 0 && weekRate >= 80 ? '#00b365' : weekQuestions > 0 && weekRate >= 60 ? '#ff7d00' : '#f53f3f' }}>{weekQuestions > 0 ? `${weekRate}%` : '-'}</div>
+            <div className="label">本周正确率</div>
+          </div>
         </div>
 
         {/* Detail cards */}
+        <div className="section-title">📊 学习进度</div>
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 14, marginBottom: 8, border: '1px solid var(--border-light)' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>学习进度</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, fontSize: 11 }}>
             <div style={{ color: 'var(--text-secondary)' }}>已掌握章节</div><div style={{ fontWeight: 700, textAlign: 'right' }}>{completed}</div>
             <div style={{ color: 'var(--text-secondary)' }}>知识点总数</div><div style={{ fontWeight: 700, textAlign: 'right' }}>{chunkCount}</div>
@@ -155,9 +168,8 @@ export default function LearningReport() {
           <StudyCalendar />
         </div>
 
-        {/* 最近 7 天正确率趋势 */}
+        <div className="section-title">📈 最近 7 天正确率趋势</div>
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 14, marginBottom: 8, border: '1px solid var(--border-light)' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>最近 7 天正确率趋势</div>
           {trend.some(t => t.rate !== null) ? (
             <TrendChart data={trend} />
           ) : (
@@ -165,9 +177,8 @@ export default function LearningReport() {
           )}
         </div>
 
-        {/* Subject distribution */}
+        <div className="section-title">🗂️ 知识库分布</div>
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 14, marginBottom: 8, border: '1px solid var(--border-light)' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>知识库分布</div>
           {Object.entries(bySubj || {}).length === 0 ? (
             <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>暂无数据</div>
           ) : (
@@ -176,7 +187,7 @@ export default function LearningReport() {
                 <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ width: 60, fontSize: 11, color: 'var(--text-secondary)' }}>{s}</span>
                   <div style={{ flex: 1, height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 4, background: '#3370ff', width: `${Math.min(100, (Number(c) / Math.max(...Object.values(bySubj))) * 100)}%`, transition: 'width .5s' }} />
+                    <div style={{ height: '100%', borderRadius: 4, background: '#3370ff', width: `${Math.min(100, (Number(c) / Math.max(...Object.values(bySubj).map(Number))) * 100)}%`, transition: 'width .5s' }} />
                   </div>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)', minWidth: 30, textAlign: 'right' }}>{c as number}</span>
                 </div>
@@ -185,9 +196,8 @@ export default function LearningReport() {
           )}
         </div>
 
-        {/* 薄弱知识点 TOP5 */}
+        <div className="section-title">⚠️ 薄弱知识点 TOP5</div>
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 14, marginBottom: 8, border: '1px solid var(--border-light)' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>薄弱知识点 TOP5</div>
           {weakPoints.length === 0 ? (
             <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>暂无错题数据，继续保持！</div>
           ) : (
@@ -208,18 +218,6 @@ export default function LearningReport() {
           点击右上角「导出」下载 Markdown 报告
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
-  return (
-    <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', border: '1px solid var(--border-light)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <span style={{ color }}>{icon}</span>
-        <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{label}</span>
-      </div>
-      <div style={{ fontSize: 20, fontWeight: 800, color }}>{value}</div>
     </div>
   );
 }

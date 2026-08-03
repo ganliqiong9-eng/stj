@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import db from '../store/db';
 import { subjNames } from '../data/questions';
 import QuizView from '../components/QuizView';
-import { Sparkles } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import StatusBar from '../components/StatusBar';
 
 interface QItem {
@@ -58,15 +58,7 @@ export default function Quiz() {
     return (
       <div className="page">
         <StatusBar />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px 2px' }}>
-          <button onClick={() => setAiMode(false)} style={{
-            width: 32, height: 32, borderRadius: 8, border: 'none',
-            background: 'var(--surface)', color: 'var(--text-secondary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', boxShadow: 'var(--shadow-sm)', fontSize: 18, flexShrink: 0
-          }}>‹</button>
-          <h2 style={{ fontSize: 17, fontWeight: 700, flex: 1 }}>AI 出题</h2>
-        </div>
+        <PageHeader title="AI 出题" onBack={() => setAiMode(false)} />
         <QuizView onBack={() => setAiMode(false)} />
       </div>
     );
@@ -76,16 +68,9 @@ export default function Quiz() {
     return (
       <div className="page">
         <StatusBar />
-        <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 12px 2px'}}>
-          <button onClick={() => nav('/')} style={{
-            width:32, height:32, borderRadius:8, border:'none',
-            background:'var(--surface)', color:'var(--text-secondary)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            cursor:'pointer', boxShadow:'var(--shadow-sm)', fontSize:18, flexShrink:0
-          }}>‹</button>
-          <h2 style={{fontSize:17, fontWeight:700, flex:1}}>练习</h2>
+        <PageHeader title="练习" onBack={() => nav('/')} right={
           <button onClick={() => setAiMode(true)} style={{display:'flex',alignItems:'center',gap:3,padding:'5px 10px',border:'2px solid var(--primary)',borderRadius:8,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'var(--font)',background:'var(--primary)',color:'#fff',whiteSpace:'nowrap'}}>✨ AI 出题</button>
-        </div>
+        } />
         <div style={{textAlign:'center', padding:40, color:'var(--text-tertiary)'}}>
           <div style={{fontSize:40, marginBottom:10}}>📭</div>
           <div style={{fontSize:14, fontWeight:600}}>当前筛选条件下没有题目</div>
@@ -111,17 +96,9 @@ export default function Quiz() {
   };
 
   return (
-    <div className="page">
-      <StatusBar />
-      <div style={{display:'flex', alignItems:'center', gap:8, padding:'6px 12px 2px'}}>
-        <button onClick={() => nav('/')} style={{
-          width:32, height:32, borderRadius:8, border:'none',
-          background:'var(--surface)', color:'var(--text-secondary)',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          cursor:'pointer', boxShadow:'var(--shadow-sm)', fontSize:18, flexShrink:0
-        }}>‹</button>
-        <h2 style={{fontSize:17, fontWeight:700}}>练习</h2>
-      </div>
+      <div className="page">
+        <StatusBar />
+        <PageHeader title="练习" onBack={() => nav('/')} />
       <div className="scroll">
         <div style={{display:'flex', gap:6, marginBottom:12, overflowX:'auto', padding:'2px 0'}}>
           {['all','sql','py','da','dma'].map(s => {
