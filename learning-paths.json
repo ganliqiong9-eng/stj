@@ -3,59 +3,565 @@
     {
       "id": "dama-dmbok",
       "name": "DAMA 数据管理知识体系",
-      "description": "基于 DMBOK2 的完整数据管理知识框架，覆盖 11 个知识领域",
+      "description": "基于 DMBOK2 的 CDGP 完整备考知识体系，覆盖 17 章 + CDGP 扩展考点，标注★为高频重点",
       "icon": "🗄️",
+      "color": "#7C3AED",
+      "lightBg": "#f5f3ff",
       "chapters": [
         {
           "id": "dama-ch1",
           "order": 1,
-          "title": "数据治理",
-          "description": "数据管理的组织架构、策略制定和执行框架",
+          "title": "第1章 数据管理知识体系概述",
+          "description": "数据管理定义、DAMA 车轮图、环境因素、7要素、数据战略",
           "knowledgePoints": [
-            { "id": "dama-kp1-1", "order": 1, "title": "数据治理的定义与目标" },
-            { "id": "dama-kp1-2", "order": 2, "title": "数据治理组织架构" },
-            { "id": "dama-kp1-3", "order": 3, "title": "数据治理成熟度模型" }
+            {
+              "id": "dama-kp1-1",
+              "order": 1,
+              "title": "什么是数据管理与数据资产"
+            },
+            {
+              "id": "dama-kp1-2",
+              "order": 2,
+              "title": "DAMA 车轮图与环境因素六边形"
+            },
+            {
+              "id": "dama-kp1-3",
+              "order": 3,
+              "title": "数据管理7个环境要素"
+            },
+            {
+              "id": "dama-kp1-4",
+              "order": 4,
+              "title": "数据管理核心原则与面临挑战"
+            },
+            {
+              "id": "dama-kp1-5",
+              "order": 5,
+              "title": "数据生命周期概念与数据战略"
+            }
           ]
         },
         {
           "id": "dama-ch2",
           "order": 2,
-          "title": "数据质量",
-          "description": "评估和提升数据质量的维度、方法和技术",
+          "title": "第2章 数据处理伦理",
+          "description": "数据伦理基本原则、隐私合规、数据滥用风险（高频选择题）",
           "knowledgePoints": [
-            { "id": "dama-kp2-1", "order": 1, "title": "数据质量六大维度" },
-            { "id": "dama-kp2-2", "order": 2, "title": "数据质量评估方法" },
-            { "id": "dama-kp2-3", "order": 3, "title": "数据质量改进流程" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "python-basics",
-      "name": "Python 从零到实战",
-      "description": "面向数据从业者的 Python 学习路径，从基础语法到数据分析实战",
-      "icon": "🐍",
-      "chapters": [
-        {
-          "id": "py-ch1",
-          "order": 1,
-          "title": "Python 基础语法",
-          "description": "变量、数据类型、运算符、输入输出",
-          "knowledgePoints": [
-            { "id": "py-kp1-1", "order": 1, "title": "变量与赋值" },
-            { "id": "py-kp1-2", "order": 2, "title": "数据类型" },
-            { "id": "py-kp1-3", "order": 3, "title": "运算符与表达式" }
+            {
+              "id": "dama-kp2-1",
+              "order": 1,
+              "title": "数据伦理基本原则"
+            },
+            {
+              "id": "dama-kp2-2",
+              "order": 2,
+              "title": "隐私、公平、透明与合规"
+            },
+            {
+              "id": "dama-kp2-3",
+              "order": 3,
+              "title": "数据滥用风险与伦理法律区别"
+            }
           ]
         },
         {
-          "id": "py-ch2",
-          "order": 2,
-          "title": "控制流",
-          "description": "条件判断、循环、异常处理",
+          "id": "dama-ch3",
+          "order": 3,
+          "title": "第3章 数据治理【★高频重点】",
+          "description": "治理定义目标、框架战略、组织角色、治理活动、政策标准、实施路径",
           "knowledgePoints": [
-            { "id": "py-kp2-1", "order": 1, "title": "条件判断 if-elif-else" },
-            { "id": "py-kp2-2", "order": 2, "title": "for 循环与 while 循环" },
-            { "id": "py-kp2-3", "order": 3, "title": "异常处理 try-except" }
+            {
+              "id": "dama-kp3-1",
+              "order": 1,
+              "title": "数据治理定义、目标与原则"
+            },
+            {
+              "id": "dama-kp3-2",
+              "order": 2,
+              "title": "治理框架、战略与路线图"
+            },
+            {
+              "id": "dama-kp3-3",
+              "order": 3,
+              "title": "治理组织：委员会/所有者/管家/CDO"
+            },
+            {
+              "id": "dama-kp3-4",
+              "order": 4,
+              "title": "核心治理活动：决策/监督/沟通/冲突"
+            },
+            {
+              "id": "dama-kp3-5",
+              "order": 5,
+              "title": "数据政策、标准与治理度量KPI"
+            },
+            {
+              "id": "dama-kp3-6",
+              "order": 6,
+              "title": "数据治理实施路径与最佳实践"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch4",
+          "order": 4,
+          "title": "第4章 数据架构",
+          "description": "企业数据架构、架构组件、架构原则与模式、数据流与资产目录",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp4-1",
+              "order": 1,
+              "title": "企业数据架构定义与架构原则"
+            },
+            {
+              "id": "dama-kp4-2",
+              "order": 2,
+              "title": "架构组件：模型/数据流/存储/目录"
+            },
+            {
+              "id": "dama-kp4-3",
+              "order": 3,
+              "title": "架构模式与数据流设计"
+            },
+            {
+              "id": "dama-kp4-4",
+              "order": 4,
+              "title": "数据资产目录建设"
+            },
+            {
+              "id": "dama-kp4-5",
+              "order": 5,
+              "title": "数据架构活动、度量与实施挑战"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch5",
+          "order": 5,
+          "title": "第5章 数据建模与设计【★高频重点】",
+          "description": "三层模型、模型组件、范式规范化、多维建模、建模方法与工具",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp5-1",
+              "order": 1,
+              "title": "数据建模目的与原则"
+            },
+            {
+              "id": "dama-kp5-2",
+              "order": 2,
+              "title": "三层模型：CDM/LDM/PDM"
+            },
+            {
+              "id": "dama-kp5-3",
+              "order": 3,
+              "title": "模型组件：实体/属性/关系/域/键"
+            },
+            {
+              "id": "dama-kp5-4",
+              "order": 4,
+              "title": "关系建模：范式/规范化/反规范化"
+            },
+            {
+              "id": "dama-kp5-5",
+              "order": 5,
+              "title": "多维建模基础与建模方法"
+            },
+            {
+              "id": "dama-kp5-6",
+              "order": 6,
+              "title": "建模工具与模型治理"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch6",
+          "order": 6,
+          "title": "第6章 数据存储和操作",
+          "description": "存储技术分类、数据库运维、生命周期管理、容量规划",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp6-1",
+              "order": 1,
+              "title": "数据存储目标与原则"
+            },
+            {
+              "id": "dama-kp6-2",
+              "order": 2,
+              "title": "存储技术分类：关系型/NoSQL/对象存储"
+            },
+            {
+              "id": "dama-kp6-3",
+              "order": 3,
+              "title": "数据库运维：备份/恢复/性能调优"
+            },
+            {
+              "id": "dama-kp6-4",
+              "order": 4,
+              "title": "数据生命周期管理：归档/保留/销毁"
+            },
+            {
+              "id": "dama-kp6-5",
+              "order": 5,
+              "title": "容量规划与存储成本管理"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch7",
+          "order": 7,
+          "title": "第7章 数据安全【★高频重点】",
+          "description": "安全目标、分类分级、访问控制、加密脱敏、泄露防护、隐私合规",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp7-1",
+              "order": 1,
+              "title": "数据安全目标与分类分级"
+            },
+            {
+              "id": "dama-kp7-2",
+              "order": 2,
+              "title": "访问控制：身份认证/授权/最小权限"
+            },
+            {
+              "id": "dama-kp7-3",
+              "order": 3,
+              "title": "数据加密与静态/动态脱敏"
+            },
+            {
+              "id": "dama-kp7-4",
+              "order": 4,
+              "title": "数据泄露防护与审计日志"
+            },
+            {
+              "id": "dama-kp7-5",
+              "order": 5,
+              "title": "隐私保护合规与安全风险评估"
+            },
+            {
+              "id": "dama-kp7-6",
+              "order": 6,
+              "title": "数据安全活动与KPI度量"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch8",
+          "order": 8,
+          "title": "第8章 数据集成与互操作",
+          "description": "集成模式（ETL/ELT/API/MQ）、数据转换映射、互操作标准",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp8-1",
+              "order": 1,
+              "title": "数据集成目标与原则"
+            },
+            {
+              "id": "dama-kp8-2",
+              "order": 2,
+              "title": "集成模式：ETL/ELT/API/消息队列"
+            },
+            {
+              "id": "dama-kp8-3",
+              "order": 3,
+              "title": "数据转换与数据映射"
+            },
+            {
+              "id": "dama-kp8-4",
+              "order": 4,
+              "title": "互操作标准与接口管理"
+            },
+            {
+              "id": "dama-kp8-5",
+              "order": 5,
+              "title": "数据流转质量、错误处理与度量"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch9",
+          "order": 9,
+          "title": "第9章 文档和内容管理",
+          "description": "非结构化数据生命周期、ECM、合规留存、检索版本管理",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp9-1",
+              "order": 1,
+              "title": "非结构化数据生命周期与分类"
+            },
+            {
+              "id": "dama-kp9-2",
+              "order": 2,
+              "title": "文档/内容元数据标签与ECM"
+            },
+            {
+              "id": "dama-kp9-3",
+              "order": 3,
+              "title": "合规留存、检索与版本管理"
+            },
+            {
+              "id": "dama-kp9-4",
+              "order": 4,
+              "title": "非结构化数据风险与度量指标"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch10",
+          "order": 10,
+          "title": "第10章 参考数据和主数据【★高频重点】",
+          "description": "参考数据类型、主数据MDM目标、四种实施模式、质量与治理",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp10-1",
+              "order": 1,
+              "title": "参考数据定义、类型与管理方式"
+            },
+            {
+              "id": "dama-kp10-2",
+              "order": 2,
+              "title": "主数据定义与核心业务实体"
+            },
+            {
+              "id": "dama-kp10-3",
+              "order": 3,
+              "title": "MDM目标原则与四种实施模式"
+            },
+            {
+              "id": "dama-kp10-4",
+              "order": 4,
+              "title": "主数据质量：清洗/匹配合并"
+            },
+            {
+              "id": "dama-kp10-5",
+              "order": 5,
+              "title": "参考/主数据治理与度量指标"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch11",
+          "order": 11,
+          "title": "第11章 数据仓库与BI【★高频重点】",
+          "description": "数仓架构分层、维度建模、BI报表自助分析、数据集市",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp11-1",
+              "order": 1,
+              "title": "DW/BI目标与数仓/数据湖概念"
+            },
+            {
+              "id": "dama-kp11-2",
+              "order": 2,
+              "title": "数仓分层架构：ODS/DWD/DWS/ADS"
+            },
+            {
+              "id": "dama-kp11-3",
+              "order": 3,
+              "title": "维度建模：事实表/维度表/星型/雪花"
+            },
+            {
+              "id": "dama-kp11-4",
+              "order": 4,
+              "title": "BI报表、仪表盘与自助分析"
+            },
+            {
+              "id": "dama-kp11-5",
+              "order": 5,
+              "title": "数据集市与ETL在数仓中的应用"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch12",
+          "order": 12,
+          "title": "第12章 元数据管理【★高频重点】",
+          "description": "元数据三类分类、术语表数据血缘、采集存储、影响分析溯源",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp12-1",
+              "order": 1,
+              "title": "元数据分类：业务/技术/管理"
+            },
+            {
+              "id": "dama-kp12-2",
+              "order": 2,
+              "title": "业务术语表、数据字典与数据血缘"
+            },
+            {
+              "id": "dama-kp12-3",
+              "order": 3,
+              "title": "元数据采集、存储与元模型"
+            },
+            {
+              "id": "dama-kp12-4",
+              "order": 4,
+              "title": "使用场景：影响分析/溯源/资产目录"
+            },
+            {
+              "id": "dama-kp12-5",
+              "order": 5,
+              "title": "元数据治理、质量与KPI"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch13",
+          "order": 13,
+          "title": "第13章 数据质量管理【★高频重点】",
+          "description": "质量六维度、工程流程、数据剖析、根因分析、监控告警",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp13-1",
+              "order": 1,
+              "title": "数据质量定义与六大维度"
+            },
+            {
+              "id": "dama-kp13-2",
+              "order": 2,
+              "title": "数据质量工程流程"
+            },
+            {
+              "id": "dama-kp13-3",
+              "order": 3,
+              "title": "数据剖析（Data Profiling）"
+            },
+            {
+              "id": "dama-kp13-4",
+              "order": 4,
+              "title": "数据质量问题根因分析"
+            },
+            {
+              "id": "dama-kp13-5",
+              "order": 5,
+              "title": "DQ报告、监控告警与持续改进"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch14",
+          "order": 14,
+          "title": "第14章 大数据和数据科学",
+          "description": "4V特征、数据湖/湖仓一体、数据科学工作流、机器学习基础",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp14-1",
+              "order": 1,
+              "title": "大数据4V特征与架构模式"
+            },
+            {
+              "id": "dama-kp14-2",
+              "order": 2,
+              "title": "数据湖与湖仓一体"
+            },
+            {
+              "id": "dama-kp14-3",
+              "order": 3,
+              "title": "数据科学工作流（CRISP-DM）"
+            },
+            {
+              "id": "dama-kp14-4",
+              "order": 4,
+              "title": "统计/挖掘/机器学习基础概念"
+            },
+            {
+              "id": "dama-kp14-5",
+              "order": 5,
+              "title": "大数据伦理与项目治理"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch15",
+          "order": 15,
+          "title": "第15章 数据管理成熟度评估",
+          "description": "成熟度模型概念、DAMM/DCAM/CMMI框架、评估流程与产出",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp15-1",
+              "order": 1,
+              "title": "成熟度模型概念（0-5级）"
+            },
+            {
+              "id": "dama-kp15-2",
+              "order": 2,
+              "title": "主流框架：DAMM/DCAM/CMMI"
+            },
+            {
+              "id": "dama-kp15-3",
+              "order": 3,
+              "title": "成熟度评估完整流程"
+            },
+            {
+              "id": "dama-kp15-4",
+              "order": 4,
+              "title": "评估产出物与使用场景"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch16",
+          "order": 16,
+          "title": "第16章 数据管理组织与变革管理",
+          "description": "组织模式、关键角色职责、团队建设、变革管理策略与落地成功因素",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp16-1",
+              "order": 1,
+              "title": "数据管理组织模式"
+            },
+            {
+              "id": "dama-kp16-2",
+              "order": 2,
+              "title": "关键角色职责：CDO/管家/DBA/分析师"
+            },
+            {
+              "id": "dama-kp16-3",
+              "order": 3,
+              "title": "团队能力建设与岗位技能要求"
+            },
+            {
+              "id": "dama-kp16-4",
+              "order": 4,
+              "title": "变革驱动因素与管理策略"
+            },
+            {
+              "id": "dama-kp16-5",
+              "order": 5,
+              "title": "数据管理项目落地成功因素"
+            }
+          ]
+        },
+        {
+          "id": "dama-ch17",
+          "order": 17,
+          "title": "第17章 CDGP 扩展考点",
+          "description": "教材之外考试会考的内容：数据要素、数据中台、隐私计算、AI大模型、信创",
+          "knowledgePoints": [
+            {
+              "id": "dama-kp17-1",
+              "order": 1,
+              "title": "数据要素与数据要素市场化"
+            },
+            {
+              "id": "dama-kp17-2",
+              "order": 2,
+              "title": "数据中台概念与架构"
+            },
+            {
+              "id": "dama-kp17-3",
+              "order": 3,
+              "title": "隐私计算与可信数据空间"
+            },
+            {
+              "id": "dama-kp17-4",
+              "order": 4,
+              "title": "AI大模型对数据管理的影响"
+            },
+            {
+              "id": "dama-kp17-5",
+              "order": 5,
+              "title": "信创相关数据管理要求"
+            }
           ]
         }
       ]
@@ -63,29 +569,732 @@
     {
       "id": "sql-fundamentals",
       "name": "SQL 数据查询从入门到精通",
-      "description": "掌握 SQL 查询核心技能，从基础 SELECT 到复杂分析函数",
+      "description": "完整 SQL 知识体系：从五大语言分类到数仓实战，覆盖 DQL/DML/DDL/DCL/TCL 全分类",
       "icon": "🗃️",
+      "color": "#3370ff",
+      "lightBg": "#eff6ff",
       "chapters": [
         {
           "id": "sql-ch1",
           "order": 1,
-          "title": "基础查询",
-          "description": "SELECT、WHERE、ORDER BY、LIMIT",
+          "title": "SQL 基础概念",
+          "description": "五大语言分类、数据库与schema、主键外键、数据类型、运算符",
           "knowledgePoints": [
-            { "id": "sql-kp1-1", "order": 1, "title": "SELECT 基础语法" },
-            { "id": "sql-kp1-2", "order": 2, "title": "WHERE 条件过滤" },
-            { "id": "sql-kp1-3", "order": 3, "title": "ORDER BY 与 LIMIT" }
+            {
+              "id": "sql-kp1-1",
+              "order": 1,
+              "title": "SQL 五大语言分类：DQL/DML/DDL/DCL/TCL"
+            },
+            {
+              "id": "sql-kp1-2",
+              "order": 2,
+              "title": "数据库、schema、表、字段、行记录"
+            },
+            {
+              "id": "sql-kp1-3",
+              "order": 3,
+              "title": "主键、外键、唯一键、约束、索引"
+            },
+            {
+              "id": "sql-kp1-4",
+              "order": 4,
+              "title": "数据类型：数值/字符串/日期时间/布尔"
+            },
+            {
+              "id": "sql-kp1-5",
+              "order": 5,
+              "title": "运算符（算术/比较/逻辑）与别名AS"
+            }
           ]
         },
         {
           "id": "sql-ch2",
           "order": 2,
-          "title": "聚合与分组",
-          "description": "COUNT/SUM/AVG/MAX/MIN、GROUP BY、HAVING",
+          "title": "DQL 基础查询",
+          "description": "SELECT、DISTINCT、WHERE条件过滤、LIKE/BETWEEN/IN、排序分页",
           "knowledgePoints": [
-            { "id": "sql-kp2-1", "order": 1, "title": "聚合函数" },
-            { "id": "sql-kp2-2", "order": 2, "title": "GROUP BY 分组" },
-            { "id": "sql-kp2-3", "order": 3, "title": "HAVING 过滤分组" }
+            {
+              "id": "sql-kp2-1",
+              "order": 1,
+              "title": "SELECT 查询指定列与全部列*"
+            },
+            {
+              "id": "sql-kp2-2",
+              "order": 2,
+              "title": "DISTINCT 去重"
+            },
+            {
+              "id": "sql-kp2-3",
+              "order": 3,
+              "title": "WHERE 行过滤：比较/LIKE/BETWEEN/IN"
+            },
+            {
+              "id": "sql-kp2-4",
+              "order": 4,
+              "title": "IS NULL 空值判断与逻辑运算符"
+            },
+            {
+              "id": "sql-kp2-5",
+              "order": 5,
+              "title": "ORDER BY 排序与 LIMIT OFFSET 分页"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch3",
+          "order": 3,
+          "title": "聚合与分组",
+          "description": "聚合函数、GROUP BY、HAVING、WHERE vs HAVING区别",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp3-1",
+              "order": 1,
+              "title": "聚合函数 SUM/AVG/MAX/MIN/COUNT"
+            },
+            {
+              "id": "sql-kp3-2",
+              "order": 2,
+              "title": "GROUP BY 分组查询"
+            },
+            {
+              "id": "sql-kp3-3",
+              "order": 3,
+              "title": "HAVING 过滤与 WHERE vs HAVING 区别"
+            },
+            {
+              "id": "sql-kp3-4",
+              "order": 4,
+              "title": "GROUP BY + HAVING + ORDER BY 组合使用"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch4",
+          "order": 4,
+          "title": "多表连接",
+          "description": "五种JOIN类型、ON条件、ON vs WHERE区别、多表关联",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp4-1",
+              "order": 1,
+              "title": "INNER JOIN 内连接"
+            },
+            {
+              "id": "sql-kp4-2",
+              "order": 2,
+              "title": "LEFT JOIN 与 RIGHT JOIN"
+            },
+            {
+              "id": "sql-kp4-3",
+              "order": 3,
+              "title": "FULL JOIN 全外连接与 CROSS JOIN 笛卡尔积"
+            },
+            {
+              "id": "sql-kp4-4",
+              "order": 4,
+              "title": "ON 连接条件与 ON vs WHERE 区别"
+            },
+            {
+              "id": "sql-kp4-5",
+              "order": 5,
+              "title": "多表关联查询"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch5",
+          "order": 5,
+          "title": "子查询",
+          "description": "标量/列/表子查询、WHERE/SELECT/FROM中使用、性能问题",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp5-1",
+              "order": 1,
+              "title": "标量/列/表子查询分类"
+            },
+            {
+              "id": "sql-kp5-2",
+              "order": 2,
+              "title": "WHERE 中使用子查询：IN/EXISTS/NOT EXISTS"
+            },
+            {
+              "id": "sql-kp5-3",
+              "order": 3,
+              "title": "SELECT 与 FROM 中使用子查询"
+            },
+            {
+              "id": "sql-kp5-4",
+              "order": 4,
+              "title": "子查询常见性能问题"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch6",
+          "order": 6,
+          "title": "集合运算",
+          "description": "UNION/UNION ALL/INTERSECT/EXCEPT，列数类型匹配要求",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp6-1",
+              "order": 1,
+              "title": "UNION 合并去重与 UNION ALL 保留重复"
+            },
+            {
+              "id": "sql-kp6-2",
+              "order": 2,
+              "title": "INTERSECT 交集与 EXCEPT/MINUS 差集"
+            },
+            {
+              "id": "sql-kp6-3",
+              "order": 3,
+              "title": "集合运算要求：列数量与类型匹配"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch7",
+          "order": 7,
+          "title": "DML 数据操纵",
+          "description": "INSERT/UPDATE/DELETE、DELETE vs TRUNCATE区别",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp7-1",
+              "order": 1,
+              "title": "INSERT 单行插入与多行插入"
+            },
+            {
+              "id": "sql-kp7-2",
+              "order": 2,
+              "title": "UPDATE 更新数据"
+            },
+            {
+              "id": "sql-kp7-3",
+              "order": 3,
+              "title": "DELETE 删除与 DELETE vs TRUNCATE 区别"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch8",
+          "order": 8,
+          "title": "DDL 数据定义",
+          "description": "CREATE/ALTER/DROP TABLE、表约束、INDEX索引",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp8-1",
+              "order": 1,
+              "title": "CREATE DATABASE 与 CREATE TABLE"
+            },
+            {
+              "id": "sql-kp8-2",
+              "order": 2,
+              "title": "ALTER TABLE：新增/修改/删除列与修改约束"
+            },
+            {
+              "id": "sql-kp8-3",
+              "order": 3,
+              "title": "DROP TABLE 与表约束（PK/FK/UNIQUE/NOT NULL/DEFAULT）"
+            },
+            {
+              "id": "sql-kp8-4",
+              "order": 4,
+              "title": "INDEX 索引创建与删除"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch9",
+          "order": 9,
+          "title": "窗口函数",
+          "description": "OVER()语法、排名函数、聚合窗口、偏移函数、框架子句",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp9-1",
+              "order": 1,
+              "title": "OVER() 基础语法：PARTITION BY 与 ORDER BY"
+            },
+            {
+              "id": "sql-kp9-2",
+              "order": 2,
+              "title": "排序窗口函数 ROW_NUMBER/RANK/DENSE_RANK"
+            },
+            {
+              "id": "sql-kp9-3",
+              "order": 3,
+              "title": "聚合窗口函数 SUM/AVG OVER()"
+            },
+            {
+              "id": "sql-kp9-4",
+              "order": 4,
+              "title": "偏移函数 LAG 与 LEAD"
+            },
+            {
+              "id": "sql-kp9-5",
+              "order": 5,
+              "title": "框架子句 ROWS 与 RANGE"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch10",
+          "order": 10,
+          "title": "常用内置函数",
+          "description": "字符串函数、日期函数、条件判断CASE WHEN/IF、类型转换",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp10-1",
+              "order": 1,
+              "title": "字符串函数：CONCAT/SUBSTRING/TRIM/UPPER/LOWER"
+            },
+            {
+              "id": "sql-kp10-2",
+              "order": 2,
+              "title": "日期函数：加减/差值/提取年月日"
+            },
+            {
+              "id": "sql-kp10-3",
+              "order": 3,
+              "title": "条件判断：CASE WHEN 与 IF"
+            },
+            {
+              "id": "sql-kp10-4",
+              "order": 4,
+              "title": "类型转换函数"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch11",
+          "order": 11,
+          "title": "CTE 公用表表达式",
+          "description": "WITH普通CTE、递归CTE、SQL逻辑执行顺序",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp11-1",
+              "order": 1,
+              "title": "WITH 普通 CTE"
+            },
+            {
+              "id": "sql-kp11-2",
+              "order": 2,
+              "title": "递归 CTE"
+            },
+            {
+              "id": "sql-kp11-3",
+              "order": 3,
+              "title": "SQL 逻辑执行顺序"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch12",
+          "order": 12,
+          "title": "DCL 权限与 TCL 事务",
+          "description": "GRANT/REVOKE权限、BEGIN/COMMIT/ROLLBACK、ACID特性",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp12-1",
+              "order": 1,
+              "title": "GRANT 授权与 REVOKE 回收权限"
+            },
+            {
+              "id": "sql-kp12-2",
+              "order": 2,
+              "title": "BEGIN/COMMIT/ROLLBACK 事务操作"
+            },
+            {
+              "id": "sql-kp12-3",
+              "order": 3,
+              "title": "事务 ACID 四大特性"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch13",
+          "order": 13,
+          "title": "SQL 优化与坑点",
+          "description": "索引失效场景、笛卡尔积、NULL陷阱、GROUP BY注意事项、性能优化",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp13-1",
+              "order": 1,
+              "title": "索引失效常见场景"
+            },
+            {
+              "id": "sql-kp13-2",
+              "order": 2,
+              "title": "避免笛卡尔积与 NULL 逻辑陷阱"
+            },
+            {
+              "id": "sql-kp13-3",
+              "order": 3,
+              "title": "GROUP BY 使用注意事项"
+            },
+            {
+              "id": "sql-kp13-4",
+              "order": 4,
+              "title": "JOIN 与子查询性能优化思路"
+            }
+          ]
+        },
+        {
+          "id": "sql-ch14",
+          "order": 14,
+          "title": "数仓场景 SQL 实战",
+          "description": "数据清洗、SCD缓慢变化维、拉链表、ETL数据加工",
+          "knowledgePoints": [
+            {
+              "id": "sql-kp14-1",
+              "order": 1,
+              "title": "数据清洗：去重/空值处理/异常过滤"
+            },
+            {
+              "id": "sql-kp14-2",
+              "order": 2,
+              "title": "SCD 缓慢变化维处理思路"
+            },
+            {
+              "id": "sql-kp14-3",
+              "order": 3,
+              "title": "拉链表实现思路"
+            },
+            {
+              "id": "sql-kp14-4",
+              "order": 4,
+              "title": "ETL 中数据加工与统计汇总"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "python-basics",
+      "name": "Python 从零到实战",
+      "description": "面向数据从业者的 Python 完整学习路径，覆盖环境搭建→基础语法→NumPy→Pandas→可视化→SQL联合分析→统计业务分析→进阶→项目实战",
+      "icon": "🐍",
+      "color": "#00b365",
+      "lightBg": "#ecfdf5",
+      "chapters": [
+        {
+          "id": "py-ch1",
+          "order": 1,
+          "title": "Python 环境搭建",
+          "description": "Anaconda安装、IDE选择（Jupyter/VS Code）、pip/conda包管理",
+          "knowledgePoints": [
+            {
+              "id": "py-kp1-1",
+              "order": 1,
+              "title": "Python/Anaconda 安装与虚拟环境"
+            },
+            {
+              "id": "py-kp1-2",
+              "order": 2,
+              "title": "IDE 使用：Jupyter Notebook 与 VS Code"
+            },
+            {
+              "id": "py-kp1-3",
+              "order": 3,
+              "title": "pip 与 conda 包管理"
+            }
+          ]
+        },
+        {
+          "id": "py-ch2",
+          "order": 2,
+          "title": "基础语法",
+          "description": "变量数据类型、运算符、字符串操作、注释",
+          "knowledgePoints": [
+            {
+              "id": "py-kp2-1",
+              "order": 1,
+              "title": "变量与数据类型（int/float/str/bool）"
+            },
+            {
+              "id": "py-kp2-2",
+              "order": 2,
+              "title": "运算符：算术/比较/逻辑/赋值"
+            },
+            {
+              "id": "py-kp2-3",
+              "order": 3,
+              "title": "字符串操作：切片/拼接/分割/替换/格式化"
+            },
+            {
+              "id": "py-kp2-4",
+              "order": 4,
+              "title": "注释与代码规范"
+            }
+          ]
+        },
+        {
+          "id": "py-ch3",
+          "order": 3,
+          "title": "容器数据类型",
+          "description": "list/tuple/dict/set 增删改查、切片、去重、集合运算",
+          "knowledgePoints": [
+            {
+              "id": "py-kp3-1",
+              "order": 1,
+              "title": "列表 list：增删改查与切片"
+            },
+            {
+              "id": "py-kp3-2",
+              "order": 2,
+              "title": "元组 tuple"
+            },
+            {
+              "id": "py-kp3-3",
+              "order": 3,
+              "title": "字典 dict：键值对与遍历"
+            },
+            {
+              "id": "py-kp3-4",
+              "order": 4,
+              "title": "集合 set：去重与集合运算"
+            }
+          ]
+        },
+        {
+          "id": "py-ch4",
+          "order": 4,
+          "title": "流程控制与函数",
+          "description": "if/for/while/break/continue + 函数定义/参数/lambda/作用域",
+          "knowledgePoints": [
+            {
+              "id": "py-kp4-1",
+              "order": 1,
+              "title": "条件判断 if/elif/else"
+            },
+            {
+              "id": "py-kp4-2",
+              "order": 2,
+              "title": "循环 for/while 与 break/continue"
+            },
+            {
+              "id": "py-kp4-3",
+              "order": 3,
+              "title": "函数定义 def、参数类型与返回值"
+            },
+            {
+              "id": "py-kp4-4",
+              "order": 4,
+              "title": "lambda 匿名函数与作用域"
+            }
+          ]
+        },
+        {
+          "id": "py-ch5",
+          "order": 5,
+          "title": "模块、文件与异常",
+          "description": "import导入、标准库、文件读写（txt/csv）、try-except异常处理",
+          "knowledgePoints": [
+            {
+              "id": "py-kp5-1",
+              "order": 1,
+              "title": "模块导入 import 与常用标准库"
+            },
+            {
+              "id": "py-kp5-2",
+              "order": 2,
+              "title": "文件读写：txt/csv 与 with open()"
+            },
+            {
+              "id": "py-kp5-3",
+              "order": 3,
+              "title": "异常处理 try-except"
+            }
+          ]
+        },
+        {
+          "id": "py-ch6",
+          "order": 6,
+          "title": "NumPy 科学计算",
+          "description": "ndarray创建、索引切片、运算广播、统计函数、reshape、缺失值",
+          "knowledgePoints": [
+            {
+              "id": "py-kp6-1",
+              "order": 1,
+              "title": "ndarray 数组创建与索引切片"
+            },
+            {
+              "id": "py-kp6-2",
+              "order": 2,
+              "title": "数组运算与广播机制"
+            },
+            {
+              "id": "py-kp6-3",
+              "order": 3,
+              "title": "常用统计函数与形状变换 reshape"
+            },
+            {
+              "id": "py-kp6-4",
+              "order": 4,
+              "title": "缺失值处理 np.nan"
+            }
+          ]
+        },
+        {
+          "id": "py-ch7",
+          "order": 7,
+          "title": "Pandas 数据分析基础",
+          "description": "Series/DataFrame、数据读写、选择过滤、数据清洗（缺失/重复/异常/类型转换）",
+          "knowledgePoints": [
+            {
+              "id": "py-kp7-1",
+              "order": 1,
+              "title": "Series 与 DataFrame 创建查看"
+            },
+            {
+              "id": "py-kp7-2",
+              "order": 2,
+              "title": "数据读取与输出：read_csv/read_excel/to_csv/to_excel"
+            },
+            {
+              "id": "py-kp7-3",
+              "order": 3,
+              "title": "数据选择过滤：列选取/loc/iloc/条件筛选"
+            },
+            {
+              "id": "py-kp7-4",
+              "order": 4,
+              "title": "数据清洗：isnull/dropna/fillna/drop_duplicates/astype"
+            }
+          ]
+        },
+        {
+          "id": "py-ch8",
+          "order": 8,
+          "title": "Pandas 数据分析进阶",
+          "description": "apply/map数据转换、str/to_datetime、groupby分组聚合、concat/merge合并、pivot_table透视表",
+          "knowledgePoints": [
+            {
+              "id": "py-kp8-1",
+              "order": 1,
+              "title": "数据转换：apply/map/applymap"
+            },
+            {
+              "id": "py-kp8-2",
+              "order": 2,
+              "title": "字符串处理 str 访问器与时间处理 to_datetime"
+            },
+            {
+              "id": "py-kp8-3",
+              "order": 3,
+              "title": "分组聚合：groupby/agg/transform"
+            },
+            {
+              "id": "py-kp8-4",
+              "order": 4,
+              "title": "多表合并：concat/merge（类比SQL JOIN）"
+            },
+            {
+              "id": "py-kp8-5",
+              "order": 5,
+              "title": "透视表 pivot_table 与交叉表 crosstab"
+            }
+          ]
+        },
+        {
+          "id": "py-ch9",
+          "order": 9,
+          "title": "数据可视化",
+          "description": "Matplotlib画布/图表/中文乱码/保存、Seaborn风格/统计图、df.plot快速绘图",
+          "knowledgePoints": [
+            {
+              "id": "py-kp9-1",
+              "order": 1,
+              "title": "Matplotlib 画布子图与基础图表"
+            },
+            {
+              "id": "py-kp9-2",
+              "order": 2,
+              "title": "坐标轴/标题/图例/中文乱码处理/图片保存"
+            },
+            {
+              "id": "py-kp9-3",
+              "order": 3,
+              "title": "Seaborn 风格设置与统计绘图"
+            },
+            {
+              "id": "py-kp9-4",
+              "order": 4,
+              "title": "Pandas 内置绘图 df.plot"
+            }
+          ]
+        },
+        {
+          "id": "py-ch10",
+          "order": 10,
+          "title": "Python + SQL 联合分析",
+          "description": "pymysql/sqlalchemy连接数据库、SQL查询→DataFrame、Pandas写回数据库",
+          "knowledgePoints": [
+            {
+              "id": "py-kp10-1",
+              "order": 1,
+              "title": "Python 连接数据库：pymysql/sqlalchemy"
+            },
+            {
+              "id": "py-kp10-2",
+              "order": 2,
+              "title": "SQL 查询结果读取到 DataFrame"
+            },
+            {
+              "id": "py-kp10-3",
+              "order": 3,
+              "title": "Pandas 结果写回数据库"
+            }
+          ]
+        },
+        {
+          "id": "py-ch11",
+          "order": 11,
+          "title": "统计基础与业务分析",
+          "description": "描述统计、相关性分析、假设检验、数据洞察（对比/下钻/异常）、时间序列、机器学习入门",
+          "knowledgePoints": [
+            {
+              "id": "py-kp11-1",
+              "order": 1,
+              "title": "描述统计：均值/中位数/众数/方差/标准差/四分位数"
+            },
+            {
+              "id": "py-kp11-2",
+              "order": 2,
+              "title": "相关性分析 corr 与简单假设检验"
+            },
+            {
+              "id": "py-kp11-3",
+              "order": 3,
+              "title": "数据洞察：对比分析/下钻分析/异常分析"
+            },
+            {
+              "id": "py-kp11-4",
+              "order": 4,
+              "title": "时间序列：resample/rolling/环比同比"
+            }
+          ]
+        },
+        {
+          "id": "py-ch12",
+          "order": 12,
+          "title": "项目实战",
+          "description": "CSV/Excel业务数据集分析、SQL取数+Pandas清洗+可视化报告、业务分析报告产出",
+          "knowledgePoints": [
+            {
+              "id": "py-kp12-1",
+              "order": 1,
+              "title": "CSV/Excel 业务数据集分析"
+            },
+            {
+              "id": "py-kp12-2",
+              "order": 2,
+              "title": "SQL取数 + Pandas清洗 + 可视化报告"
+            },
+            {
+              "id": "py-kp12-3",
+              "order": 3,
+              "title": "产出业务分析报告"
+            }
           ]
         }
       ]
@@ -95,6 +1304,8 @@
       "name": "英语趣味语法",
       "description": "用口诀、类比和生活场景掌握英语语法，从词性基础到商务实战，覆盖16种时态、10大词性、代词、介词、从句等42个核心知识点",
       "icon": "🇬🇧",
+      "color": "#DC2626",
+      "lightBg": "#fef2f2",
       "chapters": [
         {
           "id": "en-ch1",
@@ -102,10 +1313,26 @@
           "title": "英语地基——词性与句子成分",
           "description": "10大词性 + 11种成分 + 8种句型 + 五大基本句型",
           "knowledgePoints": [
-            { "id": "en-kp1-1", "order": 1, "title": "英语10大词性" },
-            { "id": "en-kp1-2", "order": 2, "title": "11种句子成分" },
-            { "id": "en-kp1-3", "order": 3, "title": "8种句子结构" },
-            { "id": "en-kp1-4", "order": 4, "title": "五大基本句型详解" }
+            {
+              "id": "en-kp1-1",
+              "order": 1,
+              "title": "英语10大词性"
+            },
+            {
+              "id": "en-kp1-2",
+              "order": 2,
+              "title": "11种句子成分"
+            },
+            {
+              "id": "en-kp1-3",
+              "order": 3,
+              "title": "8种句子结构"
+            },
+            {
+              "id": "en-kp1-4",
+              "order": 4,
+              "title": "五大基本句型详解"
+            }
           ]
         },
         {
@@ -114,10 +1341,26 @@
           "title": "代词与数词——人称全家桶与分数",
           "description": "人称代词主格宾格、物主代词、反身代词、基数词序数词与分数",
           "knowledgePoints": [
-            { "id": "en-kp2-1", "order": 1, "title": "人称代词——主格与宾格" },
-            { "id": "en-kp2-2", "order": 2, "title": "物主代词——形容词性与名词性" },
-            { "id": "en-kp2-3", "order": 3, "title": "反身代词" },
-            { "id": "en-kp2-4", "order": 4, "title": "基数词、序数词与分数" }
+            {
+              "id": "en-kp2-1",
+              "order": 1,
+              "title": "人称代词——主格与宾格"
+            },
+            {
+              "id": "en-kp2-2",
+              "order": 2,
+              "title": "物主代词——形容词性与名词性"
+            },
+            {
+              "id": "en-kp2-3",
+              "order": 3,
+              "title": "反身代词"
+            },
+            {
+              "id": "en-kp2-4",
+              "order": 4,
+              "title": "基数词、序数词与分数"
+            }
           ]
         },
         {
@@ -126,14 +1369,46 @@
           "title": "时态大闯关——16种时态全解",
           "description": "4×4时态矩阵 + 时态标志词 + 3组最常混淆对比",
           "knowledgePoints": [
-            { "id": "en-kp3-1", "order": 1, "title": "一般时态四兄弟" },
-            { "id": "en-kp3-2", "order": 2, "title": "进行时态四兄弟" },
-            { "id": "en-kp3-3", "order": 3, "title": "完成时态四兄弟" },
-            { "id": "en-kp3-4", "order": 4, "title": "完成进行时态四兄弟" },
-            { "id": "en-kp3-5", "order": 5, "title": "时态对比①：一般过去 vs 现在完成" },
-            { "id": "en-kp3-6", "order": 6, "title": "时态对比②：过去进行 vs 一般过去" },
-            { "id": "en-kp3-7", "order": 7, "title": "时态对比③：现在完成 vs 现在完成进行" },
-            { "id": "en-kp3-8", "order": 8, "title": "时态标志词速查表" }
+            {
+              "id": "en-kp3-1",
+              "order": 1,
+              "title": "一般时态四兄弟"
+            },
+            {
+              "id": "en-kp3-2",
+              "order": 2,
+              "title": "进行时态四兄弟"
+            },
+            {
+              "id": "en-kp3-3",
+              "order": 3,
+              "title": "完成时态四兄弟"
+            },
+            {
+              "id": "en-kp3-4",
+              "order": 4,
+              "title": "完成进行时态四兄弟"
+            },
+            {
+              "id": "en-kp3-5",
+              "order": 5,
+              "title": "时态对比①：一般过去 vs 现在完成"
+            },
+            {
+              "id": "en-kp3-6",
+              "order": 6,
+              "title": "时态对比②：过去进行 vs 一般过去"
+            },
+            {
+              "id": "en-kp3-7",
+              "order": 7,
+              "title": "时态对比③：现在完成 vs 现在完成进行"
+            },
+            {
+              "id": "en-kp3-8",
+              "order": 8,
+              "title": "时态标志词速查表"
+            }
           ]
         },
         {
@@ -142,10 +1417,26 @@
           "title": "冠词与介词",
           "description": "a/an/the 的用法 + in/on/at 空间时间 + 易混介词对比",
           "knowledgePoints": [
-            { "id": "en-kp4-1", "order": 1, "title": "a/an/the 的用法规则" },
-            { "id": "en-kp4-2", "order": 2, "title": "in/on/at 空间用法" },
-            { "id": "en-kp4-3", "order": 3, "title": "in/on/at 时间用法" },
-            { "id": "en-kp4-4", "order": 4, "title": "易混介词对比" }
+            {
+              "id": "en-kp4-1",
+              "order": 1,
+              "title": "a/an/the 的用法规则"
+            },
+            {
+              "id": "en-kp4-2",
+              "order": 2,
+              "title": "in/on/at 空间用法"
+            },
+            {
+              "id": "en-kp4-3",
+              "order": 3,
+              "title": "in/on/at 时间用法"
+            },
+            {
+              "id": "en-kp4-4",
+              "order": 4,
+              "title": "易混介词对比"
+            }
           ]
         },
         {
@@ -154,9 +1445,21 @@
           "title": "情态动词与比较级",
           "description": "情态动词家族 + 形容词副词比较级最高级 + 不定代词",
           "knowledgePoints": [
-            { "id": "en-kp5-1", "order": 1, "title": "情态动词家族" },
-            { "id": "en-kp5-2", "order": 2, "title": "形容词/副词比较级与最高级" },
-            { "id": "en-kp5-3", "order": 3, "title": "不定代词与指示代词" }
+            {
+              "id": "en-kp5-1",
+              "order": 1,
+              "title": "情态动词家族"
+            },
+            {
+              "id": "en-kp5-2",
+              "order": 2,
+              "title": "形容词/副词比较级与最高级"
+            },
+            {
+              "id": "en-kp5-3",
+              "order": 3,
+              "title": "不定代词与指示代词"
+            }
           ]
         },
         {
@@ -165,11 +1468,31 @@
           "title": "从句攻克",
           "description": "定语从句 + 宾语从句 + 间接引语 + 主语表语同位语从句 + 状语从句",
           "knowledgePoints": [
-            { "id": "en-kp6-1", "order": 1, "title": "定语从句——关系代词选择" },
-            { "id": "en-kp6-2", "order": 2, "title": "限制性 vs 非限制性定语从句" },
-            { "id": "en-kp6-3", "order": 3, "title": "宾语从句与间接引语" },
-            { "id": "en-kp6-4", "order": 4, "title": "主语从句、表语从句与同位语从句" },
-            { "id": "en-kp6-5", "order": 5, "title": "状语从句" }
+            {
+              "id": "en-kp6-1",
+              "order": 1,
+              "title": "定语从句——关系代词选择"
+            },
+            {
+              "id": "en-kp6-2",
+              "order": 2,
+              "title": "限制性 vs 非限制性定语从句"
+            },
+            {
+              "id": "en-kp6-3",
+              "order": 3,
+              "title": "宾语从句与间接引语"
+            },
+            {
+              "id": "en-kp6-4",
+              "order": 4,
+              "title": "主语从句、表语从句与同位语从句"
+            },
+            {
+              "id": "en-kp6-5",
+              "order": 5,
+              "title": "状语从句"
+            }
           ]
         },
         {
@@ -178,10 +1501,26 @@
           "title": "非谓语动词",
           "description": "动名词 vs 现在分词 + to do vs doing + 不定式功能 + 过去分词",
           "knowledgePoints": [
-            { "id": "en-kp7-1", "order": 1, "title": "动名词 vs 现在分词" },
-            { "id": "en-kp7-2", "order": 2, "title": "to do vs doing 作宾语" },
-            { "id": "en-kp7-3", "order": 3, "title": "不定式的多种功能" },
-            { "id": "en-kp7-4", "order": 4, "title": "过去分词作定语和状语" }
+            {
+              "id": "en-kp7-1",
+              "order": 1,
+              "title": "动名词 vs 现在分词"
+            },
+            {
+              "id": "en-kp7-2",
+              "order": 2,
+              "title": "to do vs doing 作宾语"
+            },
+            {
+              "id": "en-kp7-3",
+              "order": 3,
+              "title": "不定式的多种功能"
+            },
+            {
+              "id": "en-kp7-4",
+              "order": 4,
+              "title": "过去分词作定语和状语"
+            }
           ]
         },
         {
@@ -190,10 +1529,26 @@
           "title": "特殊句型",
           "description": "被动语态 + 虚拟语气 + 条件句 + 倒装/强调/感叹句",
           "knowledgePoints": [
-            { "id": "en-kp8-1", "order": 1, "title": "被动语态" },
-            { "id": "en-kp8-2", "order": 2, "title": "虚拟语气" },
-            { "id": "en-kp8-3", "order": 3, "title": "条件句四种类型" },
-            { "id": "en-kp8-4", "order": 4, "title": "倒装句、强调句与感叹句" }
+            {
+              "id": "en-kp8-1",
+              "order": 1,
+              "title": "被动语态"
+            },
+            {
+              "id": "en-kp8-2",
+              "order": 2,
+              "title": "虚拟语气"
+            },
+            {
+              "id": "en-kp8-3",
+              "order": 3,
+              "title": "条件句四种类型"
+            },
+            {
+              "id": "en-kp8-4",
+              "order": 4,
+              "title": "倒装句、强调句与感叹句"
+            }
           ]
         },
         {
@@ -202,10 +1557,26 @@
           "title": "商务实战写作——邮件全攻略",
           "description": "邮件标题/开场/请求/结尾/签名 + 物流供应链场景",
           "knowledgePoints": [
-            { "id": "en-kp9-1", "order": 1, "title": "邮件标题与开场白" },
-            { "id": "en-kp9-2", "order": 2, "title": "请求、催促、跟进" },
-            { "id": "en-kp9-3", "order": 3, "title": "结尾与签名" },
-            { "id": "en-kp9-4", "order": 4, "title": "物流/供应链常用邮件场景" }
+            {
+              "id": "en-kp9-1",
+              "order": 1,
+              "title": "邮件标题与开场白"
+            },
+            {
+              "id": "en-kp9-2",
+              "order": 2,
+              "title": "请求、催促、跟进"
+            },
+            {
+              "id": "en-kp9-3",
+              "order": 3,
+              "title": "结尾与签名"
+            },
+            {
+              "id": "en-kp9-4",
+              "order": 4,
+              "title": "物流/供应链常用邮件场景"
+            }
           ]
         },
         {
@@ -214,10 +1585,26 @@
           "title": "职场口语与缩略词",
           "description": "会议表达 + 汇报结构 + 日常口语 + 缩略词大全",
           "knowledgePoints": [
-            { "id": "en-kp10-1", "order": 1, "title": "会议常用表达" },
-            { "id": "en-kp10-2", "order": 2, "title": "汇报与演示结构" },
-            { "id": "en-kp10-3", "order": 3, "title": "日常办公高频口语" },
-            { "id": "en-kp10-4", "order": 4, "title": "英语缩略词大全" }
+            {
+              "id": "en-kp10-1",
+              "order": 1,
+              "title": "会议常用表达"
+            },
+            {
+              "id": "en-kp10-2",
+              "order": 2,
+              "title": "汇报与演示结构"
+            },
+            {
+              "id": "en-kp10-3",
+              "order": 3,
+              "title": "日常办公高频口语"
+            },
+            {
+              "id": "en-kp10-4",
+              "order": 4,
+              "title": "英语缩略词大全"
+            }
           ]
         }
       ]
