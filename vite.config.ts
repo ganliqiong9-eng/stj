@@ -41,6 +41,15 @@ export default defineConfig(({ command }) => ({
     })] : []),
   ],
   server: {
+    // 允许手机通过 Tailscale MagicDNS / LAN 主机名访问，否则 Vite 会 403 拦截
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      'mac-mini',
+      'mac-mini.local',
+      '.tail01ecce.ts.net',
+      '.local',
+    ],
     watch: {
       // 后端运行时会写这些数据文件，避免 Vite 监听它们触发整页刷新
       ignored: [
