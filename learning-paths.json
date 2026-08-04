@@ -1608,6 +1608,691 @@
           ]
         }
       ]
+    },
+    {
+      "id": "data-analyst-career",
+      "name": "数据分析师·从零到就业",
+      "description": "完整数据分析就业学习体系：思维→Excel→SQL→Python→统计→BI→业务分析模型→机器学习→数仓→项目实战，覆盖10大模块20章",
+      "icon": "📊",
+      "color": "#F59E0B",
+      "lightBg": "#FFFBEB",
+      "chapters": [
+        {
+          "id": "da-ch1",
+          "order": 1,
+          "title": "数据分析思维与业务基础",
+          "description": "职业认知、完整工作流程、核心术语、指标维度口径、四大思维",
+          "knowledgePoints": [
+            {
+              "id": "da-kp1-1",
+              "order": 1,
+              "title": "数据分析职业认知"
+            },
+            {
+              "id": "da-kp1-2",
+              "order": 2,
+              "title": "数据分析完整工作流程"
+            },
+            {
+              "id": "da-kp1-3",
+              "order": 3,
+              "title": "核心数据术语"
+            },
+            {
+              "id": "da-kp1-4",
+              "order": 4,
+              "title": "指标、维度、口径体系"
+            },
+            {
+              "id": "da-kp1-5",
+              "order": 5,
+              "title": "数据分析四大思维"
+            }
+          ]
+        },
+        {
+          "id": "da-ch2",
+          "order": 2,
+          "title": "Excel 商业数据分析",
+          "description": "数据规范清洗、逻辑统计函数、查找匹配、透视表、图表、动态报表",
+          "knowledgePoints": [
+            {
+              "id": "da-kp2-1",
+              "order": 1,
+              "title": "数据规范与清洗"
+            },
+            {
+              "id": "da-kp2-2",
+              "order": 2,
+              "title": "逻辑与统计函数"
+            },
+            {
+              "id": "da-kp2-3",
+              "order": 3,
+              "title": "查找匹配函数（VLOOKUP/XLOOKUP/INDEX-MATCH）"
+            },
+            {
+              "id": "da-kp2-4",
+              "order": 4,
+              "title": "数据透视表"
+            },
+            {
+              "id": "da-kp2-5",
+              "order": 5,
+              "title": "图表可视化"
+            },
+            {
+              "id": "da-kp2-6",
+              "order": 6,
+              "title": "动态报表基础"
+            }
+          ]
+        },
+        {
+          "id": "da-ch3",
+          "order": 3,
+          "title": "SQL 数据分析基础",
+          "description": "SQL分类、筛选查询、分组聚合、多表JOIN、子查询、集合运算",
+          "knowledgePoints": [
+            {
+              "id": "da-kp3-1",
+              "order": 1,
+              "title": "SQL 基础语法与分类"
+            },
+            {
+              "id": "da-kp3-2",
+              "order": 2,
+              "title": "基础筛选查询"
+            },
+            {
+              "id": "da-kp3-3",
+              "order": 3,
+              "title": "分组聚合统计"
+            },
+            {
+              "id": "da-kp3-4",
+              "order": 4,
+              "title": "多表关联 JOIN"
+            },
+            {
+              "id": "da-kp3-5",
+              "order": 5,
+              "title": "子查询与派生表"
+            },
+            {
+              "id": "da-kp3-6",
+              "order": 6,
+              "title": "集合运算"
+            }
+          ]
+        },
+        {
+          "id": "da-ch4",
+          "order": 4,
+          "title": "SQL 数据分析进阶",
+          "description": "常用函数、窗口函数、CTE、数据增删改、执行顺序与优化、实战场景",
+          "knowledgePoints": [
+            {
+              "id": "da-kp4-1",
+              "order": 1,
+              "title": "常用函数（字符串/日期/条件判断）"
+            },
+            {
+              "id": "da-kp4-2",
+              "order": 2,
+              "title": "高级窗口函数"
+            },
+            {
+              "id": "da-kp4-3",
+              "order": 3,
+              "title": "CTE 公用表表达式"
+            },
+            {
+              "id": "da-kp4-4",
+              "order": 4,
+              "title": "数据增删改（DML）"
+            },
+            {
+              "id": "da-kp4-5",
+              "order": 5,
+              "title": "SQL 执行顺序与优化"
+            },
+            {
+              "id": "da-kp4-6",
+              "order": 6,
+              "title": "工作 SQL 分析实战场景"
+            }
+          ]
+        },
+        {
+          "id": "da-ch5",
+          "order": 5,
+          "title": "Python 数据分析基础",
+          "description": "基础语法、容器、流程控制、函数模块、文件读写",
+          "knowledgePoints": [
+            {
+              "id": "da-kp5-1",
+              "order": 1,
+              "title": "Python 基础语法"
+            },
+            {
+              "id": "da-kp5-2",
+              "order": 2,
+              "title": "容器数据类型"
+            },
+            {
+              "id": "da-kp5-3",
+              "order": 3,
+              "title": "流程控制"
+            },
+            {
+              "id": "da-kp5-4",
+              "order": 4,
+              "title": "函数与常用模块"
+            },
+            {
+              "id": "da-kp5-5",
+              "order": 5,
+              "title": "文件读写"
+            }
+          ]
+        },
+        {
+          "id": "da-ch6",
+          "order": 6,
+          "title": "NumPy 与 Pandas 核心分析",
+          "description": "NumPy数值计算、Pandas数据读取查看/筛选切片/清洗/转换衍生/分组聚合",
+          "knowledgePoints": [
+            {
+              "id": "da-kp6-1",
+              "order": 1,
+              "title": "NumPy 数值计算"
+            },
+            {
+              "id": "da-kp6-2",
+              "order": 2,
+              "title": "Pandas 数据读取与查看"
+            },
+            {
+              "id": "da-kp6-3",
+              "order": 3,
+              "title": "数据筛选与切片"
+            },
+            {
+              "id": "da-kp6-4",
+              "order": 4,
+              "title": "数据清洗"
+            },
+            {
+              "id": "da-kp6-5",
+              "order": 5,
+              "title": "数据转换与衍生字段"
+            },
+            {
+              "id": "da-kp6-6",
+              "order": 6,
+              "title": "分组聚合统计"
+            }
+          ]
+        },
+        {
+          "id": "da-ch7",
+          "order": 7,
+          "title": "Pandas 进阶与数据可视化",
+          "description": "多表合并、透视表、时间序列、Matplotlib、Seaborn、Python+SQL联动",
+          "knowledgePoints": [
+            {
+              "id": "da-kp7-1",
+              "order": 1,
+              "title": "多表合并与关联"
+            },
+            {
+              "id": "da-kp7-2",
+              "order": 2,
+              "title": "透视表与交叉表"
+            },
+            {
+              "id": "da-kp7-3",
+              "order": 3,
+              "title": "时间序列处理"
+            },
+            {
+              "id": "da-kp7-4",
+              "order": 4,
+              "title": "Matplotlib 可视化"
+            },
+            {
+              "id": "da-kp7-5",
+              "order": 5,
+              "title": "Seaborn 统计可视化"
+            },
+            {
+              "id": "da-kp7-6",
+              "order": 6,
+              "title": "Python + SQL 联动取数分析"
+            }
+          ]
+        },
+        {
+          "id": "da-ch8",
+          "order": 8,
+          "title": "统计学基础",
+          "description": "描述统计、概率分布、抽样推断、置信区间、假设检验、相关回归、异常值",
+          "knowledgePoints": [
+            {
+              "id": "da-kp8-1",
+              "order": 1,
+              "title": "描述性统计分析"
+            },
+            {
+              "id": "da-kp8-2",
+              "order": 2,
+              "title": "概率与分布"
+            },
+            {
+              "id": "da-kp8-3",
+              "order": 3,
+              "title": "抽样与统计推断"
+            },
+            {
+              "id": "da-kp8-4",
+              "order": 4,
+              "title": "置信区间"
+            },
+            {
+              "id": "da-kp8-5",
+              "order": 5,
+              "title": "假设检验"
+            },
+            {
+              "id": "da-kp8-6",
+              "order": 6,
+              "title": "相关性与回归分析"
+            },
+            {
+              "id": "da-kp8-7",
+              "order": 7,
+              "title": "异常值分析方法"
+            }
+          ]
+        },
+        {
+          "id": "da-ch9",
+          "order": 9,
+          "title": "BI 可视化与数据看板",
+          "description": "PowerBI/Tableau操作、数据建模、度量值、交互式看板、可视化业务逻辑",
+          "knowledgePoints": [
+            {
+              "id": "da-kp9-1",
+              "order": 1,
+              "title": "PowerBI / Tableau 基础操作"
+            },
+            {
+              "id": "da-kp9-2",
+              "order": 2,
+              "title": "数据建模与表关系"
+            },
+            {
+              "id": "da-kp9-3",
+              "order": 3,
+              "title": "度量值与计算逻辑"
+            },
+            {
+              "id": "da-kp9-4",
+              "order": 4,
+              "title": "交互式看板制作"
+            },
+            {
+              "id": "da-kp9-5",
+              "order": 5,
+              "title": "数据可视化业务呈现逻辑"
+            }
+          ]
+        },
+        {
+          "id": "da-ch10",
+          "order": 10,
+          "title": "业务分析框架（上）：指标·用户·流量·转化",
+          "description": "指标体系搭建、用户分析体系、流量分析体系、转化与漏斗分析",
+          "knowledgePoints": [
+            {
+              "id": "da-kp10-1",
+              "order": 1,
+              "title": "指标体系搭建方法"
+            },
+            {
+              "id": "da-kp10-2",
+              "order": 2,
+              "title": "用户分析体系"
+            },
+            {
+              "id": "da-kp10-3",
+              "order": 3,
+              "title": "流量分析体系"
+            },
+            {
+              "id": "da-kp10-4",
+              "order": 4,
+              "title": "转化与漏斗分析"
+            }
+          ]
+        },
+        {
+          "id": "da-ch11",
+          "order": 11,
+          "title": "业务分析框架（下）：留存·销售·活动·归因",
+          "description": "留存复购分析、销售营收分析、活动效果分析、数据归因与问题诊断",
+          "knowledgePoints": [
+            {
+              "id": "da-kp11-1",
+              "order": 1,
+              "title": "留存与复购分析"
+            },
+            {
+              "id": "da-kp11-2",
+              "order": 2,
+              "title": "销售与营收分析"
+            },
+            {
+              "id": "da-kp11-3",
+              "order": 3,
+              "title": "活动效果分析"
+            },
+            {
+              "id": "da-kp11-4",
+              "order": 4,
+              "title": "数据归因与问题诊断"
+            }
+          ]
+        },
+        {
+          "id": "da-ch12",
+          "order": 12,
+          "title": "通用分析方法与问题拆解模型",
+          "description": "对比/细分/趋势/结构/假设验证等基础方法 + 5W2H/MECE/鱼骨图/PEST/SWOT/4P/二八等拆解模型",
+          "knowledgePoints": [
+            {
+              "id": "da-kp12-1",
+              "order": 1,
+              "title": "通用基础分析方法（对比/细分/趋势/结构/假设验证/标杆/盈亏平衡）"
+            },
+            {
+              "id": "da-kp12-2",
+              "order": 2,
+              "title": "5W2H 问题定位模型与 MECE 拆解框架"
+            },
+            {
+              "id": "da-kp12-3",
+              "order": 3,
+              "title": "鱼骨图根因分析、PEST 与 SWOT 分析"
+            },
+            {
+              "id": "da-kp12-4",
+              "order": 4,
+              "title": "4P/4C 营销模型、二八分析法与痛点三角模型"
+            }
+          ]
+        },
+        {
+          "id": "da-ch13",
+          "order": 13,
+          "title": "用户增长与运营复盘模型",
+          "description": "AAARR全链路、漏斗分析、RFM分层、生命周期/留存、流失预警/活动复盘/ROI归因",
+          "knowledgePoints": [
+            {
+              "id": "da-kp13-1",
+              "order": 1,
+              "title": "AAARR 用户增长全链路模型"
+            },
+            {
+              "id": "da-kp13-2",
+              "order": 2,
+              "title": "漏斗分析模型（转化流失卡点定位）"
+            },
+            {
+              "id": "da-kp13-3",
+              "order": 3,
+              "title": "RFM 用户价值分层模型"
+            },
+            {
+              "id": "da-kp13-4",
+              "order": 4,
+              "title": "用户生命周期与留存分析模型"
+            },
+            {
+              "id": "da-kp13-5",
+              "order": 5,
+              "title": "流失预警、活动五维评估与 ROI 归因模型"
+            }
+          ]
+        },
+        {
+          "id": "da-ch14",
+          "order": 14,
+          "title": "商品营收分析模型",
+          "description": "商品结构分析、销量波动归因、价格带分析、复购分析、客单价连带率拆解",
+          "knowledgePoints": [
+            {
+              "id": "da-kp14-1",
+              "order": 1,
+              "title": "商品结构分析与销量波动归因"
+            },
+            {
+              "id": "da-kp14-2",
+              "order": 2,
+              "title": "价格带分析与复购分析模型"
+            },
+            {
+              "id": "da-kp14-3",
+              "order": 3,
+              "title": "客单价与连带率拆解分析"
+            }
+          ]
+        },
+        {
+          "id": "da-ch15",
+          "order": 15,
+          "title": "统计分析模型",
+          "description": "描述统计/相关性因果/假设检验(T/卡方/ANOVA)/回归/时间序列/抽样误差",
+          "knowledgePoints": [
+            {
+              "id": "da-kp15-1",
+              "order": 1,
+              "title": "描述统计分析（集中趋势/离散程度/分布形态）"
+            },
+            {
+              "id": "da-kp15-2",
+              "order": 2,
+              "title": "相关性与因果分析（Pearson/Spearman/偏相关）"
+            },
+            {
+              "id": "da-kp15-3",
+              "order": 3,
+              "title": "假设检验模型（T检验/卡方检验/ANOVA/正态性检验）"
+            },
+            {
+              "id": "da-kp15-4",
+              "order": 4,
+              "title": "回归分析模型（一元/多元线性/逻辑回归）"
+            },
+            {
+              "id": "da-kp15-5",
+              "order": 5,
+              "title": "时间序列分析模型（移动平均/指数平滑/趋势分解）"
+            },
+            {
+              "id": "da-kp15-6",
+              "order": 6,
+              "title": "抽样误差分析（置信区间/误差控制）"
+            }
+          ]
+        },
+        {
+          "id": "da-ch16",
+          "order": 16,
+          "title": "机器学习挖掘模型",
+          "description": "聚类分群/分类预测/回归预测/关联规则/特征工程/模型评估",
+          "knowledgePoints": [
+            {
+              "id": "da-kp16-1",
+              "order": 1,
+              "title": "用户分群聚类模型（K-Means/层次/DBSCAN）"
+            },
+            {
+              "id": "da-kp16-2",
+              "order": 2,
+              "title": "分类预测模型（逻辑回归/决策树/随机森林/XGBoost/朴素贝叶斯）"
+            },
+            {
+              "id": "da-kp16-3",
+              "order": 3,
+              "title": "数值回归预测模型"
+            },
+            {
+              "id": "da-kp16-4",
+              "order": 4,
+              "title": "关联规则挖掘（Apriori/FP-Growth）"
+            },
+            {
+              "id": "da-kp16-5",
+              "order": 5,
+              "title": "特征工程体系（筛选/归一化/离散化/分箱）"
+            },
+            {
+              "id": "da-kp16-6",
+              "order": 6,
+              "title": "模型评估体系（准确率/精确率/召回率/F1/AUC/ROC/MSE/RMSE）"
+            }
+          ]
+        },
+        {
+          "id": "da-ch17",
+          "order": 17,
+          "title": "数据分析报告与 PRD 落地",
+          "description": "报告撰写规范、PRD需求拆解、场景化模型套用方法",
+          "knowledgePoints": [
+            {
+              "id": "da-kp17-1",
+              "order": 1,
+              "title": "数据分析报告撰写规范"
+            },
+            {
+              "id": "da-kp17-2",
+              "order": 2,
+              "title": "PRD 落地与场景化模型套用方法"
+            }
+          ]
+        },
+        {
+          "id": "da-ch18",
+          "order": 18,
+          "title": "大数据与数仓基础",
+          "description": "数仓分层架构、维度建模、事实表维度表设计、缓慢变化维、ETL流程、数据质量",
+          "knowledgePoints": [
+            {
+              "id": "da-kp18-1",
+              "order": 1,
+              "title": "数据仓库分层架构"
+            },
+            {
+              "id": "da-kp18-2",
+              "order": 2,
+              "title": "维度建模理论"
+            },
+            {
+              "id": "da-kp18-3",
+              "order": 3,
+              "title": "事实表与维度表设计"
+            },
+            {
+              "id": "da-kp18-4",
+              "order": 4,
+              "title": "缓慢变化维处理"
+            },
+            {
+              "id": "da-kp18-5",
+              "order": 5,
+              "title": "ETL 数据处理流程"
+            },
+            {
+              "id": "da-kp18-6",
+              "order": 6,
+              "title": "数据质量基础"
+            }
+          ]
+        },
+        {
+          "id": "da-ch19",
+          "order": 19,
+          "title": "机器学习基础",
+          "description": "sklearn工作流、数据预处理与特征工程、回归/分类/聚类模型、模型评估与业务解读",
+          "knowledgePoints": [
+            {
+              "id": "da-kp19-1",
+              "order": 1,
+              "title": "机器学习工作流"
+            },
+            {
+              "id": "da-kp19-2",
+              "order": 2,
+              "title": "数据预处理与特征工程"
+            },
+            {
+              "id": "da-kp19-3",
+              "order": 3,
+              "title": "回归预测模型"
+            },
+            {
+              "id": "da-kp19-4",
+              "order": 4,
+              "title": "分类模型"
+            },
+            {
+              "id": "da-kp19-5",
+              "order": 5,
+              "title": "聚类分群模型"
+            },
+            {
+              "id": "da-kp19-6",
+              "order": 6,
+              "title": "模型评估与业务解读"
+            }
+          ]
+        },
+        {
+          "id": "da-ch20",
+          "order": 20,
+          "title": "项目实战与求职作品集",
+          "description": "Excel业务分析项目、SQL取数分析项目、Python全流程项目、BI看板项目、综合报告",
+          "knowledgePoints": [
+            {
+              "id": "da-kp20-1",
+              "order": 1,
+              "title": "Excel 业务分析项目"
+            },
+            {
+              "id": "da-kp20-2",
+              "order": 2,
+              "title": "SQL 取数分析项目"
+            },
+            {
+              "id": "da-kp20-3",
+              "order": 3,
+              "title": "Python 全流程数据分析项目"
+            },
+            {
+              "id": "da-kp20-4",
+              "order": 4,
+              "title": "BI 看板项目"
+            },
+            {
+              "id": "da-kp20-5",
+              "order": 5,
+              "title": "综合业务分析报告输出"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
