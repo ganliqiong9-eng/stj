@@ -661,25 +661,40 @@ export async function upgradeUploadDocForRag(file: File): Promise<UploadDocResul
     const bytes = new Uint8Array(buffer);
     let binary = ''; for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     const base64 = btoa(binary);
-    const res = await fetch(`${API_BASE}/api/rag/upgrade-upload-doc`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        file_base64: base64,
-        filename: file.name,
-        subj: 'custom',
-        tags: '文档',
-        llm_config: {
-          endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
-          api_key: decodeKey(g(API_KEY, '')),
-          model: g(MODEL_KEY, 'deepseek-chat'),
-        },
-      }),
-    });
-    if (!res.ok) return { ok: false, msg: '上传失败' };
-    return await res.json();
-  } catch {
-    return { ok: false, msg: '网络错误: 无法连接服务器' };
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 180_000);
+    try {
+      const res = await fetch(`${API_BASE}/api/rag/upgrade-upload-doc`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: ctrl.signal,
+        body: JSON.stringify({
+          file_base64: base64,
+          filename: file.name,
+          subj: 'custom',
+          tags: '文档',
+          llm_config: {
+            endpoint: g(ENDPOINT_KEY, 'https://api.deepseek.com/chat/completions'),
+            api_key: decodeKey(g(API_KEY, '')),
+            model: g(MODEL_KEY, 'deepseek-chat'),
+          },
+        }),
+      });
+      if (!res.ok) {
+        try {
+          const j = await res.json();
+          return { ok: false, msg: j.error || j.msg || `上传失败 (HTTP ${res.status})` };
+        } catch {
+          return { ok: false, msg: `上传失败 (HTTP ${res.status})` };
+        }
+      }
+      return await res.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (e) {
+    const aborted = (e as { name?: string })?.name === 'AbortError';
+    return { ok: false, msg: aborted ? '上传超时，请重试' : '网络错误: 无法连接服务器' };
   }
 }
 
@@ -716,20 +731,35 @@ export async function uploadDocForRag(
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     const base64 = btoa(binary);
 
-    const res = await fetch(`${API_BASE}/api/rag/upload-doc`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        file_base64: base64,
-        filename: file.name,
-        subj: subject || 'custom',
-        tags: tags || '文档',
-      }),
-    });
-    if (!res.ok) return { ok: false, msg: '上传失败' };
-    return await res.json();
-  } catch {
-    return { ok: false, msg: '网络错误: 无法连接服务器' };
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 180_000);
+    try {
+      const res = await fetch(`${API_BASE}/api/rag/upload-doc`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: ctrl.signal,
+        body: JSON.stringify({
+          file_base64: base64,
+          filename: file.name,
+          subj: subject || 'custom',
+          tags: tags || '文档',
+        }),
+      });
+      if (!res.ok) {
+        try {
+          const j = await res.json();
+          return { ok: false, msg: j.error || j.msg || `上传失败 (HTTP ${res.status})` };
+        } catch {
+          return { ok: false, msg: `上传失败 (HTTP ${res.status})` };
+        }
+      }
+      return await res.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (e) {
+    const aborted = (e as { name?: string })?.name === 'AbortError';
+    return { ok: false, msg: aborted ? '上传超时，请重试' : '网络错误: 无法连接服务器' };
   }
 }
 

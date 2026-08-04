@@ -57,27 +57,33 @@ export default function DocUploadView({ onBack, onDone }: { onBack: () => void; 
 
   const handleSaveAll = async () => {
     setSaving(true);
-    const now = new Date().toISOString();
-    const merged = sections.map((s, i) => {
-      const card = cards[i];
-      return card ? { ...s, qa: card } : s;
-    });
-    const entry = {
-      _id: crypto.randomUUID(),
-      title: docTitle || file?.name?.replace(/\.\w+$/, '') || '未命名',
-      subj: subject,
-      tags: tags.trim() || '文档',
-      source: '文件上传: ' + (file?.name || ''),
-      sections: merged,
-      createdAt: now,
-      updatedAt: now,
-    };
-    await db.addKnowledge(entry);
-    await addKnowledge(entry).catch(() => {});
-    await db.pushSync();
-    setSaving(false);
-    onDone?.();
-    onBack();
+    try {
+      const now = new Date().toISOString();
+      const merged = sections.map((s, i) => {
+        const card = cards[i];
+        return card ? { ...s, qa: card } : s;
+      });
+      const entry = {
+        _id: crypto.randomUUID(),
+        title: docTitle || file?.name?.replace(/\.\w+$/, '') || '未命名',
+        subj: subject,
+        tags: tags.trim() || '文档',
+        source: '文件上传: ' + (file?.name || ''),
+        sections: merged,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await db.addKnowledge(entry);
+      await addKnowledge(entry).catch(() => {});
+      try { await db.pushSync(); } catch {}
+      onDone?.();
+      onBack();
+    } catch {
+      setErrMsg('保存失败，请重试');
+      setPhase('review');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

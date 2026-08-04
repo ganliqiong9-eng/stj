@@ -10,10 +10,11 @@ import { parseDocForRAG, analyzeExcelFields, createTableFromExcel, getFolders, m
 // Configuration
 // ============================================================
 const PORT = 8086;
-const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const MAX_CHUNKS_PER_DOC = 50;
 
 let _uploadMutex = false;
+let _uploadBusyUntil = 0;
 const _llmCallTimes = [];
 const MAX_LLM_PER_MINUTE = 10;
 const MAX_LLM_PER_HOUR = 60;
@@ -1038,38 +1039,43 @@ http.createServer(async (req, res) => {
   if (url === '/api/rag/upgrade-upload-doc' && method === 'POST') {
     (async () => {
       if (_rejectNewTasks) return json(res, { ok: false, error: 'system busy' }, 503);
-      if (_uploadMutex) return json(res, { ok: false, error: 'upload busy' }, 429);
-      const body = await parseBody(req);
-      if (!body.file_base64) return json(res, { ok: false, error: 'file_base64 required' }, 400);
-      const bufLen = body.file_base64 ? Math.round(Buffer.from(body.file_base64, 'base64').length / 1024 / 1024 * 10) / 10 : 0;
-      if (bufLen > 20) return json(res, { ok: false, error: 'file too large (max 20MB)' }, 413);
+      if (_uploadMutex && Date.now() < _uploadBusyUntil) return json(res, { ok: false, error: '上传队列繁忙，请稍后重试' }, 429);
       _uploadMutex = true;
-      const buffer = Buffer.from(body.file_base64, 'base64');
-      const filename = body.filename || 'document';
-      const parseResult = parseDocForRAG(buffer, filename);
-      if (!parseResult.ok) return json(res, parseResult);
-      const fullText = (parseResult.sections || []).map(s => s.title ? `# ${s.title}\n\n${s.body}` : s.body).join('\n\n');
-      const llmConfig = body.llm_config || null;
-      const enriched = await smartIndex(fullText, body.subj || 'custom', llmConfig);
-      const article = {
-        _id: body._id || crypto.randomUUID(),
-        title: parseResult.title || filename,
-        subj: body.subj || 'custom',
-        tags: body.tags || '文档',
-        source: '文件上传: ' + filename + ' (' + parseResult.fileType + ')',
-        sections: enriched.length > 0 ? enriched : (parseResult.sections || []),
-        type: 'doc',
-        status: 'indexed',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      const knowledge = loadKnowledge();
-      knowledge.push(article);
-      saveKnowledge(knowledge);
-      const ragCfg = loadRagConfig();
-      reindexAll(ragCfg).catch(() => {});
-      _uploadMutex = false;
-      return json(res, { ok: true, sections: article.sections, title: article.title, fileType: parseResult.fileType, articleId: article._id });
+      _uploadBusyUntil = Date.now() + 5 * 60 * 1000;
+      try {
+        const body = await parseBody(req);
+        if (!body.file_base64) return json(res, { ok: false, error: 'file_base64 required' }, 400);
+        const fileBytes = Buffer.from(body.file_base64, 'base64').length;
+        if (fileBytes > MAX_FILE_SIZE) return json(res, { ok: false, error: 'file too large (max 50MB)' }, 413);
+        const buffer = Buffer.from(body.file_base64, 'base64');
+        const filename = body.filename || 'document';
+        const parseResult = parseDocForRAG(buffer, filename);
+        if (!parseResult.ok) return json(res, parseResult);
+        const fullText = (parseResult.sections || []).map(s => s.title ? `# ${s.title}\n\n${s.body}` : s.body).join('\n\n');
+        const llmConfig = body.llm_config || null;
+        const enriched = await smartIndex(fullText, body.subj || 'custom', llmConfig);
+        const article = {
+          _id: body._id || crypto.randomUUID(),
+          title: parseResult.title || filename,
+          subj: body.subj || 'custom',
+          tags: body.tags || '文档',
+          source: '文件上传: ' + filename + ' (' + parseResult.fileType + ')',
+          sections: enriched.length > 0 ? enriched : (parseResult.sections || []),
+          type: 'doc',
+          status: 'indexed',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        const knowledge = loadKnowledge();
+        knowledge.push(article);
+        saveKnowledge(knowledge);
+        const ragCfg = loadRagConfig();
+        reindexAll(ragCfg).catch(() => {});
+        return json(res, { ok: true, sections: article.sections, title: article.title, fileType: parseResult.fileType, articleId: article._id });
+      } finally {
+        _uploadMutex = false;
+        _uploadBusyUntil = 0;
+      }
     })();
     return;
   }

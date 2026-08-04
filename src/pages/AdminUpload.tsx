@@ -16,9 +16,10 @@ export default function AdminUpload() {
     if (!fs) return;
     const all = Array.from(fs);
     const supported = all.filter(f => /\.(docx|pdf|md|txt|html|xlsx|xls|csv)$/i.test(f.name));
-    const skipped = all.length - supported.length;
-    if (skipped > 0) setToast({ msg: `已忽略 ${skipped} 个不支持的文件`, type: 'info' });
-    const newFiles = supported.map(f => ({ file: f, status: 'waiting' as const }));
+    const okFiles = supported.filter(f => f.size <= MAX_UPLOAD_SIZE);
+    const skipped = all.length - okFiles.length;
+    if (skipped > 0) setToast({ msg: `已忽略 ${skipped} 个不支持或超过 ${Math.round(MAX_UPLOAD_SIZE / 1024 / 1024)}MB 的文件`, type: 'info' });
+    const newFiles = okFiles.map(f => ({ file: f, status: 'waiting' as const }));
     setFiles(prev => [...prev, ...newFiles]);
   };
 
@@ -38,18 +39,22 @@ export default function AdminUpload() {
       try {
         const r = await upgradeUploadDocForRag(f.file);
         if (r.ok && r.sections) {
-          await db.addKnowledge({
-            _id: r.articleId || crypto.randomUUID(),
-            title: r.title || f.file.name,
-            subj: 'custom',
-            tags: '文档',
-            source: '文件上传: ' + f.file.name,
-            sections: r.sections,
-            type: 'doc' as const,
-            status: 'indexed' as const,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
+          try {
+            await db.addKnowledge({
+              _id: r.articleId || crypto.randomUUID(),
+              title: r.title || f.file.name,
+              subj: 'custom',
+              tags: '文档',
+              source: '文件上传: ' + f.file.name,
+              sections: r.sections,
+              type: 'doc' as const,
+              status: 'indexed' as const,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+          } catch {
+            // 服务器已保存成功，本地库写入失败不视为上传失败
+          }
         }
         if (r.ok) done++; else failed++;
         setFiles(prev => prev.map((p, j) => j === i ? { ...p, status: r.ok ? 'done' as const : 'error' as const, msg: r.msg } : p));
