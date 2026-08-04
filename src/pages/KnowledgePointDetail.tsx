@@ -16,6 +16,9 @@ interface Content {
   explanation?: string;
   example?: string;
   analogy?: string;
+  mnemonic?: string;
+  mistakes?: string;
+  collocations?: string;
 }
 
 export default function KnowledgePointDetail() {
@@ -55,7 +58,15 @@ export default function KnowledgePointDetail() {
     setContentError('');
     const r = await generateLearningContent(kpId);
     if (r.ok) {
-      setContent({ definition: r.definition, explanation: r.explanation, example: r.example, analogy: r.analogy });
+      setContent({
+        definition: r.definition,
+        explanation: r.explanation,
+        example: r.example,
+        analogy: r.analogy,
+        mnemonic: r.mnemonic,
+        mistakes: r.mistakes,
+        collocations: r.collocations,
+      });
     } else {
       setContentError(r.error || '内容生成失败');
     }
@@ -163,6 +174,15 @@ export default function KnowledgePointDetail() {
 
         {content && !contentLoading && (
           <>
+            {content.mnemonic && (
+              <div style={{
+                background: 'var(--warning-light)', borderLeft: '3px solid var(--orange)',
+                borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 10,
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>🎯 核心口诀</div>
+                <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.7, color: 'var(--text)' }}>{content.mnemonic}</div>
+              </div>
+            )}
             {content.definition && (
               <div style={{
                 background: 'var(--primary-light)', borderLeft: '3px solid var(--primary)',
@@ -197,6 +217,24 @@ export default function KnowledgePointDetail() {
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>🎯 趣味类比</div>
                 <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text)' }}>{content.analogy}</div>
+              </div>
+            )}
+            {content.mistakes && (
+              <div style={{
+                background: 'var(--rose-light)', border: '1.5px solid var(--rose)',
+                borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 10,
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>⚠️ 易错提示</div>
+                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text)' }}>{content.mistakes}</div>
+              </div>
+            )}
+            {content.collocations && (
+              <div style={{
+                background: 'var(--surface)', border: '1.5px solid var(--primary-light)',
+                borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 10,
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>🔗 扩展固定搭配</div>
+                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text-secondary)' }}>{content.collocations}</div>
               </div>
             )}
           </>

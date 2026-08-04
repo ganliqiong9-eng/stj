@@ -1475,7 +1475,58 @@ ${knowledgeBody ? `知识内容摘要：${String(knowledgeBody).substring(0, 300
       const llmConfig = body.llm_config || {};
       if (!llmConfig.api_key) return json(res, { ok: false, error: 'LLM not configured' }, 500);
       const { kp } = found;
-      const prompt = `你是一个专业的知识讲解专家，擅长用大白话和生动类比解释专业概念。
+      const isEnglish = found.path.id === 'english-essentials';
+
+      let specialRules = '';
+      if (isEnglish) {
+        const title = kp.title || '';
+        const rules = [];
+        if (/时态|一般|进行|完成/.test(title)) rules.push('时态类知识点必须附带该时态的标志词列表');
+        if (/对比|vs/.test(title)) rules.push('对比类知识点必须用 ❌ vs ✅ 表格对照，一目了然');
+        if (/间接引语/.test(title)) rules.push('间接引语需包含时态后退规则');
+        if (/缩略词/.test(title)) rules.push('缩略词需包含全称 + 中文释义 + 使用场景');
+        if (/情态动词/.test(title)) rules.push('情态动词需区分主观/客观、建议/命令');
+        if (/比较级|最高级/.test(title)) rules.push('比较级需包含规则变化和不规则变化完整表');
+        if (rules.length > 0) specialRules = '\n【特殊要求】\n- ' + rules.join('\n- ');
+      }
+
+      const englishPrompt = `你是一位趣味英语语法老师，教学风格幽默、接地气，擅长用口诀和生活类比帮助记忆。
+
+请为以下知识点生成学习内容：
+- 路径：英语趣味语法
+- 章节：${found.chapter.title}
+- 知识点：${kp.title}
+
+请按以下 5 个模块输出（第 6 模块「随堂小测」暂不实现）：
+
+1. 🎯 核心口诀
+   - definition：知识小结，1-2 句话概括本知识点最核心的规则
+   - mnemonic：随堂小口诀，不超过 20 字，朗朗上口有节奏感，谐音梗/顺口溜/打油诗都行
+
+2. 📖 生动用法解析
+   - explanation：用生活化类比讲解规则（相亲/做饭/快递/公司/朋友圈等），先建立中文思维桥梁再对比英文差异，多条规则逐条编号拆解，禁止堆砌语法术语
+
+3. 💬 实景例句
+   - example：至少 3-5 个例句，格式为「英文 + 中文翻译 + (括号标注语法点)」，场景覆盖职场/物流/日常生活，禁止 "My name is Tom" 式课本句
+
+4. ⚠️ 易错提示
+   - mistakes：至少 2-3 个中国学生常见错误，格式「❌ 错误用法 → ✅ 正确用法 → 💡 为什么错」
+
+5. 🔗 扩展固定搭配
+   - collocations：3-8 个高频固定搭配/短语，优先职场/商务/物流场景，格式「搭配 + 中文 + 例句」${specialRules}
+
+【输出格式】
+严格返回 JSON：
+{
+  "definition": "...",
+  "mnemonic": "...",
+  "explanation": "...",
+  "example": "...",
+  "mistakes": "...",
+  "collocations": "..."
+}`;
+
+      const defaultPrompt = `你是一个专业的知识讲解专家，擅长用大白话和生动类比解释专业概念。
 
 请围绕「${kp.title}」这个知识点，生成以下四部分内容：
 
@@ -1498,6 +1549,8 @@ ${knowledgeBody ? `知识内容摘要：${String(knowledgeBody).substring(0, 300
   "analogy": "..."
 }`;
 
+      const prompt = isEnglish ? englishPrompt : defaultPrompt;
+
       try {
         const resp = await fetch(llmConfig.endpoint, {
           method: 'POST',
@@ -1509,7 +1562,7 @@ ${knowledgeBody ? `知识内容摘要：${String(knowledgeBody).substring(0, 300
               { role: 'user', content: prompt },
             ],
             temperature: 0.7,
-            max_tokens: 1200,
+            max_tokens: isEnglish ? 2500 : 1200,
             response_format: { type: 'json_object' },
           }),
         });
@@ -1527,6 +1580,11 @@ ${knowledgeBody ? `知识内容摘要：${String(knowledgeBody).substring(0, 300
           explanation: String(parsed.explanation || '').trim(),
           example: String(parsed.example || '').trim(),
           analogy: String(parsed.analogy || '').trim(),
+          ...(isEnglish ? {
+            mnemonic: String(parsed.mnemonic || '').trim(),
+            mistakes: String(parsed.mistakes || '').trim(),
+            collocations: String(parsed.collocations || '').trim(),
+          } : {}),
           generatedAt: new Date().toISOString(),
         };
         if (!item.definition) return json(res, { ok: false, error: 'AI 返回内容为空' }, 500);

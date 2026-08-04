@@ -7,6 +7,7 @@ const PATH_COLORS: Record<string, string> = {
   'dama-dmbok': '#7C3AED',
   'python-basics': '#00b365',
   'sql-fundamentals': '#3370ff',
+  'english-essentials': '#DC2626',
 };
 
 export default function LearnHome() {

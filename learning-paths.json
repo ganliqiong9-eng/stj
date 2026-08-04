@@ -89,6 +89,138 @@
           ]
         }
       ]
+    },
+    {
+      "id": "english-essentials",
+      "name": "英语趣味语法",
+      "description": "用口诀、类比和生活场景掌握英语语法，从词性基础到商务实战，覆盖16种时态、10大词性、代词、介词、从句等42个核心知识点",
+      "icon": "🇬🇧",
+      "chapters": [
+        {
+          "id": "en-ch1",
+          "order": 1,
+          "title": "英语地基——词性与句子成分",
+          "description": "10大词性 + 11种成分 + 8种句型 + 五大基本句型",
+          "knowledgePoints": [
+            { "id": "en-kp1-1", "order": 1, "title": "英语10大词性" },
+            { "id": "en-kp1-2", "order": 2, "title": "11种句子成分" },
+            { "id": "en-kp1-3", "order": 3, "title": "8种句子结构" },
+            { "id": "en-kp1-4", "order": 4, "title": "五大基本句型详解" }
+          ]
+        },
+        {
+          "id": "en-ch2",
+          "order": 2,
+          "title": "代词与数词——人称全家桶与分数",
+          "description": "人称代词主格宾格、物主代词、反身代词、基数词序数词与分数",
+          "knowledgePoints": [
+            { "id": "en-kp2-1", "order": 1, "title": "人称代词——主格与宾格" },
+            { "id": "en-kp2-2", "order": 2, "title": "物主代词——形容词性与名词性" },
+            { "id": "en-kp2-3", "order": 3, "title": "反身代词" },
+            { "id": "en-kp2-4", "order": 4, "title": "基数词、序数词与分数" }
+          ]
+        },
+        {
+          "id": "en-ch3",
+          "order": 3,
+          "title": "时态大闯关——16种时态全解",
+          "description": "4×4时态矩阵 + 时态标志词 + 3组最常混淆对比",
+          "knowledgePoints": [
+            { "id": "en-kp3-1", "order": 1, "title": "一般时态四兄弟" },
+            { "id": "en-kp3-2", "order": 2, "title": "进行时态四兄弟" },
+            { "id": "en-kp3-3", "order": 3, "title": "完成时态四兄弟" },
+            { "id": "en-kp3-4", "order": 4, "title": "完成进行时态四兄弟" },
+            { "id": "en-kp3-5", "order": 5, "title": "时态对比①：一般过去 vs 现在完成" },
+            { "id": "en-kp3-6", "order": 6, "title": "时态对比②：过去进行 vs 一般过去" },
+            { "id": "en-kp3-7", "order": 7, "title": "时态对比③：现在完成 vs 现在完成进行" },
+            { "id": "en-kp3-8", "order": 8, "title": "时态标志词速查表" }
+          ]
+        },
+        {
+          "id": "en-ch4",
+          "order": 4,
+          "title": "冠词与介词",
+          "description": "a/an/the 的用法 + in/on/at 空间时间 + 易混介词对比",
+          "knowledgePoints": [
+            { "id": "en-kp4-1", "order": 1, "title": "a/an/the 的用法规则" },
+            { "id": "en-kp4-2", "order": 2, "title": "in/on/at 空间用法" },
+            { "id": "en-kp4-3", "order": 3, "title": "in/on/at 时间用法" },
+            { "id": "en-kp4-4", "order": 4, "title": "易混介词对比" }
+          ]
+        },
+        {
+          "id": "en-ch5",
+          "order": 5,
+          "title": "情态动词与比较级",
+          "description": "情态动词家族 + 形容词副词比较级最高级 + 不定代词",
+          "knowledgePoints": [
+            { "id": "en-kp5-1", "order": 1, "title": "情态动词家族" },
+            { "id": "en-kp5-2", "order": 2, "title": "形容词/副词比较级与最高级" },
+            { "id": "en-kp5-3", "order": 3, "title": "不定代词与指示代词" }
+          ]
+        },
+        {
+          "id": "en-ch6",
+          "order": 6,
+          "title": "从句攻克",
+          "description": "定语从句 + 宾语从句 + 间接引语 + 主语表语同位语从句 + 状语从句",
+          "knowledgePoints": [
+            { "id": "en-kp6-1", "order": 1, "title": "定语从句——关系代词选择" },
+            { "id": "en-kp6-2", "order": 2, "title": "限制性 vs 非限制性定语从句" },
+            { "id": "en-kp6-3", "order": 3, "title": "宾语从句与间接引语" },
+            { "id": "en-kp6-4", "order": 4, "title": "主语从句、表语从句与同位语从句" },
+            { "id": "en-kp6-5", "order": 5, "title": "状语从句" }
+          ]
+        },
+        {
+          "id": "en-ch7",
+          "order": 7,
+          "title": "非谓语动词",
+          "description": "动名词 vs 现在分词 + to do vs doing + 不定式功能 + 过去分词",
+          "knowledgePoints": [
+            { "id": "en-kp7-1", "order": 1, "title": "动名词 vs 现在分词" },
+            { "id": "en-kp7-2", "order": 2, "title": "to do vs doing 作宾语" },
+            { "id": "en-kp7-3", "order": 3, "title": "不定式的多种功能" },
+            { "id": "en-kp7-4", "order": 4, "title": "过去分词作定语和状语" }
+          ]
+        },
+        {
+          "id": "en-ch8",
+          "order": 8,
+          "title": "特殊句型",
+          "description": "被动语态 + 虚拟语气 + 条件句 + 倒装/强调/感叹句",
+          "knowledgePoints": [
+            { "id": "en-kp8-1", "order": 1, "title": "被动语态" },
+            { "id": "en-kp8-2", "order": 2, "title": "虚拟语气" },
+            { "id": "en-kp8-3", "order": 3, "title": "条件句四种类型" },
+            { "id": "en-kp8-4", "order": 4, "title": "倒装句、强调句与感叹句" }
+          ]
+        },
+        {
+          "id": "en-ch9",
+          "order": 9,
+          "title": "商务实战写作——邮件全攻略",
+          "description": "邮件标题/开场/请求/结尾/签名 + 物流供应链场景",
+          "knowledgePoints": [
+            { "id": "en-kp9-1", "order": 1, "title": "邮件标题与开场白" },
+            { "id": "en-kp9-2", "order": 2, "title": "请求、催促、跟进" },
+            { "id": "en-kp9-3", "order": 3, "title": "结尾与签名" },
+            { "id": "en-kp9-4", "order": 4, "title": "物流/供应链常用邮件场景" }
+          ]
+        },
+        {
+          "id": "en-ch10",
+          "order": 10,
+          "title": "职场口语与缩略词",
+          "description": "会议表达 + 汇报结构 + 日常口语 + 缩略词大全",
+          "knowledgePoints": [
+            { "id": "en-kp10-1", "order": 1, "title": "会议常用表达" },
+            { "id": "en-kp10-2", "order": 2, "title": "汇报与演示结构" },
+            { "id": "en-kp10-3", "order": 3, "title": "日常办公高频口语" },
+            { "id": "en-kp10-4", "order": 4, "title": "英语缩略词大全" }
+          ]
+        }
+      ]
     }
   ]
 }

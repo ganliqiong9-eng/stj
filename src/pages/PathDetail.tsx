@@ -4,12 +4,6 @@ import StatusBar from '../components/StatusBar';
 import PageHeader from '../components/PageHeader';
 import { getLearningPath, type LearningPathDetail } from '../api';
 
-const PATH_COLORS: Record<string, string> = {
-  'dama-dmbok': '#7C3AED',
-  'python-basics': '#00b365',
-  'sql-fundamentals': '#3370ff',
-};
-
 export default function PathDetail() {
   const { pathId = '' } = useParams<{ pathId: string }>();
   const nav = useNavigate();
@@ -47,8 +41,15 @@ export default function PathDetail() {
     );
   }
 
-  const color = PATH_COLORS[pathId] || 'var(--primary)';
-  const lightBg = pathId === 'dama-dmbok' ? '#f3eefa' : pathId === 'python-basics' ? '#e6f7ef' : pathId === 'sql-fundamentals' ? '#e8f0ff' : 'var(--primary-light)';
+  const pathColors: Record<string, { color: string; lightBg: string }> = {
+    'dama-dmbok': { color: '#7C3AED', lightBg: '#f3eefa' },
+    'python-basics': { color: '#00b365', lightBg: '#e6f7ef' },
+    'sql-fundamentals': { color: '#3370ff', lightBg: '#e8f0ff' },
+    'english-essentials': { color: '#DC2626', lightBg: '#fef2f2' },
+  };
+  const pc = pathColors[pathId] || { color: 'var(--primary)', lightBg: 'var(--primary-light)' };
+  const color = pc.color;
+  const lightBg = pc.lightBg;
 
   return (
     <div className="page">

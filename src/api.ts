@@ -392,6 +392,9 @@ export async function generateLearningContent(knowledgePointId: string): Promise
   explanation?: string;
   example?: string;
   analogy?: string;
+  mnemonic?: string;
+  mistakes?: string;
+  collocations?: string;
   cached?: boolean;
   error?: string;
 }> {
