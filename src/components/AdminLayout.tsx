@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Upload, ArrowLeft, Database as DatabaseIcon, Search, AlertTriangle } from 'lucide-react';
+import { API_BASE } from '../api';
 
 const navItems = [
   { path: '/admin', label: '仪表盘', icon: LayoutDashboard },
@@ -18,7 +19,7 @@ export default function AdminLayout({ children, title }: { children: ReactNode; 
 
   useEffect(() => {
     try {
-      fetch('http://localhost:8086/api/rag/status').then(r => r.json()).then(d => {
+      fetch(`${API_BASE}/api/rag/status`).then(r => r.json()).then(d => {
         setRagStatus(d.status === 'ready' ? 'RAG 就绪' : `RAG: ${d.status}`);
       }).catch(() => setRagStatus('RAG 离线'));
     } catch {}
