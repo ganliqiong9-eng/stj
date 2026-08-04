@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { upgradeUploadDocForRag, MAX_UPLOAD_SIZE } from '../api';
 import { useNavigate } from 'react-router-dom';
 import db from '../store/db';
+import { safeUUID } from '../utils/id';
 
 export default function AdminUpload() {
   const nav = useNavigate();
@@ -41,7 +42,7 @@ export default function AdminUpload() {
         if (r.ok && r.sections) {
           try {
             await db.addKnowledge({
-              _id: r.articleId || crypto.randomUUID(),
+              _id: r.articleId || safeUUID(),
               title: r.title || f.file.name,
               subj: 'custom',
               tags: '文档',

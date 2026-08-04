@@ -1,3 +1,5 @@
+import { safeUUID } from './utils/id';
+
 // API 地址：优先使用 localStorage 中配置的地址，否则自动检测
 function getApiBase(): string {
   // 1. 用户手动配置的地址（优先级最高）
@@ -37,7 +39,7 @@ function getDeviceToken(): string {
   let token = localStorage.getItem('sync_device_token');
   if (!token) {
     // Generate and register a new token
-    token = crypto.randomUUID();
+    token = safeUUID();
     localStorage.setItem('sync_device_token', token);
     // Async registration
     fetch(`${API_BASE}/api/register`, {
@@ -234,6 +236,7 @@ export async function generateQuiz(params: {
   count?: number;
   types?: string[];
   knowledgeId?: string;
+  excludeQuestions?: { question: string; knowledgeTitle?: string }[];
 }): Promise<{ ok: boolean; quiz: any[]; error?: string }> {
   const API_KEY = 'sbuddy_key';
   const ENDPOINT_KEY = 'sbuddy_endpoint';

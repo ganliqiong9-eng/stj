@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, Save } from 'lucide-react';
 import db from '../store/db';
 import type { Section } from '../data/content';
+import { safeUUID } from '../utils/id';
 
 interface PasteTextViewProps {
   onBack: () => void;
@@ -31,7 +32,7 @@ export default function PasteTextView({ onBack, onSave: onSaveDone }: PasteTextV
     const now = new Date().toISOString();
     await db.addKnowledge({
       title: title.trim(), subj, tags: tags.trim(), source: '粘贴文本',
-      sections, _id: crypto.randomUUID(), createdAt: now, updatedAt: now,
+      sections, _id: safeUUID(), createdAt: now, updatedAt: now,
     });
     await db.pushSync();
     setSaving(false);

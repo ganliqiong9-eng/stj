@@ -1175,6 +1175,7 @@ http.createServer(async (req, res) => {
       const count = body.count || 10;
       const types = body.types || ['choice', 'fill', 'short_answer'];
       const llmConfig = body.llm_config || {};
+      const excludeQuestions = body.excludeQuestions || [];
       if (!llmConfig.api_key) return json(res, { ok: false, quiz: [], error: 'LLM not configured' });
 
       // Fetch relevant chunks
@@ -1198,6 +1199,10 @@ http.createServer(async (req, res) => {
         return json(res, { ok: false, quiz: [], error: 'No matching knowledge found' });
       }
 
+      const excludeText = excludeQuestions.length > 0
+        ? `\n- 避免生成与以下已刷过的题目相同或高度相似的题目：\n${excludeQuestions.map((q, i) => `${i + 1}. [${q.knowledgeTitle || '未知知识点'}] ${q.question}`).join('\n')}`
+        : '';
+
       const SYS_PROMPT = `你是一名出题专家，擅长把专业概念用生活化比喻讲清楚。基于下面的知识要点生成考试题目。
 
 要求：
@@ -1206,6 +1211,7 @@ http.createServer(async (req, res) => {
 - 简答题：需要解释概念或写代码
 - 每道题尽量融入生活化比喻（相亲、做饭、购物、物流等场景），帮助记忆
 - explanation 用大白话写清楚，最好带一句贴切的比喻
+${excludeText}
 
 严格输出 JSON 数组：
 [{

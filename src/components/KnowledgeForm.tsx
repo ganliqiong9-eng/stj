@@ -3,6 +3,7 @@ import db, { type KnowledgeEntry } from '../store/db';
 import { addKnowledge } from '../api';
 import type { Section } from '../data/content';
 import { SUBJECT_OPTIONS, emptySection } from './KnowledgeUtils';
+import { safeUUID } from '../utils/id';
 
 export default function KnowledgeForm({ onBack, editEntry }: { onBack: () => void; editEntry?: KnowledgeEntry }) {
   const [title, setTitle] = useState(editEntry?.title || '');
@@ -23,7 +24,7 @@ export default function KnowledgeForm({ onBack, editEntry }: { onBack: () => voi
     setSaving(true);
     const nonEmptySections = sections.filter(s => s.title.trim() || s.body.trim());
     const now = new Date().toISOString();
-    const sharedId = crypto.randomUUID();
+    const sharedId = safeUUID();
 
     if (editEntry && editEntry.id !== undefined) {
       await db.updateKnowledge(editEntry.id, {

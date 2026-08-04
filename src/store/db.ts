@@ -3,6 +3,7 @@ import { defaultQuestions, type Question } from '../data/questions';
 import type { Section } from '../data/content';
 import { syncUpload, syncDownload } from '../api';
 import type { Row } from '../api';
+import { safeUUID } from '../utils/id';
 
 export interface StoredNote {
   id?: number;
@@ -62,6 +63,21 @@ export interface ReviewSchedule {
   mastered?: boolean;
 }
 
+export interface QuizSession {
+  id?: number;
+  sessionId: string;
+  subj?: string;
+  level?: string;
+  knowledgeId?: string;
+  questions: any[];
+  answers: Record<string, string>;
+  revealedSet: Record<string, boolean>;
+  currentIndex: number;
+  phase: 'setup' | 'quiz' | 'summary';
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** 同步锁，防止并发请求 */
 let _syncLock = false;
 /** 末次同步时间戳 */
@@ -75,6 +91,7 @@ class StudyDB extends Dexie {
   knowledge!: Table<KnowledgeEntry, number>;
   wrongAnswers!: Table<WrongAnswer, number>;
   reviewSchedule!: Table<ReviewSchedule, number>;
+  quizSessions!: Table<QuizSession, number>;
 
   constructor() {
     super('StudyBuddy');
@@ -99,6 +116,15 @@ class StudyDB extends Dexie {
       wrongAnswers: '++id, createdAt',
       reviewSchedule: '++id, nextReviewDate, reviewed'
     });
+    this.version(4).stores({
+      questions: 'id, subj, star',
+      notes: '++id, courseId',
+      progress: 'chapterId',
+      knowledge: '++id, subj',
+      wrongAnswers: '++id, createdAt',
+      reviewSchedule: '++id, nextReviewDate, reviewed',
+      quizSessions: '++id, sessionId, updatedAt'
+    });
   }
 
   async initQuestions() {
@@ -122,7 +148,7 @@ class StudyDB extends Dexie {
   }
 
   async addNote(note: StoredNote) {
-    note._id = crypto.randomUUID();
+    note._id = safeUUID();
     const id = await this.notes.add(note);
     return id;
   }
@@ -188,7 +214,7 @@ class StudyDB extends Dexie {
   async addKnowledge(entry: Omit<KnowledgeEntry, 'id'>) {
     const full: KnowledgeEntry = {
       ...entry,
-      _id: entry._id || crypto.randomUUID(),
+      _id: entry._id || safeUUID(),
     };
     return this.knowledge.add(full);
   }
@@ -207,6 +233,58 @@ class StudyDB extends Dexie {
 
   async getAllKnowledge() {
     return this.knowledge.toArray();
+  }
+
+  // === Quiz Sessions ===
+  async saveQuizSession(session: Omit<QuizSession, 'id'>) {
+    const existing = await this.quizSessions.where('sessionId').equals(session.sessionId).first();
+    if (existing) {
+      await this.quizSessions.update(existing.id!, { ...session, updatedAt: new Date().toISOString() });
+    } else {
+      await this.quizSessions.add({ ...session, id: undefined });
+    }
+  }
+
+  async getLastQuizSession(): Promise<QuizSession | undefined> {
+    return this.quizSessions.orderBy('updatedAt').reverse().first();
+  }
+
+  async getAllAnsweredQuestionIds(): Promise<Set<string>> {
+    const sessions = await this.quizSessions.toArray();
+    const ids = new Set<string>();
+    for (const s of sessions) {
+      for (const q of (s.questions || [])) {
+        if (s.answers[q.id]) ids.add(q.id);
+      }
+    }
+    return ids;
+  }
+
+  async getAnsweredQuestions(limit = 15): Promise<{ question: string; knowledgeTitle?: string }[]> {
+    const sessions = await this.quizSessions.orderBy('updatedAt').reverse().toArray();
+    const seen = new Set<string>();
+    const out: { question: string; knowledgeTitle?: string }[] = [];
+    for (const s of sessions) {
+      for (const q of (s.questions || [])) {
+        if (!s.answers[q.id]) continue;
+        const key = q.question || '';
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        out.push({ question: key, knowledgeTitle: q.knowledge?.title || q.knowledgeTitle || '' });
+        if (out.length >= limit) return out;
+      }
+    }
+    return out;
+  }
+
+  async cleanOldSessions() {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 7);
+    const cutoffStr = cutoff.toISOString();
+    const old = await this.quizSessions.where('updatedAt').below(cutoffStr).toArray();
+    for (const s of old) {
+      await this.quizSessions.delete(s.id!);
+    }
   }
 
   // === Wrong Answers ===

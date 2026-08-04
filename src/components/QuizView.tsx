@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Play, ArrowLeft, ArrowRight, Check, X, RefreshCw, BookOpen } from 'lucide-react';
 import { deepExplain, generateQuiz } from '../api';
-import db from '../store/db';
+import db, { type QuizSession } from '../store/db';
+import { safeUUID } from '../utils/id';
 
 interface QuizItem {
   id: string;
@@ -54,6 +55,40 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
   const [revealedSet, setRevealedSet] = useState<Record<string, boolean>>({});
   const [deepExplainMap, setDeepExplainMap] = useState<Record<string, string>>({});
   const [loadingExplainId, setLoadingExplainId] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string>(safeUUID());
+  const [lastSession, setLastSession] = useState<QuizSession | null>(null);
+
+  const refreshLastSession = async () => {
+    try { await db.cleanOldSessions(); } catch {}
+    if (initialQuiz) return;
+    try {
+      const s = await db.getLastQuizSession();
+      setLastSession(s && s.phase === 'quiz' && s.questions.length > 0 ? s : null);
+    } catch {}
+  };
+
+  useEffect(() => {
+    refreshLastSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuiz]);
+
+  useEffect(() => {
+    if (phase === 'quiz' && quiz.length > 0) {
+      db.saveQuizSession({
+        sessionId: currentSessionId,
+        subj,
+        level,
+        knowledgeId,
+        questions: quiz,
+        answers,
+        revealedSet,
+        currentIndex: currentIdx,
+        phase,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }).catch(() => {});
+    }
+  }, [answers, revealedSet, currentIdx, phase, quiz, currentSessionId, subj, level, knowledgeId]);
 
   useEffect(() => {
     if (phase === 'summary' && !loggedSummary && quiz.length > 0) {
@@ -84,7 +119,10 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
   const handleGenerate = async () => {
     setLoading(true);
     setError('');
-    const r = await generateQuiz({ subj: subj || undefined, level: level || undefined, count, types: ['choice', 'fill', 'short_answer'], knowledgeId });
+    const answeredQuestions = await db.getAnsweredQuestions(15).catch(() => []);
+    const sessionId = safeUUID();
+    setCurrentSessionId(sessionId);
+    const r = await generateQuiz({ subj: subj || undefined, level: level || undefined, count, types: ['choice', 'fill', 'short_answer'], knowledgeId, excludeQuestions: answeredQuestions });
     if (r.ok && r.quiz.length > 0) {
       setQuiz(r.quiz);
       setAnswers({});
@@ -97,6 +135,8 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
       setLoggedSummary(false);
       setPhase('quiz');
       localStorage.setItem('last_quiz', JSON.stringify(r.quiz));
+      db.saveQuizSession({ sessionId, subj, level, knowledgeId, questions: r.quiz, answers: {}, revealedSet: {}, currentIndex: 0, phase: 'quiz', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }).catch(() => {});
+      setLastSession(null);
     } else {
       setError(r.error || '生成失败，请检查 API Key');
     }
@@ -215,6 +255,24 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
             <option value={3}>3题</option><option value={5}>5题</option><option value={10}>10题</option>
           </select>
         </div>
+        {lastSession && lastSession.phase === 'quiz' && lastSession.questions.length > 0 && (
+          <button onClick={() => {
+            setQuiz(lastSession.questions);
+            setAnswers(lastSession.answers || {});
+            setAnsweredSet(lastSession.answers || {});
+            setRevealedSet(lastSession.revealedSet || {});
+            setDeepExplainMap({});
+            setLoadingExplainId(null);
+            setCurrentIdx(lastSession.currentIndex || 0);
+            setCurrentSessionId(lastSession.sessionId);
+            setKey(k => k + 1);
+            setLoggedSummary(false);
+            setPhase('quiz');
+          }}
+            style={{ width: '100%', padding: '14px 0', border: '2px solid var(--primary)', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            📝 继续上次刷题（{lastSession.questions.length}题，已到第{lastSession.currentIndex + 1}题）
+          </button>
+        )}
         <button onClick={handleGenerate} disabled={loading}
           style={{ width: '100%', padding: '14px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 15, fontWeight: 700, cursor: loading ? 'default' : 'pointer', fontFamily: 'var(--font)', background: loading ? 'var(--border)' : 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           {loading ? 'AI 出题中...' : <><Play size={18} /> 开始刷题</>}
@@ -254,12 +312,12 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => { setPhase('setup'); setQuiz([]); setRevealedSet({}); setDeepExplainMap({}); setLoadingExplainId(null); }}
+          <button onClick={() => { setPhase('setup'); setQuiz([]); setRevealedSet({}); setDeepExplainMap({}); setLoadingExplainId(null); setCurrentSessionId(safeUUID()); refreshLastSession(); }}
             style={{ flex: 1, padding: '12px 0', border: '2px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
             <RefreshCw size={14} /> 再来一套
           </button>
           {wrongQuiz.length > 0 && (
-            <button onClick={() => { setQuiz(wrongQuiz); setAnswers({}); setAnsweredSet({}); setRevealedSet({}); setDeepExplainMap({}); setLoadingExplainId(null); setCurrentIdx(0); setKey(k => k+1); setLoggedSummary(false); setPhase('quiz'); }}
+            <button onClick={() => { setQuiz(wrongQuiz); setAnswers({}); setAnsweredSet({}); setRevealedSet({}); setDeepExplainMap({}); setLoadingExplainId(null); setCurrentIdx(0); setKey(k => k+1); setLoggedSummary(false); setCurrentSessionId(safeUUID()); setPhase('quiz'); }}
               style={{ flex: 1, padding: '12px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--primary)', color: '#fff' }}>
               重做错题 ({wrongQuiz.length})
             </button>
@@ -323,7 +381,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
       </div>
 
       {/* Question card */}
-      <div key={key} style={{ flex: 1, background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 20, border: '2px solid var(--border-light)', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', animation: 'slideUp .25s ease-out' }}>
+      <div key={key} style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 20, border: '2px solid var(--border-light)', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', animation: 'slideUp .25s ease-out' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
           <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 20, background: tc.bg, color: tc.c }}>{tc.label}</span>
         </div>
@@ -461,6 +519,9 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                 lineHeight: 1.8,
                 color: 'var(--text)',
                 whiteSpace: 'pre-wrap',
+                maxHeight: 260,
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch',
               }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary)', marginBottom: 6 }}>
                   📚 多维度解析

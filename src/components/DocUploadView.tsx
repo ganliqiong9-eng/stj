@@ -6,6 +6,7 @@ import { SUBJECT_OPTIONS } from './KnowledgeUtils';
 import KnowledgeCard from './KnowledgeCard';
 import CardEditModal from './CardEditModal';
 import db from '../store/db';
+import { safeUUID } from '../utils/id';
 
 export default function DocUploadView({ onBack, onDone }: { onBack: () => void; onDone?: () => void }) {
   type Phase = 'select' | 'parsing' | 'review';
@@ -64,7 +65,7 @@ export default function DocUploadView({ onBack, onDone }: { onBack: () => void; 
         return card ? { ...s, qa: card } : s;
       });
       const entry = {
-        _id: crypto.randomUUID(),
+        _id: safeUUID(),
         title: docTitle || file?.name?.replace(/\.\w+$/, '') || '未命名',
         subj: subject,
         tags: tags.trim() || '文档',

@@ -199,7 +199,7 @@ export default function MockExam() {
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-tertiary)' }}>{currentIdx + 1}/{quiz.length}</span>
           </div>
 
-          <div key={key} style={{ flex: 1, background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 16, border: '2px solid var(--border-light)', animation: 'slideUp .25s ease-out', display: 'flex', flexDirection: 'column' }}>
+          <div key={key} style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 16, border: '2px solid var(--border-light)', animation: 'slideUp .25s ease-out', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: quiz[currentIdx]?.type === 'choice' ? '#e6f7ef' : '#e8f0ff', color: quiz[currentIdx]?.type === 'choice' ? '#00b365' : '#3370ff', alignSelf: 'flex-start', marginBottom: 6 }}>
               {quiz[currentIdx]?.type === 'choice' ? '选择题' : quiz[currentIdx]?.type === 'fill' ? '填空题' : '简答题'}
             </div>
