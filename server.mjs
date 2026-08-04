@@ -1516,14 +1516,20 @@ ${knowledgeBody ? `知识内容摘要：${String(knowledgeBody).substring(0, 300
    - collocations：3-8 个高频固定搭配/短语，优先职场/商务/物流场景，格式「搭配 + 中文 + 例句」${specialRules}
 
 【输出格式】
-严格返回 JSON：
+严格返回 JSON。每个字段的值必须使用 Markdown 格式排版：
+- 用 **加粗** 标记关键词/核心概念
+- 用 - 列表 或 1. 2. 3. 编号列表 分行展示多条内容
+- 用空行分段（两个换行）
+- 例句每行一个，用 - 开头
+
+示例：
 {
-  "definition": "...",
-  "mnemonic": "...",
-  "explanation": "...",
-  "example": "...",
-  "mistakes": "...",
-  "collocations": "..."
+  "definition": "**核心规则**：英语的「的」有三种表达\n\n- 有生命的用 **'s**（the boy's book）\n- 无生命的用 **of**（the door of the room）\n- 一一对应用 **to**（the key to the door）",
+  "mnemonic": "**活的 's，死的 of，一对一的交给 to**",
+  "explanation": "把所有格想象成「贴标签」：\n\n1. **'s** = 便利贴，直接贴在人/动物身上 → my dog's tail\n2. **of** = 快递单，写清楚「A of B = B 的 A」→ the roof of the house\n3. **to** = 配对关系，钥匙配锁、答案配题目 → the answer to the question\n\n⚠️ 注意：有些固定搭配不讲道理，只能记住：\n- **at the door**（在门口）不说 on the door\n- **the key to success**（成功的钥匙）不用 of",
+  "example": "- **The manager's decision surprised everyone.** 经理的决定让所有人吃惊。（'s 所有格：人→决定）\n- **The completion rate of the project is 80%.** 项目完成率80%。（of 所有格：物→属性）\n- **She has the answer to the question.** 她有这道题的答案。（to 配对：答案→问题）\n- **The ETA of the shipment is next Monday.** 货物预计到达时间是下周一。（of + 物流场景）",
+  "mistakes": "❌ **The book of Tom** is on the table.\n✅ **Tom's book** is on the table.\n💡 人名/有生命的名词用 's，不用 of。of 用于无生命的东西。\n\n❌ **I am looking for the key of the door.**\n✅ **I am looking for the key to the door.**\n💡 key/answer/response/solution 这些「配对关系」的词，后面固定用 to，不用 of。",
+  "collocations": "- **the key to...** ……的钥匙/关键 → the key to success\n- **the answer to...** ……的答案 → the answer to the question\n- **at the door** 在门口 → Someone is knocking at the door\n- **the roof of** ……的屋顶 → the roof of the building\n- **by heart** 背诵 → Learn the poem by heart"
 }`;
 
       const defaultPrompt = `你是一个专业的知识讲解专家，擅长用大白话和生动类比解释专业概念。
@@ -1541,12 +1547,17 @@ ${knowledgeBody ? `知识内容摘要：${String(knowledgeBody).substring(0, 300
 - 例子要贴合实际工作场景（尤其是数据/物流/IT 领域）
 
 【输出格式】
+严格返回 JSON。每个字段的值必须使用 Markdown 格式排版：
+- 用 **加粗** 标记关键词/核心概念
+- 用 - 列表 或 1. 2. 3. 编号列表分行展示多条内容
+- 用空行分段
+
 返回 JSON：
 {
-  "definition": "...",
-  "explanation": "...",
-  "example": "...",
-  "analogy": "..."
+  "definition": "**核心定义**：用一句话精准描述...\n\n关键特征：\n- 特征1\n- 特征2\n- 特征3",
+  "explanation": "**深入理解**：\n\n1. **第一点**：详细解释...\n2. **第二点**：详细解释...\n3. **第三点**：详细解释...",
+  "example": "**工作场景**：\n\n- 例子1 + 具体说明\n- 例子2 + 具体说明",
+  "analogy": "**生活类比**：\n\n把这个概念想象成...\n\n- 相似点1\n- 相似点2"
 }`;
 
       const prompt = isEnglish ? englishPrompt : defaultPrompt;

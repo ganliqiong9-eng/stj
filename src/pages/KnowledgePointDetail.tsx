@@ -21,6 +21,40 @@ interface Content {
   collocations?: string;
 }
 
+/** 轻量 Markdown → HTML 渲染（支持加粗/斜体/换行/列表/标题/引用/代码） */
+function renderMarkdown(text: string): string {
+  if (!text) return '';
+  let html = text
+    // 转义 HTML 特殊字符
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    // 代码块 ```code``` → <pre><code>
+    .replace(/```([\s\S]*?)```/g, (_, code: string) => `<pre style="background:var(--bg);padding:10px 12px;border-radius:8px;font-size:12px;overflow-x:auto;margin:6px 0;font-family:monospace;white-space:pre-wrap;">${code.trim()}</pre>`)
+    // 行内代码 `code` → <code>
+    .replace(/`([^`]+)`/g, '<code style="background:var(--bg);padding:1px 6px;border-radius:4px;font-size:12px;font-family:monospace;color:var(--primary);">$1</code>')
+    // 标题 ### → h4（小号）
+    .replace(/^### (.+)$/gm, '<div style="font-size:13px;font-weight:700;margin:10px 0 4px;color:var(--text);">$1</div>')
+    // 标题 ## → h3
+    .replace(/^## (.+)$/gm, '<div style="font-size:14px;font-weight:700;margin:12px 0 6px;color:var(--text);">$1</div>')
+    // 标题 # → h2
+    .replace(/^# (.+)$/gm, '<div style="font-size:15px;font-weight:700;margin:14px 0 8px;color:var(--text);">$1</div>')
+    // 引用 > → 灰色左边框块
+    .replace(/^&gt; (.+)$/gm, '<div style="border-left:3px solid var(--border);padding:4px 12px;margin:6px 0;color:var(--text-secondary);font-size:13px;font-style:italic;">$1</div>')
+    // 加粗+斜体 ***text*** → <b><i>
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<b style="color:var(--primary);"><i>$1</i></b>')
+    // 加粗 **text** → <b>（主题色）
+    .replace(/\*\*(.+?)\*\*/g, '<b style="color:var(--primary);">$1</b>')
+    // 斜体 *text* → <i>
+    .replace(/\*(.+?)\*/g, '<i>$1</i>')
+    // 有序列表 1. → 数字+点（保持原样但缩进）
+    .replace(/^(\d+)\. (.+)$/gm, '<div style="padding-left:16px;margin:3px 0;"><span style="font-weight:600;color:var(--text);">$1.</span> $2</div>')
+    // 无序列表 - → 圆点
+    .replace(/^- (.+)$/gm, '<div style="padding-left:16px;margin:3px 0;">• $1</div>')
+    // 换行（两个换行 = 段落间隔，单个换行 = <br>）
+    .replace(/\n\n/g, '</p><p style="margin:6px 0;">')
+    .replace(/\n/g, '<br/>');
+  return `<p style="margin:0;">${html}</p>`;
+}
+
 export default function KnowledgePointDetail() {
   const { pathId = '', chapterId = '', kpId = '' } = useParams<{ pathId: string; chapterId: string; kpId: string }>();
   const nav = useNavigate();
@@ -180,7 +214,7 @@ export default function KnowledgePointDetail() {
                 borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 10,
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>🎯 核心口诀</div>
-                <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.7, color: 'var(--text)' }}>{content.mnemonic}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.7, color: 'var(--text)' }} dangerouslySetInnerHTML={{ __html: renderMarkdown(content.mnemonic) }} />
               </div>
             )}
             {content.definition && (
@@ -189,7 +223,7 @@ export default function KnowledgePointDetail() {
                 borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 10,
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>📖 定义</div>
-                <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.7, color: 'var(--text)' }}>{content.definition}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.7, color: 'var(--text)' }} dangerouslySetInnerHTML={{ __html: renderMarkdown(content.definition) }} />
               </div>
             )}
             {content.explanation && (
@@ -198,7 +232,7 @@ export default function KnowledgePointDetail() {
                 borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 10,
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>📚 深入理解</div>
-                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text-secondary)' }}>{content.explanation}</div>
+                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text-secondary)' }} dangerouslySetInnerHTML={{ __html: renderMarkdown(content.explanation) }} />
               </div>
             )}
             {content.example && (
@@ -207,7 +241,7 @@ export default function KnowledgePointDetail() {
                 borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 10,
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>💼 实际例子</div>
-                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text-secondary)' }}>{content.example}</div>
+                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text-secondary)' }} dangerouslySetInnerHTML={{ __html: renderMarkdown(content.example) }} />
               </div>
             )}
             {content.analogy && (
@@ -216,7 +250,7 @@ export default function KnowledgePointDetail() {
                 borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 10,
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>🎯 趣味类比</div>
-                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text)' }}>{content.analogy}</div>
+                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text)' }} dangerouslySetInnerHTML={{ __html: renderMarkdown(content.analogy) }} />
               </div>
             )}
             {content.mistakes && (
@@ -225,7 +259,7 @@ export default function KnowledgePointDetail() {
                 borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 10,
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>⚠️ 易错提示</div>
-                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text)' }}>{content.mistakes}</div>
+                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text)' }} dangerouslySetInnerHTML={{ __html: renderMarkdown(content.mistakes) }} />
               </div>
             )}
             {content.collocations && (
@@ -234,7 +268,7 @@ export default function KnowledgePointDetail() {
                 borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 10,
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>🔗 扩展固定搭配</div>
-                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text-secondary)' }}>{content.collocations}</div>
+                <div style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text-secondary)' }} dangerouslySetInnerHTML={{ __html: renderMarkdown(content.collocations) }} />
               </div>
             )}
           </>
