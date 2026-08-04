@@ -7,6 +7,7 @@ export default defineConfig(({ command }) => ({
     react(),
     ...(command === 'build' ? [VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: false,
       includeAssets: ['icons/*.svg'],
       manifest: {
         name: 'STJ 学习助手',
