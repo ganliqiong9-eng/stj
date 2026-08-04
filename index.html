@@ -20,6 +20,41 @@
   </head>
 <body>
   <div id="root"></div>
+  <div id="boot-error" style="display:none;position:fixed;inset:0;background:#fff;z-index:999999;flex-direction:column;align-items:center;justify-content:center;gap:12px;font:14px/1.6 system-ui,sans-serif;text-align:center;padding:24px;">
+    <div style="font-size:20px;font-weight:700;">页面加载异常</div>
+    <pre id="boot-error-text" style="white-space:pre-wrap;color:#e63946;max-width:100%;overflow:auto;">正在加载...</pre>
+    <button id="boot-reload" style="padding:10px 24px;border:none;border-radius:8px;background:#3370ff;color:#fff;font-size:14px;cursor:pointer;">重新加载</button>
+  </div>
+  <script>
+    (function () {
+      var lastError = '';
+      function showBootError() {
+        var el = document.getElementById('boot-error');
+        if (!el || el.style.display === 'flex') return;
+        var pre = document.getElementById('boot-error-text');
+        if (pre && lastError) pre.textContent = lastError;
+        el.style.display = 'flex';
+      }
+      window.addEventListener('error', function (e) {
+        lastError = (e && e.message) || '未知脚本错误';
+        showBootError();
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        var r = e && e.reason;
+        lastError = (r && (r.message || String(r))) || '未知异步错误';
+      });
+      document.getElementById('boot-reload').addEventListener('click', function () {
+        location.reload();
+      });
+      setTimeout(function () {
+        var root = document.getElementById('root');
+        if (!root || root.children.length === 0) {
+          if (!lastError) lastError = '脚本未完成加载（可能网络超时）';
+          showBootError();
+        }
+      }, 8000);
+    })();
+  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

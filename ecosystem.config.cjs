@@ -12,7 +12,7 @@ module.exports = {
     {
       name: 'stj-frontend',
       script: 'node_modules/.bin/vite',
-      args: '--host 0.0.0.0 --port 8081',
+      args: 'preview --host 0.0.0.0 --port 8081',
       cwd: '/Users/albee/Documents/stj',
       max_memory_restart: '512M',
       error_file: './logs/frontend-error.log',
