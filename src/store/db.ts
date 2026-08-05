@@ -78,6 +78,34 @@ export interface QuizSession {
   updatedAt: string;
 }
 
+export interface QuizHistoryItem {
+  id?: number;
+  historyId: string;
+  subj: string;
+  level: string;
+  knowledgeId: string;
+  knowledgeTitle?: string;
+  questions: any[];
+  answers: Record<string, string>;
+  revealedSet: Record<string, boolean>;
+  score?: number;
+  totalQuestions: number;
+  answeredCount: number;
+  completedAt?: string;
+  deepExplainMap: Record<string, string>;
+  createdAt: string;
+}
+
+export interface QuestionTag {
+  id?: number;
+  questionKey: string;
+  questionText: string;
+  tags: string[];
+  starred: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** 同步锁，防止并发请求 */
 let _syncLock = false;
 /** 末次同步时间戳 */
@@ -92,6 +120,8 @@ class StudyDB extends Dexie {
   wrongAnswers!: Table<WrongAnswer, number>;
   reviewSchedule!: Table<ReviewSchedule, number>;
   quizSessions!: Table<QuizSession, number>;
+  quizHistory!: Table<QuizHistoryItem, number>;
+  questionTags!: Table<QuestionTag, number>;
 
   constructor() {
     super('StudyBuddy');
@@ -124,6 +154,17 @@ class StudyDB extends Dexie {
       wrongAnswers: '++id, createdAt',
       reviewSchedule: '++id, nextReviewDate, reviewed',
       quizSessions: '++id, sessionId, updatedAt'
+    });
+    this.version(5).stores({
+      questions: 'id, subj, star',
+      notes: '++id, courseId',
+      progress: 'chapterId',
+      knowledge: '++id, subj',
+      wrongAnswers: '++id, createdAt',
+      reviewSchedule: '++id, nextReviewDate, reviewed',
+      quizSessions: '++id, sessionId, updatedAt',
+      quizHistory: '++id, historyId, createdAt',
+      questionTags: '++id, questionKey, starred'
     });
   }
 
@@ -291,6 +332,65 @@ class StudyDB extends Dexie {
     for (const s of old) {
       await this.quizSessions.delete(s.id!);
     }
+  }
+
+  // === Quiz History ===
+  async saveQuizHistory(item: Omit<QuizHistoryItem, 'id'>) {
+    const existing = await this.quizHistory.where('historyId').equals(item.historyId).first();
+    if (existing) {
+      await this.quizHistory.update(existing.id!, item);
+      return existing.id!;
+    }
+    return await this.quizHistory.add(item as QuizHistoryItem);
+  }
+
+  async getQuizHistoryList(): Promise<QuizHistoryItem[]> {
+    return this.quizHistory.orderBy('createdAt').reverse().toArray();
+  }
+
+  async updateQuizHistory(historyId: string, updates: Partial<QuizHistoryItem>) {
+    await this.quizHistory.where('historyId').equals(historyId).modify(updates);
+  }
+
+  async deleteQuizHistory(historyId: string) {
+    await this.quizHistory.where('historyId').equals(historyId).delete();
+  }
+
+  // === Question Tags ===
+  async setQuestionTag(questionKey: string, questionText: string, tags: string[], starred: boolean) {
+    const existing = await this.questionTags.where('questionKey').equals(questionKey).first();
+    if (existing) {
+      await this.questionTags.update(existing.id!, {
+        tags,
+        starred,
+        questionText: questionText || existing.questionText,
+        updatedAt: new Date().toISOString(),
+      });
+    } else {
+      await this.questionTags.add({
+        questionKey,
+        questionText,
+        tags,
+        starred,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as QuestionTag);
+    }
+  }
+
+  async getQuestionTag(questionKey: string): Promise<QuestionTag | undefined> {
+    return this.questionTags.where('questionKey').equals(questionKey).first();
+  }
+
+  async getStarredQuestions(): Promise<QuestionTag[]> {
+    return this.questionTags.where('starred').equals(1).reverse().sortBy('updatedAt');
+  }
+
+  async getAllTags(): Promise<string[]> {
+    const all = await this.questionTags.toArray();
+    const tagSet = new Set<string>();
+    for (const item of all) for (const t of item.tags) tagSet.add(t);
+    return Array.from(tagSet).sort();
   }
 
   // === Wrong Answers ===
