@@ -243,10 +243,16 @@ class StudyDB extends Dexie {
     } else {
       await this.quizSessions.add({ ...session, id: undefined });
     }
+    // 自动清理 7 天前旧会话
+    await this.cleanOldSessions().catch(() => {});
   }
 
   async getLastQuizSession(): Promise<QuizSession | undefined> {
     return this.quizSessions.orderBy('updatedAt').reverse().first();
+  }
+
+  async clearQuizSession(sessionId: string) {
+    await this.quizSessions.where('sessionId').equals(sessionId).delete();
   }
 
   async getAllAnsweredQuestionIds(): Promise<Set<string>> {

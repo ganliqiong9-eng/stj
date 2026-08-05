@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Play, ArrowLeft, ArrowRight, Check, X, RefreshCw, BookOpen } from 'lucide-react';
 import { deepExplain, generateQuiz } from '../api';
 import db, { type QuizSession } from '../store/db';
@@ -57,6 +58,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
   const [loadingExplainId, setLoadingExplainId] = useState<string | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string>(safeUUID());
   const [lastSession, setLastSession] = useState<QuizSession | null>(null);
+  const [deepExplainSheet, setDeepExplainSheet] = useState<{ question: QuizItem; content: string } | null>(null);
 
   const refreshLastSession = async () => {
     try { await db.cleanOldSessions(); } catch {}
@@ -89,6 +91,12 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
       }).catch(() => {});
     }
   }, [answers, revealedSet, currentIdx, phase, quiz, currentSessionId, subj, level, knowledgeId]);
+
+  useEffect(() => {
+    if (phase === 'summary') {
+      db.clearQuizSession(currentSessionId).catch(() => {});
+    }
+  }, [phase, currentSessionId]);
 
   useEffect(() => {
     if (phase === 'summary' && !loggedSummary && quiz.length > 0) {
@@ -216,7 +224,9 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
       knowledgeBody: knowledge.body || '',
     });
     if (res.ok) {
-      setDeepExplainMap(prev => ({ ...prev, [q.id]: res.content || '解析为空' }));
+      const content = res.content || '解析为空';
+      setDeepExplainMap(prev => ({ ...prev, [q.id]: content }));
+      setDeepExplainSheet({ question: q, content });
     } else {
       setDeepExplainMap(prev => ({ ...prev, [q.id]: `解析失败：${res.error || '未知错误'}` }));
     }
@@ -256,22 +266,39 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
           </select>
         </div>
         {lastSession && lastSession.phase === 'quiz' && lastSession.questions.length > 0 && (
-          <button onClick={() => {
-            setQuiz(lastSession.questions);
-            setAnswers(lastSession.answers || {});
-            setAnsweredSet(lastSession.answers || {});
-            setRevealedSet(lastSession.revealedSet || {});
-            setDeepExplainMap({});
-            setLoadingExplainId(null);
-            setCurrentIdx(lastSession.currentIndex || 0);
-            setCurrentSessionId(lastSession.sessionId);
-            setKey(k => k + 1);
-            setLoggedSummary(false);
-            setPhase('quiz');
-          }}
-            style={{ width: '100%', padding: '14px 0', border: '2px solid var(--primary)', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            📝 继续上次刷题（{lastSession.questions.length}题，已到第{lastSession.currentIndex + 1}题）
-          </button>
+          <div style={{ margin: '12px 0', padding: '12px 16px', borderRadius: 'var(--radius)', background: '#FEF3C7', border: '1px solid #F59E0B' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#92400E', marginBottom: 8 }}>
+              📝 发现未完成的刷题记录
+            </div>
+            <div style={{ fontSize: 12, color: '#92400E', marginBottom: 8 }}>
+              上次答到第 {lastSession.currentIndex + 1} 题（共 {lastSession.questions.length} 题）
+            </div>
+            <button
+              onClick={() => {
+                setQuiz(lastSession.questions);
+                setAnswers(lastSession.answers || {});
+                setAnsweredSet(lastSession.answers || {});
+                setRevealedSet(lastSession.revealedSet || {});
+                setDeepExplainMap({});
+                setLoadingExplainId(null);
+                setCurrentIdx(lastSession.currentIndex || 0);
+                setCurrentSessionId(lastSession.sessionId);
+                setKey(k => k + 1);
+                setLoggedSummary(false);
+                setPhase('quiz');
+              }}
+              style={{ padding: '6px 16px', borderRadius: 'var(--radius-sm)', background: '#F59E0B', color: '#fff', border: 'none', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+              继续上次刷题
+            </button>
+            <button
+              onClick={() => {
+                db.clearQuizSession(lastSession.sessionId).catch(() => {});
+                setLastSession(null);
+              }}
+              style={{ marginLeft: 8, padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: 'transparent', color: '#92400E', border: '1px solid #F59E0B', fontSize: 12, cursor: 'pointer' }}>
+              重新开始
+            </button>
+          </div>
         )}
         <button onClick={handleGenerate} disabled={loading}
           style={{ width: '100%', padding: '14px 0', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 15, fontWeight: 700, cursor: loading ? 'default' : 'pointer', fontFamily: 'var(--font)', background: loading ? 'var(--border)' : 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
@@ -371,6 +398,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
   const tc = typeConfig[q.type];
 
   return (
+    <>
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px 16px 12px', gap: 10 }}>
       {/* Progress bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -481,54 +509,35 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
             )}
 
             {/* 🔍 深入解析按钮 */}
-            {!deepExplainMap[q.id] && (
-              <button
-                onClick={() => handleDeepExplain(q)}
-                disabled={loadingExplainId === q.id}
-                style={{
-                  marginTop: 8,
-                  width: '100%',
-                  padding: '8px 0',
-                  border: '1px solid var(--primary)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: loadingExplainId === q.id ? 'wait' : 'pointer',
-                  fontFamily: 'var(--font)',
-                  background: 'transparent',
-                  color: 'var(--primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 4,
-                }}
-              >
-                {loadingExplainId === q.id ? '🔄 AI 解析中...' : '🔍 深入解析'}
-              </button>
-            )}
-
-            {/* 深入解析内容展示 */}
-            {deepExplainMap[q.id] && (
-              <div style={{
+            <button
+              onClick={() => {
+                if (deepExplainMap[q.id]) {
+                  setDeepExplainSheet({ question: q, content: deepExplainMap[q.id] });
+                } else {
+                  handleDeepExplain(q);
+                }
+              }}
+              disabled={loadingExplainId === q.id}
+              style={{
                 marginTop: 8,
-                padding: '10px 12px',
+                width: '100%',
+                padding: '8px 0',
+                border: '1px solid var(--primary)',
                 borderRadius: 'var(--radius-sm)',
-                background: 'var(--surface)',
-                border: '1px solid var(--border-light)',
                 fontSize: 12,
-                lineHeight: 1.8,
-                color: 'var(--text)',
-                whiteSpace: 'pre-wrap',
-                maxHeight: 260,
-                overflowY: 'auto',
-                WebkitOverflowScrolling: 'touch',
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary)', marginBottom: 6 }}>
-                  📚 多维度解析
-                </div>
-                {deepExplainMap[q.id]}
-              </div>
-            )}
+                fontWeight: 600,
+                cursor: loadingExplainId === q.id ? 'wait' : 'pointer',
+                fontFamily: 'var(--font)',
+                background: deepExplainMap[q.id] ? 'var(--primary-light)' : 'transparent',
+                color: 'var(--primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
+              }}
+            >
+              {loadingExplainId === q.id ? '🔄 AI 解析中...' : deepExplainMap[q.id] ? '📚 查看多维度解析' : '🔍 深入解析'}
+            </button>
           </div>
         )}
       </div>
@@ -551,5 +560,55 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
         )}
       </div>
     </div>
+
+    {deepExplainSheet && createPortal(
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          animation: 'fadeIn .2s ease',
+        }}
+        onClick={() => setDeepExplainSheet(null)}
+      >
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
+        <div
+          style={{
+            position: 'relative',
+            maxHeight: '80vh',
+            background: 'var(--bg)',
+            borderRadius: '20px 20px 0 0',
+            display: 'flex',
+            flexDirection: 'column',
+            animation: 'slideUp .3s cubic-bezier(.22,1,.36,1)',
+            boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0 }}>
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)' }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px 10px', borderBottom: '1px solid var(--border-light)', flexShrink: 0 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', flex: 1 }}>📚 多维度解析</span>
+            <button onClick={() => setDeepExplainSheet(null)}
+              style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'var(--border)', color: 'var(--text-secondary)', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              ✕
+            </button>
+          </div>
+          <div style={{ padding: '10px 16px', background: 'var(--primary-light)', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, borderBottom: '1px solid var(--border-light)', flexShrink: 0 }}>
+            <span style={{ fontWeight: 600, color: 'var(--text)' }}>题目：</span>
+            {deepExplainSheet.question?.question}
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px', fontSize: 13, lineHeight: 1.8, color: 'var(--text)', whiteSpace: 'pre-wrap', WebkitOverflowScrolling: 'touch' }}>
+            {deepExplainSheet.content}
+          </div>
+        </div>
+      </div>,
+      document.getElementById('app-root')!
+    )}
+    </>
   );
 }
