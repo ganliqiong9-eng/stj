@@ -1,9 +1,13 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import type { Row } from '../api';
 import CompilerResultTable from './CompilerResultTable';
 import type { ResultEntry } from '../pages/Compiler';
 
-function HistoryEntry({ entry, expanded, onToggle }: { entry: ResultEntry; expanded: boolean; onToggle: () => void }) {
+function HistoryEntry({ entry, expanded, onToggle, onReuse }: {
+  entry: ResultEntry;
+  expanded: boolean;
+  onToggle: () => void;
+  onReuse?: (code: string) => void;
+}) {
   return (
     <div style={{
       border: '2px solid var(--border)', borderRadius: 'var(--radius-sm)',
@@ -28,13 +32,24 @@ function HistoryEntry({ entry, expanded, onToggle }: { entry: ResultEntry; expan
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-secondary)' }}>
           {entry.msg?.substring(0, 60)}
         </span>
+        {entry.ok && entry.rows.length > 0 && (
+          <span style={{ fontSize: 10, color: 'var(--text-tertiary)', flexShrink: 0 }}>
+            {entry.rows.length}行 · {entry.elapsedMs ?? '-'}ms
+          </span>
+        )}
+        {onReuse && (
+          <span onClick={e => { e.stopPropagation(); onReuse(entry.code); }}
+            style={{ fontSize: 10, color: 'var(--primary)', cursor: 'pointer', flexShrink: 0, padding: '2px 4px', borderRadius: 4, background: 'var(--primary-light)' }}>
+            重用
+          </span>
+        )}
         <span style={{ fontSize: 10, color: 'var(--text-tertiary)', flexShrink: 0 }}>
           {entry.timestamp}
         </span>
       </button>
       {expanded && entry.columns.length > 0 && (
         <div style={{ borderTop: '1px solid var(--border)' }}>
-          <ResultTable columns={entry.columns} rows={entry.rows} />
+          <CompilerResultTable columns={entry.columns} rows={entry.rows} elapsedMs={entry.elapsedMs} />
         </div>
       )}
       {expanded && entry.columns.length === 0 && entry.msg && (

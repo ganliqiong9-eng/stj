@@ -1,25 +1,32 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Play, CheckCircle, RotateCcw, Upload, Database, 
-  Code, Table2, FileSpreadsheet, Terminal,
+import {
+  Play, CheckCircle, RotateCcw, Upload, Database,
+  Code, FileSpreadsheet, Terminal,
   ChevronRight, ChevronDown, AlertCircle, Loader,
-  FileType, BookOpen, Copy, Trash2
+  FileType, Trash2,
 } from 'lucide-react';
-import { 
+import CodeMirror from '@uiw/react-codemirror';
+import { sql } from '@codemirror/lang-sql';
+import { python } from '@codemirror/lang-python';
+import { oneDark } from '@codemirror/theme-one-dark';
+import { keymap, EditorView } from '@codemirror/view';
+import type { Extension } from '@codemirror/state';
+import {
   runCompilerCode, listCompilerTables, getCompilerTableData,
   importCompilerExcel, resetCompilerDB, getCompilerSampleQueries,
-  type CompilerTable, type Row
+  type CompilerTable, type Row,
 } from '../api';
 import { MAX_UPLOAD_SIZE } from '../api';
 import StatusBar from '../components/StatusBar';
 import CompilerResultTable from '../components/CompilerResultTable';
 import CompilerHistoryEntry from '../components/CompilerHistoryEntry';
+import { useToast } from '../components/Toast';
 
 // ============================================================
 // Types
 // ============================================================
-type Tab = 'editor' | 'tables' | 'import';
+type Tab = 'editor' | 'import';
 export type ResultEntry = {
   id: number;
   language: 'sql' | 'python';
@@ -29,6 +36,7 @@ export type ResultEntry = {
   columns: string[];
   rows: Row[];
   timestamp: string;
+  elapsedMs?: number;
 };
 
 // ============================================================
@@ -77,49 +85,79 @@ function localCheckPython(code: string): { ok: boolean; msg: string } {
 }
 
 // ============================================================
-// Result Table Component
+// Main Compiler Component
 // ============================================================
 export default function Compiler() {
   const nav = useNavigate();
+  const { success, error, info, confirm } = useToast();
   const [lang, setLang] = useState<'sql' | 'python'>('sql');
   const [code, setCode] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('editor');
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<ResultEntry[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [lastResult, setLastResult] = useState<ResultEntry | null>(null);
   const [checkResult, setCheckResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
-  // Tables tab state
+  // Tables state
   const [tables, setTables] = useState<CompilerTable[]>([]);
   const [tablesLoading, setTablesLoading] = useState(false);
+  const [tablesOpen, setTablesOpen] = useState(false);
+  const [expandedTable, setExpandedTable] = useState<string | null>(null);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [tableData, setTableData] = useState<{ columns: string[]; rows: Row[] }>({ columns: [], rows: [] });
   const [tableDataLoading, setTableDataLoading] = useState(false);
 
-  // Import tab state
+  // Import state
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importTableName, setImportTableName] = useState('');
   const [importResult, setImportResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Editor refs / schema
+  const editorRef = useRef<EditorView | null>(null);
+  const handleRunRef = useRef<() => void>(() => {});
+  const [sqlSchema, setSqlSchema] = useState<Record<string, string[]>>({});
+
   // Sample queries
   const [sampleQueries, setSampleQueries] = useState<{ sql: { title: string; code: string }[]; python: { title: string; code: string }[] }>({
-    sql: [], python: []
+    sql: [], python: [],
   });
-  const [showSamples, setShowSamples] = useState(false);
+
+  const getDark = useCallback(() =>
+    document.documentElement.dataset.theme === 'dark' ||
+    window.matchMedia('(prefers-color-scheme: dark)').matches, []);
+
+  const [isDark, setIsDark] = useState(getDark);
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 769px)').matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 769px)');
+    const onMq = () => setIsDesktop(mq.matches);
+    mq.addEventListener('change', onMq);
+    const observer = new MutationObserver(() => setIsDark(getDark()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => {
+      mq.removeEventListener('change', onMq);
+      observer.disconnect();
+    };
+  }, [getDark]);
 
   // Load sample queries and tables on mount
   useEffect(() => {
     getCompilerSampleQueries().then(setSampleQueries).catch(() => {});
     loadTables();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ====== Actions ======
   const loadTables = useCallback(async () => {
     setTablesLoading(true);
     const data = await listCompilerTables();
     setTables(data);
+    const schema: Record<string, string[]> = {};
+    for (const t of data) schema[t.name] = t.columns;
+    setSqlSchema(schema);
     setTablesLoading(false);
   }, []);
 
@@ -131,14 +169,13 @@ export default function Compiler() {
     setTableDataLoading(false);
   }, []);
 
-  const handleRun = async () => {
+  const handleRun = useCallback(async () => {
     if (!code.trim()) return;
     setLoading(true);
     setCheckResult(null);
-    setShowSamples(false);
-
+    const start = performance.now();
     const result = await runCompilerCode(lang, code);
-
+    const elapsedMs = Math.round(performance.now() - start);
     const entry: ResultEntry = {
       id: Date.now(),
       language: lang,
@@ -148,11 +185,28 @@ export default function Compiler() {
       columns: result.columns || [],
       rows: result.rows || [],
       timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      elapsedMs,
     };
     setHistory(prev => [entry, ...prev]);
     setExpandedId(entry.id);
+    setLastResult(entry);
     setLoading(false);
-  };
+  }, [code, lang]);
+
+  useEffect(() => {
+    handleRunRef.current = () => { void handleRun(); };
+  });
+
+  const extensions = useMemo<Extension[]>(() => {
+    const runKeymap = keymap.of([
+      { key: 'Mod-Enter', run: () => { handleRunRef.current(); return true; } },
+      { key: 'Mod-Shift-c', run: () => { setCode(''); return true; } },
+    ]);
+    const base: Extension[] = [runKeymap, EditorView.lineWrapping];
+    return lang === 'sql'
+      ? [...base, sql({ schema: sqlSchema })]
+      : [...base, python()];
+  }, [lang, sqlSchema]);
 
   const handleCheck = () => {
     if (lang === 'sql') setCheckResult(localCheckSQL(code));
@@ -162,17 +216,33 @@ export default function Compiler() {
   const handleInsertSample = (item: { title: string; code: string }) => {
     setCode(item.code);
     setActiveTab('editor');
-    setShowSamples(false);
+    info(`已填入示例：${item.title}`);
+  };
+
+  const insertAtCursor = (text: string) => {
+    const view = editorRef.current;
+    if (view) {
+      view.dispatch({ changes: { from: view.state.selection.main.head, insert: text } });
+      view.focus();
+    } else {
+      setCode(prev => prev + text);
+    }
   };
 
   const handleReset = async () => {
-    const confirmed = window.confirm('确认重置数据库？所有导入的数据将丢失。');
-    if (!confirmed) return;
+    const ok = await confirm('确认重置数据库？所有导入的数据将丢失。', {
+      title: '重置数据库',
+      danger: true,
+      confirmText: '重置',
+    });
+    if (!ok) return;
     const result = await resetCompilerDB();
     setCheckResult(result);
     await loadTables();
     setSelectedTable(null);
     setTableData({ columns: [], rows: [] });
+    if (result.ok) success('数据库已重置');
+    else error(result.msg);
   };
 
   const handleImportFile = async () => {
@@ -184,6 +254,9 @@ export default function Compiler() {
     setImporting(false);
     if (result.ok) {
       await loadTables();
+      success('导入成功');
+    } else {
+      error('导入失败：' + result.msg);
     }
   };
 
@@ -191,12 +264,11 @@ export default function Compiler() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > MAX_UPLOAD_SIZE) {
-        alert(`文件过大（${(file.size / 1024 / 1024).toFixed(1)} MB），请选择 50 MB 以内的文件`);
+        error(`文件过大（${(file.size / 1024 / 1024).toFixed(1)} MB），请选择 50 MB 以内的文件`);
         e.target.value = '';
         return;
       }
       setImportFile(file);
-      // Auto-fill table name from filename (without extension)
       if (!importTableName) {
         setImportTableName(file.name.replace(/\.(xlsx|xls|csv)$/i, ''));
       }
@@ -206,13 +278,6 @@ export default function Compiler() {
   const handleClearHistory = () => {
     setHistory([]);
     setExpandedId(null);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.shiftKey && e.key === 'Enter') {
-      e.preventDefault();
-      handleRun();
-    }
   };
 
   // ====== Render ======
@@ -226,14 +291,14 @@ export default function Compiler() {
           width: 32, height: 32, borderRadius: 8, border: 'none',
           background: 'var(--surface)', color: 'var(--text-secondary)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', boxShadow: 'var(--shadow-sm)', fontSize: 18, flexShrink: 0
+          cursor: 'pointer', boxShadow: 'var(--shadow-sm)', fontSize: 18, flexShrink: 0,
         }}>‹</button>
         <h2 style={{ fontSize: 17, fontWeight: 700, flex: 1 }}>代码编译器</h2>
-        <select value={lang} onChange={e => { setLang(e.target.value as 'sql' | 'python'); setCode(''); setCheckResult(null); }}
+        <select value={lang} onChange={e => { setLang(e.target.value as 'sql' | 'python'); setCode(''); setCheckResult(null); setLastResult(null); }}
           style={{
             padding: '4px 10px', borderRadius: 8, border: '2px solid var(--border)',
             background: 'var(--surface)', fontSize: 12, fontFamily: 'var(--font)',
-            fontWeight: 600, color: 'var(--text)'
+            fontWeight: 600, color: 'var(--text)',
           }}>
           <option value="sql">SQL</option>
           <option value="python">Python</option>
@@ -241,13 +306,9 @@ export default function Compiler() {
       </div>
 
       {/* Tab Bar */}
-      <div style={{
-        display: 'flex', gap: 2, margin: '4px 12px 0', padding: 3,
-        background: 'var(--border)', borderRadius: 10,
-      }}>
+      <div style={{ display: 'flex', gap: 2, margin: '4px 12px 0', padding: 3, background: 'var(--border)', borderRadius: 10 }}>
         {([
           { key: 'editor' as Tab, label: '编辑器', icon: Code },
-          { key: 'tables' as Tab, label: '数据表', icon: Database },
           { key: 'import' as Tab, label: '导入', icon: FileSpreadsheet },
         ]).map(tab => {
           const Icon = tab.icon;
@@ -272,120 +333,231 @@ export default function Compiler() {
 
       {/* ====== Editor Tab ====== */}
       {activeTab === 'editor' && (
-        <>
-          {/* Code Editor */}
-          <div style={{
-            flex: 1, margin: '4px 12px 0', borderRadius: 'var(--radius-sm)',
-            overflow: 'hidden', border: '2px solid var(--border)',
-            display: 'flex', flexDirection: 'column',
-          }}>
-            <textarea value={code} onChange={e => setCode(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={lang === 'sql' 
-                ? '-- 输入 SQL 代码\nSELECT * FROM employees;\n\n提示: Shift+Enter 快速执行' 
-                : '# 输入 Python 代码\nprint("Hello World!")\n\n提示: Shift+Enter 快速执行'}
-              style={{
-                flex: 1, resize: 'none', border: 'none', outline: 'none',
-                padding: '12px 14px', minHeight: 150,
-                fontFamily: 'var(--mono)', fontSize: 14, lineHeight: 1.6,
-                background: '#1e1e2e', color: '#cdd6f4', tabSize: 2,
-              }} />
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '4px 12px 6px' }}>
+          {/* Example chips */}
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '6px 0', alignItems: 'center' }}>
+            <span style={{ fontSize: 11, color: 'var(--text-tertiary)', flexShrink: 0 }}>📋 示例</span>
+            {sampleQueries[lang]?.map((s, i) => (
+              <button key={i} onClick={() => handleInsertSample(s)}
+                style={{
+                  padding: '3px 10px', borderRadius: 12, fontSize: 11, whiteSpace: 'nowrap',
+                  border: '1px solid var(--border)', background: 'var(--bg-subtle)',
+                  cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: 'var(--font)',
+                }}>
+                {s.title}
+              </button>
+            ))}
           </div>
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: 6, padding: '4px 12px 0' }}>
-            <button onClick={handleRun} disabled={loading || !code.trim()}
-              style={{
-                flex: 2, padding: '10px 0', border: 'none', borderRadius: 'var(--radius-sm)',
-                fontSize: 13, fontWeight: 700, cursor: loading ? 'default' : 'pointer',
-                fontFamily: 'var(--font)',
-                background: loading ? 'var(--border)' : 'var(--primary)', color: loading ? 'var(--text-tertiary)' : '#fff',
-                boxShadow: loading ? 'none' : '0 4px 12px rgba(28,176,246,.3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              }}>
-              {loading ? <Loader size={16} className="spin" /> : <Play size={16} />}
-              {loading ? '运行中...' : '运行代码'}
-            </button>
-            <button onClick={handleCheck}
-              style={{
-                flex: 1, padding: '10px 0', border: '2px solid var(--border)',
-                borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 700,
-                cursor: 'pointer', fontFamily: 'var(--font)',
-                background: 'var(--surface)', color: 'var(--text)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-              }}>
-              <CheckCircle size={14} /> 语法检查
-            </button>
-            <button onClick={() => setShowSamples(!showSamples)}
-              style={{
-                padding: '10px 12px', border: '2px solid var(--border)',
-                borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 700,
-                cursor: 'pointer', fontFamily: 'var(--font)',
-                background: 'var(--surface)', color: 'var(--text)',
-              }}>
-              <BookOpen size={14} />
-            </button>
-          </div>
-
-          {/* Keyboard shortcut */}
-          <div style={{ fontSize: 10, color: 'var(--text-tertiary)', padding: '2px 14px 0' }}>
-            Shift+Enter 运行 · Shift+Enter 运行代码
-          </div>
-
-          {/* Local syntax check */}
-          {checkResult && (
+          {/* Split view */}
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: isDesktop ? 'row' : 'column', gap: 8, marginTop: 4 }}>
+            {/* Editor */}
             <div style={{
-              margin: '4px 12px 0', padding: '8px 12px', borderRadius: 'var(--radius-sm)',
-              fontSize: 11, fontFamily: 'var(--mono)', lineHeight: 1.5,
-              background: checkResult.ok ? 'var(--green-light)' : 'var(--rose-light)',
-              color: checkResult.ok ? 'var(--green)' : 'var(--rose)',
-              whiteSpace: 'pre-wrap',
+              flex: isDesktop ? '5' : '1 1 46%', minHeight: isDesktop ? 0 : 260,
+              display: 'flex', flexDirection: 'column',
+              borderRadius: 'var(--radius-sm)', border: '2px solid var(--border)',
+              overflow: 'hidden', background: 'var(--surface)',
             }}>
-              {checkResult.ok ? '✓ ' : '✗ '}{checkResult.msg}
-            </div>
-          )}
-
-          {/* Sample queries panel */}
-          {showSamples && (
-            <div style={{
-              margin: '4px 12px 0', borderRadius: 'var(--radius-sm)',
-              border: '2px solid var(--border)', overflow: 'hidden',
-              background: 'var(--surface)',
-            }}>
-              <div style={{
-                padding: '8px 12px', fontSize: 11, fontWeight: 700,
-                color: 'var(--text-secondary)', borderBottom: '1px solid var(--border)',
-                display: 'flex', alignItems: 'center', gap: 4,
-              }}>
-                <BookOpen size={12} /> 示例代码（点击插入）
-              </div>
-              {sampleQueries[lang]?.map((item, i) => (
-                <button key={i} onClick={() => handleInsertSample(item)}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+                <Code size={13} color="var(--primary)" />
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>{lang.toUpperCase()}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>表名自动补全已开启</span>
+                <button onClick={handleCheck} title="语法检查"
                   style={{
-                    width: '100%', display: 'block', textAlign: 'left',
-                    padding: '8px 12px', border: 'none', borderBottom: i < sampleQueries[lang].length - 1 ? '1px solid var(--border-light)' : 'none',
-                    background: 'transparent', cursor: 'pointer',
-                    fontFamily: 'var(--font)', fontSize: 11, color: 'var(--text)',
-                    transition: 'background .15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--border-light)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  <div style={{ fontWeight: 600, marginBottom: 2 }}>{item.title}</div>
-                  <div style={{
-                    fontSize: 10, color: 'var(--text-tertiary)',
-                    fontFamily: 'var(--mono)', overflow: 'hidden',
-                    textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    display: 'flex', alignItems: 'center', gap: 3, padding: '3px 8px', borderRadius: 6,
+                    border: '1px solid var(--border)', background: 'transparent', fontSize: 10, fontWeight: 600,
+                    cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: 'var(--font)',
                   }}>
-                    {item.code.substring(0, 80)}...
-                  </div>
+                  <CheckCircle size={11} /> 检查
                 </button>
-              ))}
+              </div>
+
+              <div style={{ flex: 1, minHeight: 240, position: 'relative', overflow: 'hidden' }}>
+                <CodeMirror
+                  value={code}
+                  height="100%"
+                  theme={isDark ? oneDark : 'light'}
+                  extensions={extensions}
+                  onChange={val => setCode(val)}
+                  onCreateEditor={view => { editorRef.current = view; }}
+                  basicSetup={{
+                    lineNumbers: true,
+                    highlightActiveLineGutter: true,
+                    autocompletion: true,
+                    bracketMatching: true,
+                    closeBrackets: true,
+                    highlightActiveLine: true,
+                    foldGutter: true,
+                    indentOnInput: true,
+                  }}
+                  style={{ height: '100%', fontSize: 13 }}
+                />
+                <button onClick={handleRun} disabled={loading || !code.trim()} title="运行 (⌘/Ctrl+Enter)"
+                  style={{
+                    position: 'absolute', top: 8, right: 8, zIndex: 10,
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    padding: '6px 14px', borderRadius: 8, border: 'none',
+                    background: loading ? 'var(--text-tertiary)' : 'var(--primary)',
+                    color: '#fff', fontSize: 12, fontWeight: 700, cursor: loading ? 'wait' : 'pointer',
+                    boxShadow: '0 2px 8px rgba(0,0,0,.15)', fontFamily: 'var(--font)',
+                  }}>
+                  {loading ? <Loader size={14} className="spin" /> : <Play size={14} />}
+                  {loading ? '运行中' : '运行'}
+                </button>
+              </div>
+
+              <div style={{ fontSize: 10, color: 'var(--text-tertiary)', padding: '4px 8px', borderTop: '1px solid var(--border)' }}>
+                ⌘/Ctrl+Enter 运行 · ⌘/Ctrl+Shift+C 清空
+              </div>
+
+              {checkResult && (
+                <div style={{
+                  padding: '6px 10px', fontSize: 11, fontFamily: 'var(--mono)', lineHeight: 1.5,
+                  background: checkResult.ok ? 'var(--green-light)' : 'var(--rose-light)',
+                  color: checkResult.ok ? 'var(--green)' : 'var(--rose)',
+                  whiteSpace: 'pre-wrap', borderTop: '1px solid var(--border)',
+                }}>
+                  {checkResult.ok ? '✓ ' : '✗ '}{checkResult.msg}
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Result */}
+            <div style={{
+              flex: isDesktop ? '4.5' : '1 1 auto', minHeight: isDesktop ? 0 : 220,
+              display: 'flex', flexDirection: 'column',
+              borderRadius: 'var(--radius-sm)', border: '2px solid var(--border)',
+              overflow: 'hidden', background: 'var(--surface)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+                <Terminal size={13} color="var(--primary)" />
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>结果</span>
+              </div>
+              <div style={{ flex: 1, overflow: 'auto' }}>
+                {lastResult ? (
+                  lastResult.ok ? (
+                    lastResult.columns.length > 0 ? (
+                      <CompilerResultTable columns={lastResult.columns} rows={lastResult.rows} elapsedMs={lastResult.elapsedMs} />
+                    ) : (
+                      <div style={{ padding: '12px 14px', fontSize: 11, fontFamily: 'var(--mono)', color: 'var(--green)', whiteSpace: 'pre-wrap' }}>
+                        ✓ {lastResult.msg}
+                      </div>
+                    )
+                  ) : (
+                    <div style={{
+                      margin: 10, padding: 16, borderRadius: 10,
+                      background: 'var(--rose-light)', border: '1px solid var(--rose)',
+                      fontFamily: 'var(--mono)', fontSize: 12, lineHeight: 1.8,
+                      color: 'var(--rose)', whiteSpace: 'pre-wrap',
+                    }}>
+                      <div style={{ fontWeight: 700, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <AlertCircle size={16} /> 执行错误
+                      </div>
+                      {lastResult.msg}
+                    </div>
+                  )
+                ) : (
+                  <div style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    height: '100%', color: 'var(--text-tertiary)', fontSize: 11, padding: 20, textAlign: 'center',
+                  }}>
+                    <Terminal size={26} strokeWidth={1.5} style={{ marginBottom: 6, opacity: 0.5 }} />
+                    运行代码后结果将显示在这里
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Tables panel */}
+          <div style={{ marginTop: 8, borderRadius: 'var(--radius-sm)', border: '2px solid var(--border)', overflow: 'hidden', background: 'var(--surface)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', cursor: 'pointer', background: 'var(--bg-card)' }}
+              onClick={() => setTablesOpen(!tablesOpen)}>
+              <Database size={13} color="var(--primary)" />
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', flex: 1 }}>数据表 ({tables.length})</span>
+              <button onClick={e => { e.stopPropagation(); loadTables(); }}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontFamily: 'var(--font)', fontSize: 10, padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <RotateCcw size={10} /> 刷新
+              </button>
+              <button onClick={e => { e.stopPropagation(); handleReset(); }}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--rose)', fontFamily: 'var(--font)', fontSize: 10, padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <RotateCcw size={10} /> 重置
+              </button>
+              {tablesOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </div>
+
+            {tablesOpen && (
+              <div style={{ padding: '8px 10px' }}>
+                {tablesLoading ? (
+                  <div style={{ textAlign: 'center', padding: 16, color: 'var(--text-tertiary)' }}>
+                    <Loader size={16} className="spin" style={{ display: 'inline-block', marginRight: 6 }} />加载中...
+                  </div>
+                ) : tables.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-tertiary)', fontSize: 11 }}>
+                    <Database size={24} strokeWidth={1.5} style={{ marginBottom: 6, opacity: 0.5 }} />
+                    <div>暂无数据表</div>
+                    <div style={{ fontSize: 10, marginTop: 4 }}>导入 Excel 文件可创建新表</div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {tables.map(t => (
+                      <div key={t.name} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <div style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6,
+                          border: '1px solid var(--border)', fontSize: 12, fontFamily: 'var(--mono)', background: 'var(--bg-subtle)',
+                        }}
+                          title={`${t.columns.join(', ')}\n${t.rowCount} 行`}>
+                          <span onClick={() => insertAtCursor(t.name)} style={{ cursor: 'pointer', color: 'var(--text)' }}>{t.name}</span>
+                          <span style={{ color: 'var(--text-tertiary)' }}>({t.rowCount})</span>
+                          <button onClick={() => setExpandedTable(expandedTable === t.name ? null : t.name)}
+                            style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: 2, display: 'flex' }}>
+                            {expandedTable === t.name ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                          </button>
+                        </div>
+
+                        {expandedTable === t.name && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 8 }}>
+                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                              {t.columns.map(col => (
+                                <span key={col} onClick={() => insertAtCursor(`${t.name}.${col}`)}
+                                  style={{
+                                    padding: '2px 8px', borderRadius: 4, border: '1px dashed var(--border)',
+                                    fontSize: 11, fontFamily: 'var(--mono)', cursor: 'pointer', color: 'var(--text-secondary)',
+                                  }}>
+                                  {col}
+                                </span>
+                              ))}
+                            </div>
+                            <button onClick={() => loadTableData(selectedTable === t.name ? '' : t.name)}
+                              style={{ alignSelf: 'flex-start', fontSize: 10, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)' }}>
+                              {selectedTable === t.name ? '收起数据预览' : '查看数据'}
+                            </button>
+                            {selectedTable === t.name && (
+                              <div style={{ border: '1px solid var(--border)', borderRadius: 6, overflow: 'hidden' }}>
+                                {tableDataLoading ? (
+                                  <div style={{ padding: 12, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 11 }}>
+                                    <Loader size={14} className="spin" style={{ display: 'inline-block', marginRight: 6 }} />加载数据...
+                                  </div>
+                                ) : tableData.rows.length === 0 ? (
+                                  <div style={{ padding: 12, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 11 }}>暂无数据</div>
+                                ) : (
+                                  <CompilerResultTable columns={tableData.columns} rows={tableData.rows} />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* History / Results */}
           <div style={{
-            flex: 1, margin: '4px 12px 6px', overflowY: 'auto',
+            flex: 1, minHeight: 120, marginTop: 8, overflowY: 'auto',
             display: history.length === 0 ? 'flex' : 'block',
           }}>
             {history.length === 0 ? (
@@ -396,10 +568,8 @@ export default function Compiler() {
               }}>
                 <Terminal size={32} strokeWidth={1.5} style={{ marginBottom: 8, opacity: 0.5 }} />
                 <div style={{ fontWeight: 600, marginBottom: 2 }}>等待运行</div>
-                <div>输入代码后点击「运行代码」</div>
-                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 8 }}>
-                  或从「示例」中选取一段代码
-                </div>
+                <div>输入代码后点击「运行」</div>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 8 }}>或从上方「示例」中选取一段代码</div>
               </div>
             ) : (
               <>
@@ -420,123 +590,31 @@ export default function Compiler() {
                   </button>
                 </div>
                 {history.map(entry => (
-                  <HistoryEntry
+                  <CompilerHistoryEntry
                     key={entry.id}
                     entry={entry}
                     expanded={expandedId === entry.id}
                     onToggle={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
+                    onReuse={c => { setCode(c); setActiveTab('editor'); success('已填入历史代码'); }}
                   />
                 ))}
               </>
             )}
           </div>
-        </>
-      )}
-
-      {/* ====== Tables Tab ====== */}
-      {activeTab === 'tables' && (
-        <div style={{ flex: 1, margin: '4px 12px 6px', overflowY: 'auto' }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '4px 2px 6px', fontSize: 11, fontWeight: 600,
-            color: 'var(--text-secondary)',
-          }}>
-            <span>数据库表 ({tables.length})</span>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => loadTables()}
-                style={{
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  color: 'var(--text-tertiary)', fontFamily: 'var(--font)',
-                  fontSize: 10, padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 3,
-                }}>
-                <RotateCcw size={10} /> 刷新
-              </button>
-              <button onClick={handleReset}
-                style={{
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  color: 'var(--rose)', fontFamily: 'var(--font)',
-                  fontSize: 10, padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 3,
-                }}>
-                <RotateCcw size={10} /> 重置
-              </button>
-            </div>
-          </div>
-
-          {tablesLoading ? (
-            <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-tertiary)' }}>
-              <Loader size={20} className="spin" style={{ display: 'inline-block' }} />
-              <div style={{ fontSize: 11, marginTop: 6 }}>加载中...</div>
-            </div>
-          ) : tables.length === 0 ? (
-            <div style={{
-              textAlign: 'center', padding: 30, color: 'var(--text-tertiary)',
-              fontSize: 12,
-            }}>
-              <Database size={28} strokeWidth={1.5} style={{ marginBottom: 8, opacity: 0.5 }} />
-              <div style={{ fontWeight: 600 }}>暂无数据表</div>
-              <div style={{ fontSize: 10, marginTop: 4 }}>导入 Excel 文件可创建新表</div>
-            </div>
-          ) : (
-            tables.map(table => (
-              <div key={table.name} style={{ marginBottom: 6 }}>
-                <button onClick={() => loadTableData(selectedTable === table.name ? '' : table.name)}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '10px 12px', border: '2px solid var(--border)',
-                    borderRadius: 'var(--radius-sm)', background: 'var(--surface)',
-                    cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 12,
-                    color: 'var(--text)', textAlign: 'left',
-                    boxShadow: 'var(--shadow-sm)',
-                  }}>
-                  <Table2 size={16} color="var(--primary)" />
-                  <span style={{ fontWeight: 700, flex: 1 }}>{table.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
-                    {table.columns.length} 列 · {table.rowCount} 行
-                  </span>
-                  {selectedTable === table.name ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                </button>
-                {selectedTable === table.name && (
-                  <div style={{
-                    marginTop: 4, borderRadius: 'var(--radius-sm)',
-                    border: '2px solid var(--border)', overflow: 'hidden',
-                    background: 'var(--surface)',
-                  }}>
-                    {tableDataLoading ? (
-                      <div style={{ padding: 16, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 11 }}>
-                        <Loader size={14} className="spin" style={{ display: 'inline-block', marginRight: 6 }} />
-                        加载数据...
-                      </div>
-                    ) : tableData.rows.length === 0 ? (
-                      <div style={{ padding: 16, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 11 }}>
-                        暂无数据
-                      </div>
-                    ) : (
-                      <CompilerResultTable columns={tableData.columns} rows={tableData.rows} />
-                    )}
-                  </div>
-                )}
-              </div>
-            ))
-          )}
         </div>
       )}
 
       {/* ====== Import Tab ====== */}
       {activeTab === 'import' && (
-        <div style={{
-          flex: 1, margin: '4px 12px 6px', overflowY: 'auto',
-          display: 'flex', flexDirection: 'column',
-        }}>
+        <div style={{ flex: 1, margin: '4px 12px 6px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '4px 2px 6px', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>
             从 Excel 导入数据为数据库表
           </div>
 
-          {/* Upload area */}
           <div style={{
             border: '2px dashed var(--border)', borderRadius: 'var(--radius)',
             padding: '24px 16px', textAlign: 'center', cursor: 'pointer',
-            background: 'var(--surface)', marginBottom: 12,
-            transition: 'border-color .2s',
+            background: 'var(--surface)', marginBottom: 12, transition: 'border-color .2s',
           }}
             onClick={() => fileInputRef.current?.click()}>
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv"
@@ -544,47 +622,32 @@ export default function Compiler() {
             <FileType size={32} strokeWidth={1.5} style={{ marginBottom: 6, color: 'var(--primary)', opacity: 0.6 }} />
             {importFile ? (
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>
-                  {importFile.name}
-                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{importFile.name}</div>
                 <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
                   {(importFile.size / 1024).toFixed(1)} KB · 点击更换文件
                 </div>
               </div>
             ) : (
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 2 }}>
-                  点击选择 Excel 文件
-                </div>
-                <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
-                  支持 .xlsx, .xls, .csv 格式
-                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 2 }}>点击选择 Excel 文件</div>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>支持 .xlsx, .xls, .csv 格式</div>
               </div>
             )}
           </div>
 
-          {/* Table name input */}
-          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>
-            数据表名（可选）
-          </label>
+          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>数据表名（可选）</label>
           <input value={importTableName} onChange={e => setImportTableName(e.target.value)}
             placeholder="留空则使用文件名"
             style={{
               width: '100%', border: '2px solid var(--border)', borderRadius: 10,
               padding: '10px 12px', fontSize: 13, fontFamily: 'var(--font)',
-              background: 'var(--surface)', color: 'var(--text)', outline: 'none',
-              marginBottom: 6,
+              background: 'var(--surface)', color: 'var(--text)', outline: 'none', marginBottom: 6,
             }} />
 
-          {/* Info note */}
-          <div style={{
-            fontSize: 10, color: 'var(--text-tertiary)', lineHeight: 1.5,
-            marginBottom: 12,
-          }}>
+          <div style={{ fontSize: 10, color: 'var(--text-tertiary)', lineHeight: 1.5, marginBottom: 12 }}>
             第一行将作为列名，后续行作为数据。支持中文列名。
           </div>
 
-          {/* Import button */}
           <button onClick={handleImportFile} disabled={!importFile || importing}
             style={{
               width: '100%', padding: '12px 0', border: 'none',
@@ -600,7 +663,6 @@ export default function Compiler() {
             {importing ? '导入中...' : '导入到数据库'}
           </button>
 
-          {/* Import result */}
           {importResult && (
             <div style={{
               marginTop: 12, padding: '10px 12px', borderRadius: 'var(--radius-sm)',
@@ -614,12 +676,8 @@ export default function Compiler() {
             </div>
           )}
 
-          {/* Database info */}
-          <div style={{
-            marginTop: 'auto', fontSize: 10, color: 'var(--text-tertiary)',
-            textAlign: 'center', padding: '12px 0 4px',
-          }}>
-            {tables.length > 0 
+          <div style={{ marginTop: 'auto', fontSize: 10, color: 'var(--text-tertiary)', textAlign: 'center', padding: '12px 0 4px' }}>
+            {tables.length > 0
               ? `当前数据库: ${tables.length} 张表，共 ${tables.reduce((s, t) => s + t.rowCount, 0)} 条记录`
               : '当前数据库为空'}
           </div>

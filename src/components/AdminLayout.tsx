@@ -1,11 +1,13 @@
-import { ReactNode, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Upload, ArrowLeft, Database as DatabaseIcon, Search, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Upload, ArrowLeft, Database as DatabaseIcon, Search, AlertTriangle, Map as MapIcon } from 'lucide-react';
 import { API_BASE } from '../api';
 
 const navItems = [
   { path: '/admin', label: '仪表盘', icon: LayoutDashboard },
   { path: '/admin/knowledge', label: '知识库', icon: BookOpen },
+  { path: '/admin/learning-paths', label: '学习路径', icon: MapIcon },
   { path: '/admin/upload', label: '批量上传', icon: Upload },
   { path: '/admin/database', label: '数据库', icon: DatabaseIcon },
   { path: '/admin/rag', label: 'RAG 问答', icon: Search },

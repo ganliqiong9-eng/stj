@@ -268,6 +268,7 @@ function cosineSimilarity(a, b) {
 // Learning paths helpers
 // ============================================================
 function loadLearningPaths() { return readJSON(LEARNING_PATHS_FILE, { paths: [] }); }
+function saveLearningPaths(data) { writeJSON(LEARNING_PATHS_FILE, data); }
 function loadLearningProgress() { return readJSON(LEARNING_PROGRESS_FILE, {}); }
 function saveLearningProgress(data) { writeJSON(LEARNING_PROGRESS_FILE, data); }
 function loadLearningContent() { return readJSON(LEARNING_CONTENT_FILE, {}); }
@@ -1376,6 +1377,184 @@ ${knowledgeBody ? `知识内容摘要：${String(knowledgeBody).substring(0, 300
   // ============================================================
   // Learning paths API
   // ============================================================
+
+  // GET /api/admin/learning-paths - 获取所有学习路径完整结构（管理用）
+  if (url === '/api/admin/learning-paths' && method === 'GET') {
+    const cfg = loadLearningPaths();
+    const content = loadLearningContent();
+    const progress = loadLearningProgress();
+    const paths = (cfg.paths || []).map(p => ({
+      ...p,
+      chapterCount: (p.chapters || []).length,
+      kpCount: (p.chapters || []).reduce((sum, ch) => sum + (ch.knowledgePoints || []).length, 0),
+      contentGeneratedCount: (p.chapters || []).reduce((sum, ch) =>
+        sum + (ch.knowledgePoints || []).filter(kp => content[kp.id]?.definition).length, 0
+      ),
+    }));
+    return json(res, { ok: true, paths });
+  }
+
+  // POST /api/admin/learning-paths/reorder - 调整路径排序
+  if (url === '/api/admin/learning-paths/reorder' && method === 'POST') {
+    const body = await parseBody(req);
+    const { order } = body; // [{ id: 'xxx', position: 0 }, ...]
+    if (!Array.isArray(order)) return json(res, { ok: false, error: 'order 必须是数组' }, 400);
+
+    const cfg = loadLearningPaths();
+    const map = new Map((cfg.paths || []).map(p => [p.id, p]));
+    const reordered = order
+      .sort((a, b) => a.position - b.position)
+      .map(o => map.get(o.id))
+      .filter(Boolean);
+
+    // 把不在 order 列表中的路径追加到末尾
+    for (const p of (cfg.paths || [])) {
+      if (!reordered.includes(p)) reordered.push(p);
+    }
+
+    cfg.paths = reordered;
+    saveLearningPaths(cfg);
+    return json(res, { ok: true });
+  }
+
+  // POST /api/admin/learning-paths/:id/duplicate - 复制学习路径
+  const adminPathDupMatch = url.match(/^\/api\/admin\/learning-paths\/([^/]+)\/duplicate$/);
+  if (adminPathDupMatch && method === 'POST') {
+    const cfg = loadLearningPaths();
+    const src = (cfg.paths || []).find(p => p.id === adminPathDupMatch[1]);
+    if (!src) return json(res, { ok: false, error: '源路径不存在' }, 404);
+
+    // 生成新 ID：在原 ID 后加 -copy，如果已存在则加序号
+    let newId = src.id + '-copy';
+    let n = 2;
+    while ((cfg.paths || []).some(p => p.id === newId)) { newId = src.id + '-copy' + n; n++; }
+
+    const newPath = JSON.parse(JSON.stringify(src));
+    newPath.id = newId;
+    newPath.name = src.name + '（副本）';
+    // 重新生成章节/知识点 ID，避免复制路径与原路径共享进度和内容缓存
+    const remapId = (oldId) => oldId.startsWith(src.id + '-') ? newId + oldId.slice(src.id.length) : oldId + '-copy';
+    for (const ch of newPath.chapters || []) {
+      ch.id = remapId(ch.id);
+      for (const kp of ch.knowledgePoints || []) {
+        kp.id = remapId(kp.id);
+      }
+    }
+
+    cfg.paths.push(newPath);
+    saveLearningPaths(cfg);
+    return json(res, { ok: true, path: newPath });
+  }
+
+  // POST /api/admin/learning-paths - 新增学习路径
+  if (url === '/api/admin/learning-paths' && method === 'POST') {
+    const body = await parseBody(req);
+    const cfg = loadLearningPaths();
+    const { id, name, description, icon, color, lightBg, chapters } = body;
+
+    if (!id || !name) return json(res, { ok: false, error: '缺少 id 或 name' }, 400);
+    if ((cfg.paths || []).some(p => p.id === id)) return json(res, { ok: false, error: '路径 ID 已存在' }, 409);
+
+    // 校验 ID 格式：只允许小写字母、数字、短横线
+    if (!/^[a-z0-9-]+$/.test(id)) return json(res, { ok: false, error: 'ID 只允许小写字母、数字、短横线' }, 400);
+
+    const newPath = {
+      id,
+      name,
+      description: description || '',
+      icon: icon || '📚',
+      color: color || '#3370ff',
+      lightBg: lightBg || '#f0f5ff',
+      chapters: (chapters || []).map((ch, i) => ({
+        id: ch.id || `${id}-ch${i + 1}`,
+        order: ch.order ?? (i + 1),
+        title: ch.title || `第${i + 1}章`,
+        description: ch.description || '',
+        knowledgePoints: (ch.knowledgePoints || []).map((kp, j) => ({
+          id: kp.id || `${id}-ch${i + 1}-kp${j + 1}`,
+          order: kp.order ?? (j + 1),
+          title: kp.title || `知识点${j + 1}`,
+        })),
+      })),
+    };
+
+    cfg.paths.push(newPath);
+    saveLearningPaths(cfg);
+    return json(res, { ok: true, path: newPath });
+  }
+
+  // PUT /api/admin/learning-paths/:id - 编辑学习路径
+  const adminPathEditMatch = url.match(/^\/api\/admin\/learning-paths\/([^/]+)$/);
+  if (adminPathEditMatch && method === 'PUT') {
+    const body = await parseBody(req);
+    const cfg = loadLearningPaths();
+    const idx = (cfg.paths || []).findIndex(p => p.id === adminPathEditMatch[1]);
+    if (idx === -1) return json(res, { ok: false, error: '路径不存在' }, 404);
+
+    const old = cfg.paths[idx];
+    const updated = {
+      ...old,
+      name: body.name ?? old.name,
+      description: body.description ?? old.description,
+      icon: body.icon ?? old.icon,
+      color: body.color ?? old.color,
+      lightBg: body.lightBg ?? old.lightBg,
+      chapters: body.chapters ? (body.chapters || []).map((ch, i) => ({
+        id: ch.id || `${old.id}-ch${i + 1}`,
+        order: ch.order ?? (i + 1),
+        title: ch.title || old.chapters?.[i]?.title || `第${i + 1}章`,
+        description: ch.description ?? old.chapters?.[i]?.description ?? '',
+        knowledgePoints: (ch.knowledgePoints || []).map((kp, j) => ({
+          id: kp.id || `${old.id}-ch${i + 1}-kp${j + 1}`,
+          order: kp.order ?? (j + 1),
+          title: kp.title || old.chapters?.[i]?.knowledgePoints?.[j]?.title || `知识点${j + 1}`,
+        })),
+      })) : old.chapters,
+    };
+
+    cfg.paths[idx] = updated;
+    saveLearningPaths(cfg);
+
+    // 清理已删除知识点的 progress 和 content
+    const validIds = collectKnowledgePointIds(cfg);
+    const progress = loadLearningProgress();
+    const content = loadLearningContent();
+    for (const id of Object.keys(progress)) {
+      if (!validIds.includes(id)) delete progress[id];
+    }
+    saveLearningProgress(progress);
+    // content 不清理（保留缓存，以防知识点被恢复）
+
+    return json(res, { ok: true, path: updated });
+  }
+
+  // DELETE /api/admin/learning-paths/:id - 删除学习路径
+  const adminPathDelMatch = url.match(/^\/api\/admin\/learning-paths\/([^/]+)$/);
+  if (adminPathDelMatch && method === 'DELETE') {
+    const cfg = loadLearningPaths();
+    const pathId = adminPathDelMatch[1];
+    const path = (cfg.paths || []).find(p => p.id === pathId);
+    if (!path) return json(res, { ok: false, error: '路径不存在' }, 404);
+
+    // 收集该路径所有知识点 ID
+    const kpIds = (path.chapters || []).flatMap(ch => (ch.knowledgePoints || []).map(kp => kp.id));
+
+    // 删除路径
+    cfg.paths = (cfg.paths || []).filter(p => p.id !== pathId);
+    saveLearningPaths(cfg);
+
+    // 清理关联的 progress 和 content
+    const progress = loadLearningProgress();
+    const content = loadLearningContent();
+    for (const id of kpIds) {
+      delete progress[id];
+      delete content[id];
+    }
+    saveLearningProgress(progress);
+    saveLearningContent(content);
+
+    return json(res, { ok: true, deletedKpCount: kpIds.length });
+  }
 
   // POST /api/learning-paths/sync - 从 JSON 配置文件同步骨架
   if (url === '/api/learning-paths/sync' && method === 'POST') {

@@ -1,11 +1,11 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { House, SquarePen, BookOpen, BarChart3 } from 'lucide-react';
+import { House, SquarePen, BookOpen, Terminal } from 'lucide-react';
 
 const navItems = [
   { path: '/', icon: House, label: '首页' },
   { path: '/quiz', icon: SquarePen, label: '刷题' },
   { path: '/learn', icon: BookOpen, label: '学习' },
-  { path: '/report', icon: BarChart3, label: '学习报告' },
+  { path: '/compiler', icon: Terminal, label: '编译器' },
 ];
 
 export default function BottomNav() {

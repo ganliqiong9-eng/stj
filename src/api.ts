@@ -910,3 +910,72 @@ export async function moveTableToFolder(tableName: string, folderId: string): Pr
     return false;
   }
 }
+
+// ============================================================
+// Learning Paths Admin API
+// ============================================================
+
+export interface AdminLearningPath {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  lightBg: string;
+  chapters: {
+    id: string;
+    order: number;
+    title: string;
+    description: string;
+    knowledgePoints: { id: string; order: number; title: string }[];
+  }[];
+  chapterCount?: number;
+  kpCount?: number;
+  contentGeneratedCount?: number;
+}
+
+export async function adminListLearningPaths(): Promise<{ ok: boolean; paths: AdminLearningPath[] }> {
+  const res = await fetch(`${API_BASE}/api/admin/learning-paths`);
+  return res.json();
+}
+
+export async function adminCreateLearningPath(data: Partial<AdminLearningPath>): Promise<{ ok: boolean; path?: AdminLearningPath; error?: string }> {
+  const res = await fetch(`${API_BASE}/api/admin/learning-paths`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function adminUpdateLearningPath(id: string, data: Partial<AdminLearningPath>): Promise<{ ok: boolean; path?: AdminLearningPath; error?: string }> {
+  const res = await fetch(`${API_BASE}/api/admin/learning-paths/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function adminDeleteLearningPath(id: string): Promise<{ ok: boolean; deletedKpCount?: number; error?: string }> {
+  const res = await fetch(`${API_BASE}/api/admin/learning-paths/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+  return res.json();
+}
+
+export async function adminDuplicateLearningPath(id: string): Promise<{ ok: boolean; path?: AdminLearningPath; error?: string }> {
+  const res = await fetch(`${API_BASE}/api/admin/learning-paths/${encodeURIComponent(id)}/duplicate`, {
+    method: 'POST',
+  });
+  return res.json();
+}
+
+export async function adminReorderLearningPaths(order: { id: string; position: number }[]): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch(`${API_BASE}/api/admin/learning-paths/reorder`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order }),
+  });
+  return res.json();
+}

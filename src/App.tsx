@@ -22,6 +22,9 @@ import AdminUpload from './pages/AdminUpload';
 import AdminQuiz from './pages/AdminQuiz';
 import AdminDatabase from './pages/AdminDatabase';
 import AdminRag from './pages/AdminRag';
+import AdminLearningPaths from './pages/AdminLearningPaths';
+import AdminLearningPathEditor from './pages/AdminLearningPathEditor';
+import { ToastProvider } from './components/Toast';
 import WrongAnswersView from './pages/WrongAnswersView';
 import AskAI from './pages/AskAI';
 import ReviewView from './pages/ReviewView';
@@ -110,7 +113,9 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </BrowserRouter>
   );
 }
@@ -131,6 +136,8 @@ function AppContent() {
           <Route path="/admin/database" element={<AdminDatabase />} />
           <Route path="/admin/rag" element={<AdminRag />} />
           <Route path="/admin/wrong-answers" element={<AdminWrongAnswers />} />
+          <Route path="/admin/learning-paths" element={<AdminLearningPaths />} />
+          <Route path="/admin/learning-paths/:id" element={<AdminLearningPathEditor />} />
         </Routes>
       </div>
     );
