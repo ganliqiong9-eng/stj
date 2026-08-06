@@ -21,6 +21,9 @@
   --orange-light: #fff1d6;
   --rose: #ff4b4b;
   --rose-light: #ffdede;
+  --bg-subtle: #f7f8fa;
+  --bg-card: #fafbfc;
+  --border-subtle: #e5e7eb;
   --level-beginner: #00b365;
   --level-beginner-bg: #e6f7ef;
   --level-intermediate: #ff7d00;
@@ -67,6 +70,18 @@
   --text-tertiary:#585b70;
   --border:#45475a;
   --border-light:#585b70;
+  --warning-light:#45475a;
+  --success-light:#2d3a2d;
+  --danger-light:#3a2d2d;
+  --orange-light:#45475a;
+  --rose-light:#3a2d2d;
+  --green-light:#2d3a2d;
+  --bg-subtle:#2a2b38;
+  --bg-card:#313244;
+  --border-subtle:#45475a;
+  --level-beginner-bg:#2d3a2d;
+  --level-intermediate-bg:#45475a;
+  --level-advanced-bg:#3a2d2d;
   --shadow-sm:0 1px 4px rgba(0,0,0,.15);
   --shadow:0 2px 8px rgba(0,0,0,.2);
   --radius:14px;

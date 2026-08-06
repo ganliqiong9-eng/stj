@@ -74,10 +74,10 @@ export default function AdminDatabase() {
   const colMeta = (t: string, c: string) => meta(t).columns?.[c] || {};
 
   const typeColor = (t: string) => {
-    if (t === 'INTEGER' || t === 'INT') return { bg: '#e6f7ef', c: '#00b365' };
-    if (t === 'REAL' || t === 'FLOAT' || t === 'DOUBLE') return { bg: '#e8f0ff', c: '#3370ff' };
-    if (t === 'TEXT' || t === 'VARCHAR') return { bg: '#fff3e0', c: '#ff7d00' };
-    if (t === 'DATE' || t === 'DATETIME') return { bg: '#ffece8', c: '#f53f3f' };
+    if (t === 'INTEGER' || t === 'INT') return { bg: 'var(--success-light)', c: '#00b365' };
+    if (t === 'REAL' || t === 'FLOAT' || t === 'DOUBLE') return { bg: 'var(--primary-light)', c: '#3370ff' };
+    if (t === 'TEXT' || t === 'VARCHAR') return { bg: 'var(--warning-light)', c: '#ff7d00' };
+    if (t === 'DATE' || t === 'DATETIME') return { bg: 'var(--danger-light)', c: '#f53f3f' };
     return { bg: '#f0f0f0', c: '#666' };
   };
 
@@ -128,7 +128,7 @@ export default function AdminDatabase() {
               {selectedTable === table.name && (
                 <div style={{ borderTop: '1px solid #eee' }}>
                   {/* Table description */}
-                  <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid #f5f5f5' }}>
+                  <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--bg-subtle)' }}>
                     <Info size={14} color="#999" />
                     {editDesc?.table === table.name && !editDesc.column ? (
                       <div style={{ display: 'flex', gap: 4, flex: 1 }}>

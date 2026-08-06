@@ -5,20 +5,46 @@ import { deepExplain, generateQuiz } from '../api';
 import db, { type QuizSession, type QuizHistoryItem } from '../store/db';
 import { safeUUID } from '../utils/id';
 
-function parseDeepExplain(content: string): { emoji: string; title: string; body: string }[] {
-  const sections: { emoji: string; title: string; body: string }[] = [];
-  const parts = content.split(/##\s+/).filter(Boolean);
+function parseDeepExplain(content: string): {
+  emoji: string;
+  title: string;
+  body: string;
+  hasTable: boolean;
+  tableData?: { headers: string[]; rows: string[][] };
+}[] {
+  const sections: any[] = [];
+  const parts = content.split(/^## /m).filter(Boolean);
   for (const part of parts) {
     const lines = part.split('\n');
     const headerLine = lines[0]?.trim() || '';
-    const emojiMatch = headerLine.match(/^([\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}])\s*(.*)/u);
-    const emoji = emojiMatch ? emojiMatch[1] : '📌';
-    const title = emojiMatch ? emojiMatch[2] : headerLine;
-    const body = lines.slice(1).join('\n').trim();
-    if (title || body) sections.push({ emoji, title, body });
-  }
-  if (sections.length === 0 && content.trim()) {
-    sections.push({ emoji: '📌', title: '解析', body: content });
+    const emojiMatch = headerLine.match(/^(\p{Emoji_Presentation}|\p{Emoji})\s*/u);
+    const emoji = emojiMatch ? emojiMatch[0].trim() : '📌';
+    const title = emojiMatch ? headerLine.slice(emojiMatch[0].length).trim() : headerLine;
+    const bodyLines = lines.slice(1);
+    const bodyText = bodyLines.join('\n').trim();
+
+    const tableLines = bodyLines.filter(l => l.trim().startsWith('|'));
+    let hasTable = false;
+    let tableData: { headers: string[]; rows: string[][] } | undefined;
+    if (tableLines.length >= 2) {
+      const dataLines = tableLines.filter(l => !l.match(/^\|[\s\-:|]+\|$/));
+      if (dataLines.length >= 2) {
+        const parseRow = (line: string) => line.split('|').slice(1, -1).map(cell => cell.trim());
+        const headers = parseRow(dataLines[0]);
+        const rows = dataLines.slice(1).map(parseRow);
+        if (headers.length > 0 && rows.length > 0) {
+          hasTable = true;
+          tableData = { headers, rows };
+        }
+      }
+    }
+
+    let displayBody = bodyText;
+    if (hasTable) {
+      const beforeTable = bodyLines.slice(0, bodyLines.findIndex(l => l.trim().startsWith('|')));
+      displayBody = beforeTable.join('\n').trim();
+    }
+    sections.push({ emoji, title, body: displayBody, hasTable, tableData });
   }
   return sections;
 }
@@ -175,10 +201,13 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
   const handleGenerate = async () => {
     setLoading(true);
     setError('');
-    const answeredQuestions = await db.getAnsweredQuestions(15).catch(() => []);
+    const [answeredQuestions, wrongAnswers] = await Promise.all([
+      db.getAllHistoryForExclude().catch(() => []),
+      db.getWrongAnswersForQuiz().catch(() => []),
+    ]);
     const sessionId = safeUUID();
     setCurrentSessionId(sessionId);
-    const r = await generateQuiz({ subj: subj || undefined, level: level || undefined, count, types: ['choice', 'fill', 'short_answer'], knowledgeId, excludeQuestions: answeredQuestions });
+    const r = await generateQuiz({ subj: subj || undefined, level: level || undefined, count, types: ['choice', 'fill', 'short_answer'], knowledgeId, excludeQuestions: answeredQuestions, wrongQuestions: wrongAnswers });
     if (r.ok && r.quiz.length > 0) {
       const historyId = `hist_${Date.now()}_${safeUUID()}`;
       setCurrentHistoryId(historyId);
@@ -400,7 +429,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
             onClick={() => setShowHistory(!showHistory)}
             style={{
               width: '100%', padding: '10px 14px', borderRadius: 10,
-              border: '1px solid #E5E7EB', background: '#FAFBFC',
+              border: '1px solid var(--border-subtle)', background: 'var(--bg-card)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#374151',
             }}
@@ -425,12 +454,12 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                 <div key={hist.historyId} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '10px 12px', borderRadius: 10, background: '#fff',
-                  border: '1px solid #E5E7EB',
+                  border: '1px solid var(--border-subtle)',
                 }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: hist.completedAt ? '#F0FDF4' : '#FFFBEB',
+                    background: hist.completedAt ? 'var(--success-light)' : 'var(--warning-light)',
                     border: `1.5px solid ${hist.completedAt ? '#10B981' : '#F59E0B'}`,
                   }}>
                     {hist.completedAt ? (
@@ -455,7 +484,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button
                       onClick={() => setHistoryDetail(hist)}
-                      style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', fontSize: 11, fontWeight: 500, cursor: 'pointer', color: '#374151' }}
+                      style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)', background: '#fff', fontSize: 11, fontWeight: 500, cursor: 'pointer', color: '#374151' }}
                     >查看</button>
                     <button
                       onClick={() => {
@@ -495,7 +524,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
               boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
             }} onClick={e => e.stopPropagation()}>
               <div style={{
-                padding: '16px 20px', borderBottom: '1px solid #E5E7EB',
+                padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
                 <div>
@@ -510,7 +539,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                   onClick={() => setHistoryDetail(null)}
                   style={{
                     width: 28, height: 28, borderRadius: '50%',
-                    border: '1px solid #E5E7EB', background: '#fff',
+                    border: '1px solid var(--border-subtle)', background: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                   }}
                 >
@@ -529,7 +558,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                   return (
                     <div key={q.id || qi} style={{
                       marginBottom: 10, padding: '12px 14px', borderRadius: 10,
-                      background: '#FAFBFC', border: '1px solid #E5E7EB',
+                      background: 'var(--bg-card)', border: '1px solid var(--border-subtle)',
                       borderLeft: `3px solid ${dotColor}`,
                     }}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
@@ -655,7 +684,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
   const isCorrect = answers[q.id]?.trim().toLowerCase() === q.correctAnswer.trim().toLowerCase();
   const statusColor = isPureReveal ? '#F59E0B' : (isCorrect ? '#10B981' : '#EF4444');
   const progress = ((currentIdx + 1) / quiz.length) * 100;
-  const typeConfig = { choice: { label: '选择题', bg: '#e6f7ef', c: '#00b365' }, fill: { label: '填空题', bg: '#e8f0ff', c: '#3370ff' }, short_answer: { label: '简答题', bg: '#fff3e0', c: '#ff7d00' } };
+  const typeConfig = { choice: { label: '选择题', bg: 'var(--success-light)', c: '#00b365' }, fill: { label: '填空题', bg: 'var(--primary-light)', c: '#3370ff' }, short_answer: { label: '简答题', bg: 'var(--warning-light)', c: '#ff7d00' } };
   const tc = typeConfig[q.type];
 
   return (
@@ -682,7 +711,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
               setQuestionStarred(starred);
             }}
             style={{
-              padding: '4px 10px', borderRadius: 8, border: '1px solid #E5E7EB',
+              padding: '4px 10px', borderRadius: 8, border: '1px solid var(--border-subtle)',
               background: questionStarred ? '#FEF3C7' : 'transparent',
               fontSize: 11, fontWeight: 500, cursor: 'pointer', color: '#D97706',
               display: 'flex', alignItems: 'center', gap: 4,
@@ -696,8 +725,8 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
           <button
             onClick={() => setShowTagEditor(!showTagEditor)}
             style={{
-              padding: '4px 10px', borderRadius: 8, border: '1px solid #E5E7EB',
-              background: showTagEditor ? '#F3F4F6' : 'transparent', fontSize: 11, fontWeight: 500, cursor: 'pointer',
+              padding: '4px 10px', borderRadius: 8, border: '1px solid var(--border-subtle)',
+              background: showTagEditor ? 'var(--bg-subtle)' : 'transparent', fontSize: 11, fontWeight: 500, cursor: 'pointer',
               color: '#6B7280', display: 'flex', alignItems: 'center', gap: 4,
             }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -709,11 +738,11 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
         </div>
 
         {showTagEditor && (
-          <div style={{ padding: '10px 12px', borderRadius: 10, background: '#F8FAFC', border: '1px solid #E5E7EB', marginBottom: 8 }}>
+          <div style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', marginBottom: 8 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 8 }}>管理标签</div>
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 6 }}>
               {currentTags.map(tag => (
-                <span key={tag} style={{ padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500, background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span key={tag} style={{ padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500, background: 'var(--bg-subtle)', color: '#374151', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: 4 }}>
                   {tag}
                   <span
                     onClick={() => {
@@ -731,7 +760,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                 value={newTagInput}
                 onChange={e => setNewTagInput(e.target.value)}
                 placeholder="输入标签名..."
-                style={{ flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid #E5E7EB', fontSize: 11, fontFamily: 'var(--font)', outline: 'none', background: '#fff' }}
+                style={{ flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid var(--border-subtle)', fontSize: 11, fontFamily: 'var(--font)', outline: 'none', background: '#fff' }}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && newTagInput.trim()) {
                     const tag = newTagInput.trim();
@@ -769,7 +798,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                       db.setQuestionTag(q.id, q.question, newTags, questionStarred).catch(() => {});
                     }
                   }}
-                  style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 500, background: '#fff', color: '#6B7280', cursor: 'pointer', border: '1px dashed #D1D5DB' }}
+                  style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 500, background: '#fff', color: '#6B7280', cursor: 'pointer', border: '1px dashed var(--border-subtle)' }}
                 >+{sug}</span>
               ))}
             </div>
@@ -781,7 +810,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                     setCurrentTags(newTags);
                     db.setQuestionTag(q.id, q.question, newTags, questionStarred).catch(() => {});
                     setNewTagInput('');
-                  }} style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 500, background: '#EEF2FF', color: '#4338CA', cursor: 'pointer' }}>
+                  }} style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 500, background: 'var(--primary-light)', color: '#4338CA', cursor: 'pointer' }}>
                     {t}
                   </span>
                 ))}
@@ -843,7 +872,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                 fontWeight: 600,
                 cursor: 'pointer',
                 fontFamily: 'var(--font)',
-                background: 'var(--warning-light, #fff8e6)',
+                background: 'var(--warning-light)',
                 color: 'var(--orange)',
                 display: 'flex',
                 alignItems: 'center',
@@ -860,14 +889,14 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
         {showAnswer && (
           <div style={{
             marginTop: 12, borderRadius: 14, overflow: 'hidden',
-            border: '1px solid #E5E7EB',
-            background: '#FAFBFC',
+            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg-card)',
           }}>
             {/* 区域A：正确答案 */}
             <div style={{
               padding: '14px 16px 12px 16px',
               borderLeft: `3px solid ${statusColor}`,
-              background: isPureReveal ? '#FFFBEB' : (isCorrect ? '#F0FDF4' : '#FEF2F2'),
+              background: isPureReveal ? 'var(--warning-light)' : (isCorrect ? 'var(--success-light)' : 'var(--danger-light)'),
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{
@@ -910,11 +939,11 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
             </div>
 
             {/* 细分隔线 */}
-            <div style={{ height: 1, background: '#E5E7EB', margin: '0 16px' }} />
+            <div style={{ height: 1, background: 'var(--border-subtle)', margin: '0 16px' }} />
 
             {/* 区域B：解题思路 */}
             {q.explanation && (
-              <div style={{ padding: '12px 16px', background: '#F7F8FA' }}>
+              <div style={{ padding: '12px 16px', background: 'var(--bg-subtle)' }}>
                 <div style={{
                   fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6,
                   display: 'flex', alignItems: 'center', gap: 6,
@@ -932,7 +961,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
             )}
 
             {/* 细分隔线 */}
-            {q.explanation && <div style={{ height: 1, background: '#E5E7EB', margin: '0 16px' }} />}
+            {q.explanation && <div style={{ height: 1, background: 'var(--border-subtle)', margin: '0 16px' }} />}
 
             {/* 区域C：知识点溯源 */}
             {(q as any).knowledge && (isPureReveal || !isCorrect) && (
@@ -963,7 +992,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                     {(q as any).knowledge.tags.map((tag: string, ti: number) => (
                       <span key={ti} style={{
                         padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500,
-                        background: '#F3F4F6', color: '#6B7280', border: '1px solid #E5E7EB',
+                        background: 'var(--bg-subtle)', color: '#6B7280', border: '1px solid var(--border-subtle)',
                       }}>#{tag}</span>
                     ))}
                   </div>
@@ -973,8 +1002,8 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
 
             {/* 底部操作栏：深入解析按钮 */}
             <div style={{
-              padding: '10px 16px', background: '#F0F1F3',
-              borderTop: '1px solid #E5E7EB',
+              padding: '10px 16px', background: 'var(--bg-subtle)',
+              borderTop: '1px solid var(--border-subtle)',
               display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8,
             }}>
               <button
@@ -988,7 +1017,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                 disabled={loadingExplainId === q.id || !!deepExplainSheet}
                 style={{
                   padding: '6px 14px', borderRadius: 8, border: 'none',
-                  background: (loadingExplainId === q.id || deepExplainSheet) ? '#E5E7EB' : 'var(--primary)',
+                  background: (loadingExplainId === q.id || deepExplainSheet) ? 'var(--border-subtle)' : 'var(--primary)',
                   color: (loadingExplainId === q.id || deepExplainSheet) ? '#9CA3AF' : '#fff',
                   fontSize: 12, fontWeight: 600, cursor: (loadingExplainId === q.id || deepExplainSheet) ? 'default' : 'pointer',
                   display: 'flex', alignItems: 'center', gap: 5,
@@ -1039,7 +1068,7 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
             position: 'absolute', bottom: 0, left: 0, right: 0,
             maxHeight: '75vh',
             borderRadius: '16px 16px 0 0',
-            background: 'linear-gradient(180deg, #F8F9FB 0%, #F0F2F5 100%)',
+            background: 'var(--surface)',
             display: 'flex',
             flexDirection: 'column',
             boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
@@ -1049,20 +1078,20 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
         >
           <div style={{
             padding: '16px 20px 12px',
-            borderBottom: '1px solid #E5E7EB',
-            background: 'rgba(255,255,255,0.7)',
+            borderBottom: '1px solid var(--border-subtle)',
+            background: 'var(--bg-card)',
             backdropFilter: 'blur(10px)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>多维度解析</div>
-                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>AI 深度拆解这道题</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>多维度解析</div>
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>AI 深度拆解这道题</div>
               </div>
               <button
                 onClick={() => setDeepExplainSheet(null)}
                 style={{
                   width: 28, height: 28, borderRadius: '50%',
-                  border: '1px solid #E5E7EB', background: '#fff',
+                  border: '1px solid var(--border-subtle)', background: 'var(--surface)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer',
                 }}
@@ -1080,17 +1109,17 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
           }}>
             {parseDeepExplain(deepExplainSheet.content).map((sec, i) => {
               const COLORS = [
-                { bg: '#FFFFFF', accent: '#3B82F6', text: '#1E40AF' },
-                { bg: '#FFFFFF', accent: '#F59E0B', text: '#92400E' },
-                { bg: '#FFFFFF', accent: '#10B981', text: '#065F46' },
-                { bg: '#FFFFFF', accent: '#EF4444', text: '#991B1B' },
-                { bg: '#FFFFFF', accent: '#8B5CF6', text: '#5B21B6' },
+                { accent: '#3B82F6', text: '#1E40AF' },
+                { accent: '#F59E0B', text: '#92400E' },
+                { accent: '#10B981', text: '#065F46' },
+                { accent: '#EF4444', text: '#991B1B' },
+                { accent: '#8B5CF6', text: '#5B21B6' },
               ];
               const c = COLORS[i % COLORS.length];
               return (
                 <div key={i} style={{
                   marginBottom: 12, padding: '14px 16px', borderRadius: 12,
-                  background: c.bg,
+                  background: 'var(--surface)',
                   borderLeft: `3px solid ${c.accent}`,
                   boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 }}>
@@ -1101,12 +1130,43 @@ export default function QuizView({ knowledgeId, initialQuiz, onComplete }: QuizV
                     <span style={{ fontSize: 14 }}>{sec.emoji}</span>
                     {sec.title}
                   </div>
-                  <div style={{
-                    fontSize: 13, lineHeight: 1.75, color: '#374151',
-                    whiteSpace: 'pre-wrap',
-                  }}>
-                    {sec.body}
-                  </div>
+                  {sec.body && (
+                    <div style={{
+                      fontSize: 13, lineHeight: 1.75, color: 'var(--text)',
+                      whiteSpace: 'pre-wrap', marginBottom: sec.hasTable ? 10 : 0,
+                    }}>
+                      {sec.body}
+                    </div>
+                  )}
+                  {sec.hasTable && sec.tableData && (
+                    <div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, lineHeight: 1.6 }}>
+                        <thead>
+                          <tr style={{ background: 'var(--bg-subtle)' }}>
+                            {sec.tableData.headers.map((h, hi) => (
+                              <th key={hi} style={{
+                                padding: '8px 12px', textAlign: 'left', fontWeight: 600,
+                                color: 'var(--text)', borderBottom: '2px solid var(--border-subtle)',
+                                whiteSpace: 'nowrap',
+                              }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sec.tableData.rows.map((row, ri) => (
+                            <tr key={ri} style={{ background: ri % 2 === 0 ? 'var(--surface)' : 'var(--bg-card)' }}>
+                              {row.map((cell, ci) => (
+                                <td key={ci} style={{
+                                  padding: '8px 12px', color: 'var(--text)',
+                                  borderBottom: '1px solid var(--border-subtle)',
+                                }}>{cell}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               );
             })}

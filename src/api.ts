@@ -237,6 +237,7 @@ export async function generateQuiz(params: {
   types?: string[];
   knowledgeId?: string;
   excludeQuestions?: { question: string; knowledgeTitle?: string }[];
+  wrongQuestions?: { question: string; correctAnswer: string; knowledgeTitle?: string; knowledgeBody?: string }[];
 }): Promise<{ ok: boolean; quiz: any[]; error?: string }> {
   const API_KEY = 'sbuddy_key';
   const ENDPOINT_KEY = 'sbuddy_endpoint';

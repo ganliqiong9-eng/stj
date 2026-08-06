@@ -73,7 +73,7 @@ export default function ReviewView() {
             {items.map((item, i) => (
               <div key={item.id} style={{ background: 'var(--surface)', borderRadius: 'var(--radius-sm)', padding: 14, marginBottom: 8, border: '2px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
                 <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: item.type === 'choice' ? '#e6f7ef' : '#e8f0ff', color: item.type === 'choice' ? '#00b365' : '#3370ff' }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: item.type === 'choice' ? 'var(--success-light)' : 'var(--primary-light)', color: item.type === 'choice' ? '#00b365' : '#3370ff' }}>
                     {item.type === 'choice' ? '选择' : item.type === 'fill' ? '填空' : '简答'}
                   </span>
                 </div>

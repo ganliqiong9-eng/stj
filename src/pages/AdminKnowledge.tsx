@@ -8,9 +8,9 @@ import { formatDate } from '../components/KnowledgeUtils';
 import { deleteKnowledge } from '../api';
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-  indexed: { label: '已入库', color: '#00b365', bg: '#e6f7ef' },
-  parsing: { label: '解析中', color: '#3370ff', bg: '#e8f0ff' },
-  error: { label: '失败', color: '#f53f3f', bg: '#ffece8' },
+  indexed: { label: '已入库', color: '#00b365', bg: 'var(--success-light)' },
+  parsing: { label: '解析中', color: '#3370ff', bg: 'var(--primary-light)' },
+  error: { label: '失败', color: '#f53f3f', bg: 'var(--danger-light)' },
 };
 
 const typeConfig: Record<string, { label: string; icon: any }> = {
@@ -182,7 +182,7 @@ export default function AdminKnowledge() {
                         <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginBottom: 2 }}>
                           <span style={{ fontWeight: 600, color: '#1f2329' }}>{sec.title || `节 ${i + 1}`}</span>
                           {sec.level && (
-                            <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: sec.level === 'beginner' ? '#e6f7ef' : sec.level === 'intermediate' ? '#fff3e0' : '#ffece8', color: sec.level === 'beginner' ? '#00b365' : sec.level === 'intermediate' ? '#ff7d00' : '#f53f3f' }}>
+                            <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: sec.level === 'beginner' ? 'var(--success-light)' : sec.level === 'intermediate' ? 'var(--warning-light)' : 'var(--danger-light)', color: sec.level === 'beginner' ? '#00b365' : sec.level === 'intermediate' ? '#ff7d00' : '#f53f3f' }}>
                               {sec.level === 'beginner' ? '入门' : sec.level === 'intermediate' ? '进阶' : '实战'}
                             </span>
                           )}

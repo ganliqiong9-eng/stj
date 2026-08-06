@@ -1176,6 +1176,7 @@ http.createServer(async (req, res) => {
       const types = body.types || ['choice', 'fill', 'short_answer'];
       const llmConfig = body.llm_config || {};
       const excludeQuestions = body.excludeQuestions || [];
+      const wrongQuestions = body.wrongQuestions || [];
       if (!llmConfig.api_key) return json(res, { ok: false, quiz: [], error: 'LLM not configured' });
 
       // Fetch relevant chunks
@@ -1199,8 +1200,12 @@ http.createServer(async (req, res) => {
         return json(res, { ok: false, quiz: [], error: 'No matching knowledge found' });
       }
 
-      const excludeText = excludeQuestions.length > 0
-        ? `\n- 避免生成与以下已刷过的题目相同或高度相似的题目：\n${excludeQuestions.map((q, i) => `${i + 1}. [${q.knowledgeTitle || '未知知识点'}] ${q.question}`).join('\n')}`
+      const excludeForPrompt = excludeQuestions.slice(0, 50);
+      const excludeText = excludeForPrompt.length > 0
+        ? `\n- 避免生成与以下已刷过的题目相同或高度相似的题目：\n${excludeForPrompt.map((q, i) => `${i + 1}. [${q.knowledgeTitle || '未知知识点'}] ${q.question}`).join('\n')}`
+        : '';
+      const wrongText = wrongQuestions.length > 0
+        ? `\n\n【重要】以下 ${wrongQuestions.length} 道题是用户之前答错的题目，请优先围绕这些题目涉及的知识点出新的题目（换角度、换问法、换比喻场景），帮助用户强化薄弱环节：\n${wrongQuestions.slice(0, 15).map((w, i) => `${i + 1}. [${w.knowledgeTitle || '未知'}] 原题：${w.question} | 正确答案：${w.correctAnswer}`).join('\n')}`
         : '';
 
       const SYS_PROMPT = `你是一名出题专家，擅长把专业概念用生活化比喻讲清楚。基于下面的知识要点生成考试题目。
@@ -1212,6 +1217,7 @@ http.createServer(async (req, res) => {
 - 每道题尽量融入生活化比喻（相亲、做饭、购物、物流等场景），帮助记忆
 - explanation 用大白话写清楚，最好带一句贴切的比喻
 ${excludeText}
+${wrongText}
 
 严格输出 JSON 数组：
 [{
@@ -1222,7 +1228,9 @@ ${excludeText}
   "explanation": "..."
 }]`;
 
-      const knowledgeText = relevantSections.slice(0, 15).map(s =>
+      const shuffled = [...relevantSections].sort(() => Math.random() - 0.5);
+      const selectedSections = shuffled.slice(0, Math.min(15, relevantSections.length));
+      const knowledgeText = selectedSections.map(s =>
         `Title: ${s.title || 'Untitled'}\nContent: ${(s.body || '').substring(0, 300)}\nLevel: ${s.level}\nTags: ${(s.tags || []).join(', ')}`
       ).join('\n\n---\n\n');
 
@@ -1248,7 +1256,7 @@ ${excludeText}
         try { const p = JSON.parse(text); quiz = p.quiz || p; if (!Array.isArray(quiz)) quiz = [quiz]; } catch { quiz = []; }
         // Attach knowledgeId to each quiz item
         quiz = quiz.slice(0, count).map((q, i) => {
-          const section = relevantSections[i % relevantSections.length];
+          const section = selectedSections[i % selectedSections.length];
           return {
             id: crypto.randomUUID(),
             knowledgeId: section?.title || '',
@@ -1296,27 +1304,39 @@ ${excludeText}
 ${knowledgeTitle ? `相关知识：${knowledgeTitle}` : ''}
 ${knowledgeBody ? `知识内容摘要：${String(knowledgeBody).substring(0, 300)}` : ''}
 
-请按以下 5 个维度组织解析。每个维度严格按以下格式输出（不要遗漏任何一行）：
+## 输出规则
 
-## 📖 概念定义
-（一句话精准定义）
+请根据题目内容，选择 3-5 个最有价值的维度来解析。每个维度用 ## 开头，格式如下：
 
-## 🎯 生活类比
-（用日常场景类比，2-3句话）
+### 可选维度（按需选择，不必全用）：
+- **概念定义**：一句话精准定义
+- **生活类比**：用日常场景类比（2-3句话）
+- **实际应用**：工作场景中怎么用
+- **易混淆对比**：⚠️ 这种必须用表格格式！格式见下方
+- **错误分析**：⚠️ 如果有典型错误答案，必须用表格格式！格式见下方
+- **记忆技巧**：口诀/联想/谐音
+- **知识关联**：这个知识点和其他知识点的关系
 
-## 💼 实际应用
-（工作场景中怎么用，2-3句话或一个简短代码示例）
+### 表格格式（重要！）
+当维度需要对比时，必须使用 Markdown 表格，例如：
 
-## ⚠️ 易混淆点
-（列出1-2个易混淆的概念及区别）
+## 🔄 易混淆对比
+| 对比项 | 概念A | 概念B |
+|--------|------|------|
+| 定义 | ... | ... |
+| 使用场景 | ... | ... |
+| 关键区别 | ... | ... |
 
-## 💡 记忆技巧
-（一个口诀/联想/谐音/画面记忆法）
+## ❌ 常见错误分析
+| 典型错误 | 错误原因 | 正确思路 |
+|---------|---------|---------|
+| 选了B | 混淆了X和Y | X是...Y是... |
 
-规则：
+### 其他规则：
 - 用大白话，像朋友聊天
-- 每段 2-3 句话，不要长篇大论
-- 每个维度必须有 ## 标题行，标题后换行写内容
+- 每段 2-3 句话（表格除外）
+- 每个维度必须有 ## 标题行（带 emoji），标题后换行写内容
+- 如果内容中有表格，确保 Markdown 表格格式正确
 - 不要输出其他无关内容`;
 
       try {

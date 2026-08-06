@@ -72,7 +72,7 @@ export default function WrongAnswersView() {
           return (
             <div key={item.id || i} onClick={() => toggle(i)} style={{ background: 'var(--surface)', borderRadius: 'var(--radius-sm)', padding: '12px 14px', marginBottom: 8, border: '2px solid var(--rose-light)', cursor: 'pointer', position: 'relative' }}>
               <div style={{ display: 'flex', gap: 4, marginBottom: 2 }}>
-                <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: '#ffece8', color: '#f53f3f' }}>{typeLabel(item.type || 'choice')}</span>
+                <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: 'var(--danger-light)', color: '#f53f3f' }}>{typeLabel(item.type || 'choice')}</span>
               </div>
               <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.5, color: 'var(--text)', marginBottom: 4, paddingRight: 20 }}>{item.question}</div>
               <div style={{ fontSize: 11, color: 'var(--rose)', marginBottom: 2 }}>你的答案: {item.userAnswer || '(未作答)'}</div>

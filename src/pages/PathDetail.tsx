@@ -43,8 +43,8 @@ export default function PathDetail() {
 
   const pathColors: Record<string, { color: string; lightBg: string }> = {
     'dama-dmbok': { color: '#7C3AED', lightBg: '#f3eefa' },
-    'python-basics': { color: '#00b365', lightBg: '#e6f7ef' },
-    'sql-fundamentals': { color: '#3370ff', lightBg: '#e8f0ff' },
+    'python-basics': { color: '#00b365', lightBg: 'var(--success-light)' },
+    'sql-fundamentals': { color: '#3370ff', lightBg: 'var(--primary-light)' },
     'english-essentials': { color: '#DC2626', lightBg: '#fef2f2' },
   };
   const pc = pathColors[pathId] || { color: 'var(--primary)', lightBg: 'var(--primary-light)' };

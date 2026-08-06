@@ -200,7 +200,7 @@ export default function MockExam() {
           </div>
 
           <div key={key} style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 16, border: '2px solid var(--border-light)', animation: 'slideUp .25s ease-out', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: quiz[currentIdx]?.type === 'choice' ? '#e6f7ef' : '#e8f0ff', color: quiz[currentIdx]?.type === 'choice' ? '#00b365' : '#3370ff', alignSelf: 'flex-start', marginBottom: 6 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: quiz[currentIdx]?.type === 'choice' ? 'var(--success-light)' : 'var(--primary-light)', color: quiz[currentIdx]?.type === 'choice' ? '#00b365' : '#3370ff', alignSelf: 'flex-start', marginBottom: 6 }}>
               {quiz[currentIdx]?.type === 'choice' ? '选择题' : quiz[currentIdx]?.type === 'fill' ? '填空题' : '简答题'}
             </div>
             <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.6, color: 'var(--text)', marginBottom: 10 }}>{quiz[currentIdx]?.question}</div>
@@ -267,7 +267,7 @@ export default function MockExam() {
                 <div style={{ display: 'flex', gap: 4, marginBottom: 2 }}>
                   {correct ? <Check size={14} color="var(--green)" /> : <X size={14} color="var(--rose)" />}
                   <span style={{ fontWeight: 600, display: 'block', flex: 1 }}>{q.question}</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: q.type === 'choice' ? '#e6f7ef' : q.type === 'fill' ? '#e8f0ff' : '#fff3e0', color: q.type === 'choice' ? '#00b365' : q.type === 'fill' ? '#3370ff' : '#ff7d00', flexShrink: 0, alignSelf: 'flex-start' }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: q.type === 'choice' ? 'var(--success-light)' : q.type === 'fill' ? 'var(--primary-light)' : 'var(--warning-light)', color: q.type === 'choice' ? '#00b365' : q.type === 'fill' ? '#3370ff' : '#ff7d00', flexShrink: 0, alignSelf: 'flex-start' }}>
                     {q.type === 'choice' ? '选择' : q.type === 'fill' ? '填空' : '简答'}
                   </span>
                 </div>

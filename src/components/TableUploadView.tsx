@@ -155,7 +155,7 @@ export default function TableUploadView({ onBack }: { onBack: () => void }) {
                           <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--border-light)' }}>
                             <span style={{
                               padding: '1px 6px', borderRadius: 4, fontSize: 9, fontWeight: 700,
-                              background: col.type === 'INTEGER' ? '#e8f5e9' : col.type === 'REAL' ? '#e3f2fd' : col.type === 'DATE' ? '#fff3e0' : col.type === 'BOOLEAN' ? '#f3e5f5' : '#f5f5f5',
+                              background: col.type === 'INTEGER' ? 'var(--success-light)' : col.type === 'REAL' ? 'var(--primary-light)' : col.type === 'DATE' ? 'var(--warning-light)' : col.type === 'BOOLEAN' ? 'var(--danger-light)' : 'var(--bg-subtle)',
                               color: col.type === 'INTEGER' ? '#2e7d32' : col.type === 'REAL' ? '#1565c0' : col.type === 'DATE' ? '#e65100' : col.type === 'BOOLEAN' ? '#7b1fa2' : '#555',
                             }}>{col.type}</span>
                           </td>

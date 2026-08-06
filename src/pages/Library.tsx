@@ -35,9 +35,9 @@ export default function Library() {
   };
 
   const diffBadge = (d: number) => {
-    if (d <= 2) return { label: '简单', color: '#00b365', bg: '#e6f7ef' };
-    if (d <= 3) return { label: '中等', color: '#ff7d00', bg: '#fff3e0' };
-    return { label: '困难', color: '#f53f3f', bg: '#ffece8' };
+    if (d <= 2) return { label: '简单', color: '#00b365', bg: 'var(--success-light)' };
+    if (d <= 3) return { label: '中等', color: '#ff7d00', bg: 'var(--warning-light)' };
+    return { label: '困难', color: '#f53f3f', bg: 'var(--danger-light)' };
   };
 
   return (

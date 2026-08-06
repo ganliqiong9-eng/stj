@@ -324,6 +324,38 @@ class StudyDB extends Dexie {
     return out;
   }
 
+  async getAllHistoryForExclude(): Promise<{ question: string; knowledgeTitle?: string }[]> {
+    const sessions = await this.quizSessions.orderBy('updatedAt').reverse().toArray();
+    const seen = new Set<string>();
+    const out: { question: string; knowledgeTitle?: string }[] = [];
+    for (const s of sessions) {
+      for (const q of (s.questions || [])) {
+        if (!s.answers[q.id]) continue;
+        const key = (q.question || '').trim();
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        out.push({ question: key, knowledgeTitle: q.knowledge?.title || q.knowledgeTitle || '' });
+        if (out.length >= 80) return out;
+      }
+    }
+    return out;
+  }
+
+  async getWrongAnswersForQuiz(): Promise<{
+    question: string;
+    correctAnswer: string;
+    knowledgeTitle?: string;
+    knowledgeBody?: string;
+  }[]> {
+    const wrongs = await this.wrongAnswers.orderBy('createdAt').reverse().toArray();
+    return wrongs.slice(0, 30).map(w => ({
+      question: w.question || '',
+      correctAnswer: w.correctAnswer || '',
+      knowledgeTitle: (w as any).knowledge?.title || '',
+      knowledgeBody: ((w as any).knowledge?.body || '').substring(0, 200),
+    }));
+  }
+
   async cleanOldSessions() {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 7);

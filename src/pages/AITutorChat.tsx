@@ -110,7 +110,7 @@ export default function AITutorChat() {
                 return (
                   <div key={q.id} style={{ marginTop: 6, background: 'var(--surface)', borderRadius: 'var(--radius-sm)', padding: 10, border: '2px solid var(--border)' }}>
                     <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
-                      <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 8px', borderRadius: 10, background: isChoice ? '#e6f7ef' : q.type === 'fill' ? '#e8f0ff' : '#fff3e0', color: isChoice ? '#00b365' : q.type === 'fill' ? '#3370ff' : '#ff7d00' }}>
+                      <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 8px', borderRadius: 10, background: isChoice ? 'var(--success-light)' : q.type === 'fill' ? 'var(--primary-light)' : 'var(--warning-light)', color: isChoice ? '#00b365' : q.type === 'fill' ? '#3370ff' : '#ff7d00' }}>
                         {isChoice ? '选择题' : q.type === 'fill' ? '填空题' : '简答题'}
                       </span>
                     </div>

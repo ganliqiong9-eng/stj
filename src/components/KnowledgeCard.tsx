@@ -13,8 +13,8 @@ interface KnowledgeCardProps {
 }
 
 const levelConfig: Record<string, { label: string; color: string; bg: string }> = {
-  beginner: { label: '入门', color: '#58cc02', bg: '#e5f5d0' },
-  intermediate: { label: '进阶', color: '#ff9600', bg: '#fff3e0' },
+  beginner: { label: '入门', color: '#58cc02', bg: 'var(--success-light)' },
+  intermediate: { label: '进阶', color: '#ff9600', bg: 'var(--warning-light)' },
   advanced: { label: '实战', color: '#e63946', bg: '#fce4ec' },
 };
 

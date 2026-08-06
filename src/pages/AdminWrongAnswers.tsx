@@ -29,9 +29,9 @@ export default function AdminWrongAnswers() {
   };
 
   const typeLabel = (t: string) => {
-    if (t === 'choice') return { label: '选择', color: '#00b365', bg: '#e6f7ef' };
-    if (t === 'fill') return { label: '填空', color: '#3370ff', bg: '#e8f0ff' };
-    return { label: '简答', color: '#ff7d00', bg: '#fff3e0' };
+    if (t === 'choice') return { label: '选择', color: '#00b365', bg: 'var(--success-light)' };
+    if (t === 'fill') return { label: '填空', color: '#3370ff', bg: 'var(--primary-light)' };
+    return { label: '简答', color: '#ff7d00', bg: 'var(--warning-light)' };
   };
 
   return (
@@ -82,7 +82,7 @@ export default function AdminWrongAnswers() {
                         {k.tags?.length > 0 && (
                           <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
                             {k.tags.map((t: string, ti: number) => (
-                              <span key={ti} style={{ fontSize: 9, padding: '1px 6px', borderRadius: 4, background: '#e8f0ff', color: '#3370ff' }}>{t}</span>
+                              <span key={ti} style={{ fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'var(--primary-light)', color: '#3370ff' }}>{t}</span>
                             ))}
                           </div>
                         )}

@@ -92,7 +92,7 @@ export default function AskAI() {
                   return (
                     <div key={i} onClick={() => toggle(i)} style={{ background: 'var(--surface)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', marginBottom: 6, border: '2px solid var(--border-light)', cursor: 'pointer' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 8px', borderRadius: 10, background: scorePct > 80 ? '#e6f7ef' : scorePct > 60 ? '#fff3e0' : '#f5f5f5', color: scorePct > 80 ? '#00b365' : scorePct > 60 ? '#ff7d00' : '#999' }}>{scorePct}%</span>
+                        <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 8px', borderRadius: 10, background: scorePct > 80 ? 'var(--success-light)' : scorePct > 60 ? 'var(--warning-light)' : 'var(--bg-subtle)', color: scorePct > 80 ? '#00b365' : scorePct > 60 ? '#ff7d00' : '#999' }}>{scorePct}%</span>
                         <span style={{ flex: 1, fontSize: 11, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chunk.article_title || '知识片段'}</span>
                         {isExpanded ? <ChevronDown size={14} color="var(--text-tertiary)" /> : <ChevronRight size={14} color="var(--text-tertiary)" />}
                       </div>

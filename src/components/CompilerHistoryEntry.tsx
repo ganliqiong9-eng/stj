@@ -18,7 +18,7 @@ function HistoryEntry({ entry, expanded, onToggle }: { entry: ResultEntry; expan
         {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         <span style={{
           padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700,
-          background: entry.language === 'sql' ? '#e8f5e9' : '#fff3e0',
+          background: entry.language === 'sql' ? 'var(--success-light)' : 'var(--warning-light)',
           color: entry.language === 'sql' ? '#2e7d32' : '#e65100',
         }}>{entry.language.toUpperCase()}</span>
         <span style={{

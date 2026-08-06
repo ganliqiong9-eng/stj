@@ -186,7 +186,7 @@ export default function AIAssistant() {
           <span style={{width:28,height:28,borderRadius:'50%',background:'#89b4fa',color:'#1e1e2e',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,flexShrink:0}}>AI</span>
           <span style={{ fontSize: 14, fontWeight: 700, flex: 1 }}>
             AI 学习助手
-            {hasKey ? <span style={{ fontSize: 10, background: '#e5f5d0', color: '#58cc02', padding: '1px 6px', borderRadius: 4, marginLeft: 6 }}>已配置</span> : <span style={{ fontSize: 10, background: '#fef3c7', color: '#b36b00', padding: '1px 6px', borderRadius: 4, marginLeft: 6 }}>需配置</span>}
+            {hasKey ? <span style={{ fontSize: 10, background: 'var(--success-light)', color: '#58cc02', padding: '1px 6px', borderRadius: 4, marginLeft: 6 }}>已配置</span> : <span style={{ fontSize: 10, background: 'var(--warning-light)', color: '#b36b00', padding: '1px 6px', borderRadius: 4, marginLeft: 6 }}>需配置</span>}
             {ragReady === 'ready' ? <span style={{ fontSize: 9, background: '#45475a', color: '#a6adc8', padding: '1px 6px', borderRadius: 4, marginLeft: 4 }}>RAG</span> : null}
           </span>
           <button onClick={() => { const t = (window as any).__toggleTheme; if (t) t(); }} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: '#313244', color: '#cdd6f4', cursor: 'pointer', fontSize: 14, marginRight: 4 }}>{document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}</button><button onClick={() => setShowSetup(!showSetup)} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: '#313244', color: '#cdd6f4', cursor: 'pointer', fontSize: 13 }}>⚙️</button>
